@@ -49,3 +49,15 @@ Caddy 是唯一对公网开放 80/443 端口的正式服务。
 | Study Planner API 源码 | `/opt/my-services/study-api` |
 
 本文档只记录密钥的位置和用途，绝不记录密码、Cookie、会话密钥、API Token、私钥或数据库内容。
+
+## Git 版本控制
+
+- Private repository: `https://github.com/Gary-BANG/garyhub`
+- Default branch: `main`
+- Initial import commit: `1246ea5`
+- Maintainer: Guyang Pan
+- Local working copy: `D:\Codes\Own_Project\garyhub-repo`
+
+GitHub 保存经过脱敏的源码、配置示例和维护文档，不保存正式数据库、任务数据、密码、Cookie、Session Secret、TLS 私钥或备份。
+
+当前 `/opt/my-services` 是正式运行目录，不是 Git working tree。GitHub 推送不会自动修改服务器，服务器也不应直接执行未经测试的 `git pull`。

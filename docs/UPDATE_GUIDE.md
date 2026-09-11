@@ -89,3 +89,25 @@ docker exec caddy caddy reload --config /etc/caddy/Caddyfile
 - 决定何时归档或删除临时升级目录。
 - 检查意外路径 `/opt/my-services/ystemctl start docker` 的内容和来源；确认前不要删除。
 - 定期测试 Miniflux、Calendar 和 Uptime Kuma 的备份恢复。
+
+## GitHub 与服务器同步流程
+
+代码仓库：`https://github.com/Gary-BANG/garyhub`
+默认分支：`main`
+
+推荐更新流程：
+
+1. 在本地 `D:\Codes\Own_Project\garyhub-repo` 执行 `git pull`。
+2. 创建功能分支并在本地修改代码。
+3. 检查 `.gitignore`，运行语法检查和敏感信息扫描。
+4. 提交并推送功能分支。
+5. 使用独立测试目录和测试数据验证。
+6. 备份服务器上的正式代码与数据。
+7. 将确认过的版本部署到 `/opt/my-services`。
+8. 验证网站、登录、数据数量和容器日志。
+9. 更新维护文档并提交新的 Git 版本。
+10. 保留旧代码、旧镜像和数据备份用于回滚。
+
+GitHub 不是数据库备份。正式数据库和用户数据必须使用独立的备份流程。
+
+当前服务器目录没有配置为 Git 仓库，所以不要在 `/opt/my-services` 中直接运行 `git pull`。在部署流程完全自动化之前，继续采用“本地 Git → 独立测试 → 备份 → 正式部署”的方式。
