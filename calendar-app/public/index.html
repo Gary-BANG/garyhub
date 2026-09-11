@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gary Hub Calendar</title>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.20/locales-all.global.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: #f4f6fb;
+      color: #111827;
+    }
+    .page {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      padding: 20px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .title h1 { margin: 0; font-size: 34px; }
+    .title p { margin: 8px 0 0; color: #6b7280; }
+    .userbox {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #e0e7ff;
+      color: #3730a3;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 20px;
+      align-items: start;
+    }
+    #calendar { min-height: 760px; }
+    h2, h3 { margin-top: 0; }
+    .section-title { margin-bottom: 14px; font-size: 22px; }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    input, textarea, select, button {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      font-size: 14px;
+    }
+    textarea { min-height: 100px; resize: vertical; }
+    .field { margin-bottom: 14px; }
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn-row button {
+      flex: 1;
+      min-width: 100px;
+    }
+    button {
+      cursor: pointer;
+      border: none;
+      font-weight: 700;
+    }
+    .primary { background: #2563eb; color: white; }
+    .secondary { background: #e5e7eb; color: #111827; }
+    .danger { background: #dc2626; color: white; }
+    .success { background: #059669; color: white; }
+    .muted { color: #6b7280; font-size: 14px; line-height: 1.6; }
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .hidden { display: none !important; }
+    .login-wrap {
+      max-width: 460px;
+      margin: 50px auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .message {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #b91c1c;
+      min-height: 20px;
+      line-height: 1.5;
+    }
+    .ok-message { color: #047857; }
+    .tip {
+      margin-top: 12px;
+      padding: 12px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .small { font-size: 13px; color: #6b7280; }
+    .request-item {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .request-title {
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .request-meta {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+    .request-note {
+      background: #f9fafb;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 14px;
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      #calendar { min-height: 620px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div id="loginSection" class="login-wrap">
+      <div class="card">
+        <div class="title" style="text-align:center; margin-bottom: 18px;">
+          <h1>Gary Hub Calendar</h1>
+          <p>登录系统</p>
+        </div>
+
+        <form id="loginForm">
+          <div class="field">
+            <label for="loginUsername">用户名</label>
+            <input id="loginUsername" type="text" placeholder="请输入用户名" required />
+          </div>
+
+          <div class="field">
+            <label for="loginPassword">密码</label>
+            <input id="loginPassword" type="password" placeholder="请输入密码" required />
+          </div>
+
+          <button type="submit" class="primary">登录</button>
+          <div id="loginMessage" class="message"></div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="title" style="text-align:center; margin-bottom: 18px;">
+          <h1 style="font-size:26px;">申请注册</h1>
+          <p>提交后需等待管理员审核开通</p>
+        </div>
+
+        <form id="registerRequestForm">
+          <div class="field">
+            <label for="reqUsername">用户名</label>
+            <input id="reqUsername" type="text" placeholder="例如：alice" required />
+          </div>
+
+          <div class="field">
+            <label for="reqPassword">密码</label>
+            <input id="reqPassword" type="password" placeholder="至少 6 位" required />
+          </div>
+
+          <div class="field">
+            <label for="reqNote">申请备注</label>
+            <textarea id="reqNote" placeholder="可选：填写你是谁，方便管理员识别"></textarea>
+          </div>
+
+          <button type="submit" class="success">提交注册申请</button>
+          <div id="registerMessage" class="message"></div>
+        </form>
+      </div>
+    </div>
+
+    <div id="appSection" class="hidden">
+      <div class="topbar">
+        <div class="title">
+          <h1>Gary Hub Calendar</h1>
+          <p>耕耘不辍，履践致远</p>
+        </div>
+
+        <div class="userbox">
+          <span id="currentUserText"></span>
+          <span id="currentRoleBadge" class="badge"></span>
+          <button id="logoutBtn" class="secondary" style="width:auto; padding:10px 16px;">退出登录</button>
+        </div>
+      </div>
+
+      <div class="layout">
+        <div class="card">
+          <div id="calendar"></div>
+        </div>
+
+        <div class="stack">
+          <div id="adminSwitchCard" class="card hidden">
+            <h2 class="section-title">管理员查看目标</h2>
+            <div class="field">
+              <label for="userSelect">当前查看的用户</label>
+              <select id="userSelect"></select>
+            </div>
+            <div class="small">切换后，左侧月历会显示该用户的事项。</div>
+          </div>
+
+          <div class="card">
+            <h2 id="eventFormTitle" class="section-title">新增事项</h2>
+
+            <form id="eventForm">
+              <input type="hidden" id="eventId" />
+
+              <div class="field">
+                <label for="eventDate">日期</label>
+                <input id="eventDate" type="date" required />
+              </div>
+
+              <div class="field">
+                <label for="eventTitle">事项标题</label>
+                <input id="eventTitle" type="text" placeholder="例如：面试 / 会议 / 健身 / 备忘" required />
+              </div>
+
+              <div class="field">
+                <label for="eventNotes">备注</label>
+                <textarea id="eventNotes" placeholder="可选：补充说明"></textarea>
+              </div>
+
+              <div class="btn-row">
+                <button type="submit" class="primary">保存事项</button>
+                <button type="button" id="resetEventBtn" class="secondary">清空</button>
+                <button type="button" id="deleteEventBtn" class="danger hidden">删除</button>
+              </div>
+
+              <div class="tip">
+                1）点击左侧某一天，可新建事项<br>
+                2）点击已有事项，可编辑或删除<br>
+                3）事项具体信息可以写在备注内
+              </div>
+            </form>
+          </div>
+
+          <div id="adminCreateUserCard" class="card hidden">
+            <h2 class="section-title">管理员直接创建用户</h2>
+
+            <form id="createUserForm">
+              <div class="field">
+                <label for="newUsername">用户名</label>
+                <input id="newUsername" type="text" placeholder="例如：alice" required />
+              </div>
+
+              <div class="field">
+                <label for="newPassword">初始密码</label>
+                <input id="newPassword" type="text" placeholder="例如：Alice@2026" required />
+              </div>
+
+              <div class="field">
+                <label for="newRole">角色</label>
+                <select id="newRole">
+                  <option value="user">普通用户</option>
+                  <option value="admin">管理员</option>
+                </select>
+              </div>
+
+              <button type="submit" class="success">创建用户</button>
+              <div id="createUserMessage" class="message"></div>
+            </form>
+          </div>
+
+          <div id="adminRegisterRequestsCard" class="card hidden">
+            <h2 class="section-title">待审核注册申请</h2>
+            <div id="registerRequestsList" class="small">加载中...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      me: null,
+      users: [],
+      selectedUserId: null,
+      calendar: null,
+      editingEventId: null
+    };
+
+    function $(id) {
+      return document.getElementById(id);
+    }
+
+    function setText(id, text) {
+      $(id).textContent = text;
+    }
+
+    function showLoginPage() {
+      $("loginSection").classList.remove("hidden");
+      $("appSection").classList.add("hidden");
+    }
+
+    function showAppPage() {
+      $("loginSection").classList.add("hidden");
+      $("appSection").classList.remove("hidden");
+    }
+
+    async function api(url, options = {}) {
+      const opts = {
+        credentials: "same-origin",
+        ...options
+      };
+
+      if (opts.body && !opts.headers) {
+        opts.headers = { "Content-Type": "application/json" };
+      }
+
+      const res = await fetch(url, opts);
+
+      if (res.status === 401) {
+        showLoginPage();
+        throw new Error("未登录或会话已失效，请重新登录");
+      }
+
+      const text = await res.text();
+      let data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        data = { raw: text };
+      }
+
+      if (!res.ok) {
+        throw new Error(data.message || `请求失败：${res.status}`);
+      }
+
+      return data;
+    }
+
+    function resetEventForm() {
+      state.editingEventId = null;
+      $("eventFormTitle").textContent = "新增事项";
+      $("eventId").value = "";
+      $("eventDate").value = "";
+      $("eventTitle").value = "";
+      $("eventNotes").value = "";
+      $("deleteEventBtn").classList.add("hidden");
+    }
+
+    function fillFormByDate(dateStr) {
+      resetEventForm();
+      $("eventDate").value = dateStr;
+    }
+
+    function fillFormByEvent(event) {
+      state.editingEventId = event.id;
+      $("eventFormTitle").textContent = "编辑事项";
+      $("eventId").value = event.id;
+      $("eventDate").value = event.startStr.slice(0, 10);
+      $("eventTitle").value = event.title || "";
+      $("eventNotes").value = event.extendedProps.notes || "";
+      $("deleteEventBtn").classList.remove("hidden");
+    }
+
+    function getCurrentTargetUserId() {
+      if (state.me && state.me.role === "admin") {
+        return Number(state.selectedUserId || state.me.id);
+      }
+      return Number(state.me.id);
+    }
+
+    async function loadMe() {
+      const data = await api("/api/me");
+      state.me = data.user;
+      state.selectedUserId = data.user.id;
+    }
+
+    async function loadUsersForAdmin() {
+      if (!state.me || state.me.role !== "admin") return;
+
+      const users = await api("/api/admin/users");
+      state.users = users;
+
+      const select = $("userSelect");
+      select.innerHTML = "";
+
+      users.forEach(user => {
+        const option = document.createElement("option");
+        option.value = String(user.id);
+        option.textContent = `${user.username} (#${user.id}) [${user.role}]`;
+        select.appendChild(option);
+      });
+
+      select.value = String(state.selectedUserId || state.me.id);
+    }
+
+    async function loadRegisterRequests() {
+      if (!state.me || state.me.role !== "admin") return;
+
+      const list = $("registerRequestsList");
+      list.textContent = "加载中...";
+
+      try {
+        const rows = await api("/api/admin/register-requests");
+        if (!rows.length) {
+          list.innerHTML = '<div class="small">当前没有待审核申请</div>';
+          return;
+        }
+
+        list.innerHTML = "";
+
+        rows.forEach(row => {
+          const div = document.createElement("div");
+          div.className = "request-item";
+
+          div.innerHTML = `
+            <div class="request-title">${escapeHtml(row.username)}</div>
+            <div class="request-meta">
+              申请ID: ${row.id}<br>
+              提交时间: ${escapeHtml(row.created_at || "")}
+            </div>
+            <div class="request-note">${escapeHtml(row.note || "无备注")}</div>
+            <div class="btn-row">
+              <button class="success" data-approve="${row.id}">批准</button>
+              <button class="danger" data-reject="${row.id}">拒绝</button>
+            </div>
+          `;
+
+          list.appendChild(div);
+        });
+
+        list.querySelectorAll("[data-approve]").forEach(btn => {
+          btn.addEventListener("click", async function() {
+            const id = this.getAttribute("data-approve");
+            try {
+              await api(`/api/admin/register-requests/${id}/approve`, {
+                method: "POST"
+              });
+              alert("已批准");
+              await loadUsersForAdmin();
+              await loadRegisterRequests();
+            } catch (err) {
+              alert(err.message);
+            }
+          });
+        });
+
+        list.querySelectorAll("[data-reject]").forEach(btn => {
+          btn.addEventListener("click", async function() {
+            const id = this.getAttribute("data-reject");
+            try {
+              await api(`/api/admin/register-requests/${id}/reject`, {
+                method: "POST"
+              });
+              alert("已拒绝");
+              await loadRegisterRequests();
+            } catch (err) {
+              alert(err.message);
+            }
+          });
+        });
+      } catch (err) {
+        list.innerHTML = `<div class="message">${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    function updateHeader() {
+      setText("currentUserText", `当前登录：${state.me.username}`);
+      setText("currentRoleBadge", state.me.role === "admin" ? "管理员" : "普通用户");
+
+      if (state.me.role === "admin") {
+        $("adminSwitchCard").classList.remove("hidden");
+        $("adminCreateUserCard").classList.remove("hidden");
+        $("adminRegisterRequestsCard").classList.remove("hidden");
+      } else {
+        $("adminSwitchCard").classList.add("hidden");
+        $("adminCreateUserCard").classList.add("hidden");
+        $("adminRegisterRequestsCard").classList.add("hidden");
+      }
+    }
+
+    function initCalendarIfNeeded() {
+      if (state.calendar) return;
+
+      state.calendar = new FullCalendar.Calendar($("calendar"), {
+        locale: "zh-cn",
+        initialView: "dayGridMonth",
+        height: "auto",
+        events: async function(fetchInfo, successCallback, failureCallback) {
+          try {
+            let url = "/api/events";
+            if (state.me && state.me.role === "admin") {
+              url += `?userId=${encodeURIComponent(getCurrentTargetUserId())}`;
+            }
+
+            const data = await api(url);
+            successCallback(data);
+          } catch (err) {
+            console.error(err);
+            failureCallback(err);
+          }
+        },
+        dateClick: function(info) {
+          fillFormByDate(info.dateStr);
+        },
+        eventClick: function(info) {
+          fillFormByEvent(info.event);
+        },
+        eventDidMount: function(info) {
+          if (info.event.extendedProps.notes) {
+            info.el.title = info.event.extendedProps.notes;
+          }
+        }
+      });
+
+      state.calendar.render();
+    }
+
+    function refreshCalendar() {
+      if (state.calendar) {
+        state.calendar.refetchEvents();
+      }
+    }
+
+    async function enterApp() {
+      await loadMe();
+      updateHeader();
+
+      if (state.me.role === "admin") {
+        await loadUsersForAdmin();
+        await loadRegisterRequests();
+      }
+
+      showAppPage();
+      initCalendarIfNeeded();
+      refreshCalendar();
+      resetEventForm();
+    }
+
+    async function tryAutoLogin() {
+      try {
+        await enterApp();
+      } catch (err) {
+        console.warn("当前未登录:", err.message);
+        showLoginPage();
+      }
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    $("loginForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      $("loginMessage").textContent = "";
+
+      const username = $("loginUsername").value.trim();
+      const password = $("loginPassword").value;
+
+      try {
+        await api("/api/login", {
+          method: "POST",
+          body: JSON.stringify({ username, password }),
+          headers: { "Content-Type": "application/json" }
+        });
+
+        $("loginUsername").value = "";
+        $("loginPassword").value = "";
+        await enterApp();
+      } catch (err) {
+        $("loginMessage").textContent = err.message;
+      }
+    });
+
+    $("registerRequestForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      $("registerMessage").textContent = "";
+      $("registerMessage").classList.remove("ok-message");
+
+      const username = $("reqUsername").value.trim();
+      const password = $("reqPassword").value;
+      const note = $("reqNote").value.trim();
+
+      try {
+        await api("/api/register-request", {
+          method: "POST",
+          body: JSON.stringify({ username, password, note }),
+          headers: { "Content-Type": "application/json" }
+        });
+
+        $("registerMessage").textContent = "申请已提交，请等待管理员审核";
+        $("registerMessage").classList.add("ok-message");
+        $("reqUsername").value = "";
+        $("reqPassword").value = "";
+        $("reqNote").value = "";
+      } catch (err) {
+        $("registerMessage").textContent = err.message;
+      }
+    });
+
+    $("logoutBtn").addEventListener("click", async function() {
+      try {
+        await api("/api/logout", { method: "POST" });
+      } catch (err) {
+        console.warn(err.message);
+      } finally {
+        state.me = null;
+        state.users = [];
+        state.selectedUserId = null;
+        showLoginPage();
+      }
+    });
+
+    $("userSelect").addEventListener("change", function() {
+      state.selectedUserId = Number(this.value);
+      resetEventForm();
+      refreshCalendar();
+    });
+
+    $("eventForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const eventId = $("eventId").value.trim();
+      const payload = {
+        title: $("eventTitle").value.trim(),
+        start: $("eventDate").value,
+        notes: $("eventNotes").value.trim()
+      };
+
+      if (state.me.role === "admin") {
+        payload.userId = getCurrentTargetUserId();
+      }
+
+      try {
+        if (!payload.title || !payload.start) {
+          throw new Error("日期和标题不能为空");
+        }
+
+        if (eventId) {
+          await api(`/api/events/${eventId}`, {
+            method: "PUT",
+            body: JSON.stringify(payload),
+            headers: { "Content-Type": "application/json" }
+          });
+        } else {
+          await api("/api/events", {
+            method: "POST",
+            body: JSON.stringify(payload),
+            headers: { "Content-Type": "application/json" }
+          });
+        }
+
+        resetEventForm();
+        refreshCalendar();
+        alert("保存成功");
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    $("deleteEventBtn").addEventListener("click", async function() {
+      if (!state.editingEventId) return;
+
+      const ok = confirm("确定删除这个事项吗？");
+      if (!ok) return;
+
+      try {
+        await api(`/api/events/${state.editingEventId}`, {
+          method: "DELETE"
+        });
+        resetEventForm();
+        refreshCalendar();
+        alert("删除成功");
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    $("resetEventBtn").addEventListener("click", function() {
+      resetEventForm();
+    });
+
+    $("createUserForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      $("createUserMessage").textContent = "";
+      $("createUserMessage").classList.remove("ok-message");
+
+      const username = $("newUsername").value.trim();
+      const password = $("newPassword").value.trim();
+      const role = $("newRole").value;
+
+      try {
+        await api("/api/admin/users", {
+          method: "POST",
+          body: JSON.stringify({ username, password, role }),
+          headers: { "Content-Type": "application/json" }
+        });
+
+        $("createUserMessage").textContent = "用户创建成功";
+        $("createUserMessage").classList.add("ok-message");
+        $("newUsername").value = "";
+        $("newPassword").value = "";
+        $("newRole").value = "user";
+
+        await loadUsersForAdmin();
+      } catch (err) {
+        $("createUserMessage").textContent = err.message;
+      }
+    });
+
+    tryAutoLogin();
+  </script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+# Secrets and environment files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+cookies.txt
+*secret*
+*credentials*
+
+# Databases and production data
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+*.sql
+tasks.json
+data/
+postgres/
+backups/
+
+# Dependencies and generated files
+node_modules/
+dist/
+build/
+coverage/
+__pycache__/
+*.pyc
+*.log
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Temporary upgrade files
+garyhub-upgrade-*/
+migration-test-*/
+*.bak
+backups/
+backup/
+*.bak
+*.backup
+*.backup.*
+*_backup_*
+*-backup-*

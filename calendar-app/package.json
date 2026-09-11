@@ -1,0 +1,16 @@
+{
+  "name": "garyhub-calendar",
+  "version": "2.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "node app.js",
+    "seed-admin": "node seed-admin.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-session": "^1.19.0",
+    "sqlite3": "^6.0.1",
+    "connect-sqlite3": "^0.9.16"
+  }
+}
