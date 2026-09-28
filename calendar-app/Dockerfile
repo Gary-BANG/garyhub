@@ -11,10 +11,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libsqlite3-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY package.json ./
+COPY package.json package-lock.json ./
 
 # 强制从源码编译 sqlite3，避免预编译二进制的 glibc 不匹配
-RUN npm install --build-from-source
+RUN npm ci --build-from-source --omit=dev
 
 COPY . .
 
