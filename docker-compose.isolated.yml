@@ -1,0 +1,15 @@
+services:
+  calendar-isolated:
+    build:
+      context: ./calendar-app
+    container_name: garyhub-calendar-isolated
+    restart: "no"
+    ports:
+      - "127.0.0.1:3102:3000"
+    environment:
+      PORT: "3000"
+      COOKIE_SECURE: "false"
+      DATA_DIR: /app/data
+      SESSION_SECRET: ${ISOLATED_SESSION_SECRET:?Set ISOLATED_SESSION_SECRET}
+    volumes:
+      - ${GARYHUB_TEST_DATA_DIR:?Set GARYHUB_TEST_DATA_DIR}:/app/data

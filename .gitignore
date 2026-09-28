@@ -19,6 +19,8 @@ cookies.txt
 *.db-wal
 *.sql
 tasks.json
+outlook-token.json
+garyhub-study-removal-export-*.tar.gz
 data/
 postgres/
 backups/

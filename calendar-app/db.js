@@ -2,13 +2,17 @@ const fs = require("fs");
 const path = require("path");
 const sqlite3 = require("sqlite3").verbose();
 
-const dataDir = path.join(__dirname, "data");
+const dataDir = process.env.DATA_DIR
+  ? path.resolve(process.env.DATA_DIR)
+  : path.join(__dirname, "data");
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
 const dbPath = path.join(dataDir, "calendar.sqlite");
 const db = new sqlite3.Database(dbPath);
+
+db.configure("busyTimeout", 5000);
 
 function run(sql, params = []) {
   return new Promise((resolve, reject) => {
@@ -37,7 +41,20 @@ function all(sql, params = []) {
   });
 }
 
+function exec(sql) {
+  return new Promise((resolve, reject) => {
+    db.exec(sql, err => {
+      if (err) return reject(err);
+      resolve();
+    });
+  });
+}
+
 async function initDb() {
+  await exec("PRAGMA foreign_keys = ON");
+  await exec("PRAGMA journal_mode = WAL");
+  await exec("PRAGMA busy_timeout = 5000");
+
   await run(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -84,8 +101,10 @@ async function initDb() {
 
 module.exports = {
   db,
+  dataDir,
   run,
   get,
   all,
+  exec,
   initDb
 };

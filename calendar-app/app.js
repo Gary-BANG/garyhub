@@ -1,10 +1,15 @@
 const express = require("express");
 const session = require("express-session");
-const SQLiteStoreFactory = require("connect-sqlite3")(session);
 const path = require("path");
+const crypto = require("crypto");
 
-const { initDb, get, all, run } = require("./db");
+const { dataDir, initDb, get, all, run } = require("./db");
 const { hashPassword, verifyPassword } = require("./auth-utils");
+const { createSqliteSessionStore } = require("./session-store");
+const registerTasksApi = require("./tasks-api");
+const registerEmailApi = require("./email-api");
+const { consumeVerification, normalizeEmail } = require("./email-api");
+const { rateLimit } = require("./rate-limit");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,9 +20,8 @@ app.set("trust proxy", 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const sessionStore = new SQLiteStoreFactory({
-  db: "sessions.sqlite",
-  dir: path.join(__dirname, "data")
+const sessionStore = createSqliteSessionStore(session, {
+  filename: path.join(dataDir, "sessions.sqlite")
 });
 
 app.use(
@@ -35,6 +39,30 @@ app.use(
     }
   })
 );
+
+app.disable("x-powered-by");
+app.use((req, res, next) => {
+  res.set("X-Content-Type-Options", "nosniff");
+  res.set("X-Frame-Options", "DENY");
+  res.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  next();
+});
+
+app.get("/api/csrf", (req, res) => {
+  if (!req.session.csrfToken) req.session.csrfToken = crypto.randomBytes(32).toString("hex");
+  res.set("Cache-Control", "no-store").json({ token: req.session.csrfToken });
+});
+
+app.use("/api", (req, res, next) => {
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
+  const supplied = req.get("x-csrf-token") || "";
+  const expected = req.session.csrfToken || "";
+  if (!/^[0-9a-f]{64}$/.test(supplied) || !expected ||
+      !crypto.timingSafeEqual(Buffer.from(supplied, "hex"), Buffer.from(expected, "hex"))) {
+    return res.status(403).json({ message: "页面校验已失效，请刷新后重试" });
+  }
+  next();
+});
 
 app.use(express.static(PUBLIC_DIR));
 
@@ -99,7 +127,7 @@ app.get("/health", (req, res) => {
 });
 
 // 登录
-app.post("/api/login", async (req, res) => {
+app.post("/api/login", rateLimit(12, 15 * 60_000), async (req, res) => {
   try {
     const username = String(req.body.username || "").trim();
     const password = String(req.body.password || "");
@@ -139,11 +167,12 @@ app.post("/api/login", async (req, res) => {
 });
 
 // 申请注册
-app.post("/api/register-request", async (req, res) => {
+app.post("/api/register-request", rateLimit(5, 60 * 60_000), async (req, res) => {
   try {
     const username = String(req.body.username || "").trim();
     const password = String(req.body.password || "");
     const note = String(req.body.note || "").trim();
+    const requireEmail = process.env.REQUIRE_VERIFIED_EMAIL === "true";
 
     if (!username || !password) {
       return res.status(400).json({ message: "用户名和密码不能为空" });
@@ -177,12 +206,27 @@ app.post("/api/register-request", async (req, res) => {
 
     const passwordHash = hashPassword(password);
 
+    let verified = null;
+    if (requireEmail) {
+      try {
+        const { email } = normalizeEmail(req.body.email);
+        verified = await consumeVerification({
+          id: req.body.verification_id, token: req.body.verification_token,
+          email, purpose: "registration"
+        });
+      } catch (error) {
+        return res.status(400).json({ message: error.message });
+      }
+    }
+
     await run(
       `
-      INSERT INTO register_requests (username, password_hash, note, status)
-      VALUES (?, ?, ?, 'pending')
+      INSERT INTO register_requests (username, password_hash, note, status,
+        email,email_normalized,email_verified_at)
+      VALUES (?, ?, ?, 'pending', ?, ?, ?)
       `,
-      [username, passwordHash, note]
+      [username, passwordHash, note, verified?.email || null,
+        verified?.email_normalized || null, verified?.verified_at || null]
     );
 
     res.status(201).json({
@@ -323,10 +367,13 @@ app.post("/api/admin/register-requests/:id/approve", requireAdmin, async (req, r
 
     const result = await run(
       `
-      INSERT INTO users (username, password_hash, role, enabled)
-      VALUES (?, ?, 'user', 1)
+      INSERT INTO users (username, password_hash, role, enabled,
+        email,email_normalized,email_verified_at,timezone)
+      VALUES (?, ?, 'user', 1, ?, ?, ?, ?)
       `,
-      [requestRow.username, requestRow.password_hash]
+      [requestRow.username, requestRow.password_hash, requestRow.email,
+        requestRow.email_normalized, requestRow.email_verified_at,
+        requestRow.timezone || "Etc/UTC"]
     );
 
     await run(
@@ -610,6 +657,9 @@ app.delete("/api/events/:id", requireLogin, async (req, res) => {
     res.status(500).json({ message: "服务器错误" });
   }
 });
+
+registerTasksApi(app, { requireLogin, resolveTargetUserId });
+registerEmailApi(app, { requireLogin });
 
 initDb()
   .then(() => {
