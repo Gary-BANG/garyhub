@@ -1,6 +1,6 @@
 # Gary Hub 系统架构
 
-最后核对：2026-09-11 UTC
+最后核对：2026-09-28 UTC（生产切换与旧 Study 清理报告）
 
 ## 请求路径
 
@@ -11,7 +11,8 @@ Internet
    v
 Caddy
    +-- garyhub.uk ----------> /opt/my-services/site
-   +-- /api/study ----------> study-api:3000
+   +-- /study/* ------------> 410 Gone
+   +-- /api/study/* --------> 410 Gone
    +-- calendar.garyhub.uk -> calendar-app:3000
    +-- kuma.garyhub.uk -----> uptime-kuma:3001
    +-- rss.garyhub.uk ------> miniflux:8080
@@ -20,26 +21,29 @@ Caddy
 
 Miniflux 在 Docker 内部连接 `miniflux-db:5432`。
 
+独立 `study-api` 已清理。提醒 worker `garyhub-reminder-production-20260927-203135` 与 Calendar Web 共享正式数据目录，并通过 Outlook Microsoft Graph 发件。
+
 ## 容器与持久化目录
 
 | 容器 | 镜像 | 重启策略 | 主要持久化位置 |
 |---|---|---|---|
 | `caddy` | `caddy:2` | `always` | `caddy/data`、`caddy/config`、`site` |
-| `calendar-app` | `calendar-app-calendar-app` | `unless-stopped` | `calendar-app/data` |
-| `study-api` | `study-api:0.2` | `unless-stopped` | `study-api/data` |
+| `calendar-app` | `garyhub-calendar-candidate:20260927-200732` | `unless-stopped` | `/opt/garyhub-cutover-20260927-203135/data` |
+| `garyhub-reminder-production-20260927-203135` | 同一 Calendar 镜像 | `unless-stopped` | 同一正式数据目录 |
 | `filebrowser` | `filebrowser/filebrowser:latest` | `always` | `filebrowser`、`filebrowser/data` |
 | `uptime-kuma` | `louislam/uptime-kuma:1` | `always` | `uptime-kuma` |
 | `miniflux` | `miniflux/miniflux:latest` | `always` | 数据位于 `miniflux-db` |
 | `miniflux-db` | `postgres:15-alpine` | `always` | `postgres` |
 | `netdata` | `netdata/netdata:stable` | `always` | 只读系统监控挂载 |
-| `garyhub-calendar-test` | 临时 Calendar 镜像 | `no` | 临时升级目录 |
+
+旧测试容器和隔离环境是否仍运行，需在清理前重新盘点；它们不属于正式 Calendar 架构。
 
 ## 端口
 
 - `80/tcp`：Caddy HTTP
 - `443/tcp`、`443/udp`：Caddy HTTPS/HTTP3
 - `127.0.0.1:19999`：Netdata，仅本机
-- `127.0.0.1:3101`：临时 Calendar 测试服务，通常通过 SSH 隧道访问
+- `127.0.0.1:3101/3103/3104`：历史测试端口，不属于正式入口；实际占用以现场检查为准
 
 其他应用端口仅供 Docker 内部通信，不应直接暴露到公网。
 
@@ -50,13 +54,10 @@ Miniflux 在 Docker 内部连接 `miniflux-db:5432`。
 - 配置状态：`/opt/my-services/caddy/config`
 - 静态页面挂载：`/opt/my-services/site -> /srv`（只读）
 
-## Calendar/Study Planner 合并状态
+## 统一 Calendar 当前状态
 
-正式环境目前仍使用两个数据源：
+正式 Web 与提醒 worker 使用同一 `/opt/garyhub-cutover-20260927-203135/data` 目录，挂载到 `/app/data`。镜像 ID 为 `sha256:0490d2abb87f3c4f167d1f04026d111e36bbd6d9f0a58a19b9f4c7de279b727f`。有效 Compose 使用 `/opt/my-services/calendar-app/docker-compose.yml` 和切换目录下含密钥的 `override.yml`。
 
-1. Calendar SQLite：`calendar-app/data/calendar.sqlite`
-2. Study Planner JSON：`study-api/data/tasks.json`
+旧 Study 页面、API 和独立后端已退役。切换时保留 5 个用户，按照用户选择清空 22 条旧 Calendar 事项、未迁入 45 条旧 Study 任务。旧任务有用户电脑上的离线归档，历史切换备份仍在服务器。
 
-临时升级目录中已有 Tasks API、Tasks UI，以及将 45 条任务归属到管理员 ID 1 的测试数据库。测试页面里的修改不会同步回正式 Study Planner。
-
-正式迁移前必须重新备份最新数据、重新迁移、核对用户/日程/任务数量、测试权限与编辑功能，并保留旧镜像和原数据以便回滚。
+Caddyfile 以单文件 bind mount 进入容器 `/etc/caddy/Caddyfile`；修改时应核对主机与容器内文件哈希一致，再验证并重载容器实际加载的配置。
