@@ -9,7 +9,7 @@
     "migrate": "node scripts/migrate-unified-calendar.js",
     "test": "node --test test/*.test.js",
     "test:migration": "node --test test/migration.test.js",
-    "check": "node --check app.js && node --check db.js && node --check session-store.js && node --check migrations/unified-schema.js && node --check scripts/migrate-unified-calendar.js && node --check scripts/connect-outlook.js && node --check reminder-utils.js && node --check tasks-api.js && node --check email-api.js && node --check mailer.js && node --check graph-mailer.js && node --check reminder-worker.js && node --check public/unified.js"
+    "check": "node --check app.js && node --check db.js && node --check session-store.js && node --check migrations/unified-schema.js && node --check migrations/personal-records.js && node --check personal-api.js && node --check scripts/migrate-unified-calendar.js && node --check scripts/connect-outlook.js && node --check reminder-utils.js && node --check tasks-api.js && node --check email-api.js && node --check mailer.js && node --check graph-mailer.js && node --check reminder-worker.js && node --check public/unified.js && node --check public/personal.js"
   },
   "dependencies": {
     "express": "^4.18.2",

@@ -32,6 +32,8 @@ Caddy 是唯一对公网开放 80/443 端口的正式服务。
 
 ## 文档入口
 
+候选功能（日记、体重、锻炼）尚未部署；见架构、数据备份和升级文档中的私人记录章节。服务器版本仍应以实际镜像与 Compose 现场检查为准。
+
 - [系统架构](docs/ARCHITECTURE.md)
 - [数据与备份](docs/DATA_AND_BACKUP.md)
 - [升级与回滚](docs/UPDATE_GUIDE.md)
