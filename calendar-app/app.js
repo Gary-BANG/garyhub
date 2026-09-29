@@ -8,6 +8,8 @@ const { hashPassword, verifyPassword } = require("./auth-utils");
 const { createSqliteSessionStore } = require("./session-store");
 const registerTasksApi = require("./tasks-api");
 const registerEmailApi = require("./email-api");
+const registerPersonalApi = require("./personal-api");
+const { migratePersonalRecords } = require("./migrations/personal-records");
 const { consumeVerification, normalizeEmail } = require("./email-api");
 const { rateLimit } = require("./rate-limit");
 
@@ -660,8 +662,10 @@ app.delete("/api/events/:id", requireLogin, async (req, res) => {
 
 registerTasksApi(app, { requireLogin, resolveTargetUserId });
 registerEmailApi(app, { requireLogin });
+registerPersonalApi(app, { requireLogin });
 
 initDb()
+  .then(() => migratePersonalRecords(require("./db")))
   .then(() => {
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Calendar app listening on port ${PORT}`);

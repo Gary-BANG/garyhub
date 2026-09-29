@@ -173,6 +173,15 @@
       #calendar { min-height: 620px; }
     }
     @media (max-width: 600px) { .page { padding: 12px; } .card { padding: 15px; } .inline-fields { grid-template-columns: 1fr; } .task-row { flex-direction: column; } }
+    .personal-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:16px 0; }
+    .personal-tabs button { width:auto; }
+    .personal-grid { display:grid; grid-template-columns:minmax(260px,420px) minmax(0,1fr); gap:20px; }
+    .personal-list { max-height:650px; overflow:auto; }
+    .personal-item { border-bottom:1px solid #e5e7eb; padding:12px 0; overflow-wrap:anywhere; }
+    .personal-item p { white-space:pre-wrap; overflow-wrap:anywhere; }
+    .personal-item button { width:auto; margin-right:6px; }
+    #weightChart { width:100%; height:230px; }
+    @media (max-width:750px) { .personal-grid { grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
@@ -243,6 +252,7 @@
         </div>
 
         <div class="userbox">
+          <a href="#personalRecords">日记 · 健康记录</a>
           <span id="currentUserText"></span>
           <span id="currentRoleBadge" class="badge"></span>
           <button id="notificationsBtn" class="secondary compact-button" type="button" aria-label="通知">🔔 <span id="unreadCount">0</span></button>
@@ -375,6 +385,51 @@
         <div class="btn-row" style="margin:10px 0"><button id="accountSendCode" type="button" class="secondary">发送邮箱验证码</button><button id="saveTimezone" type="button" class="secondary">保存时区</button></div>
         <div class="inline-fields"><div><label for="accountCode">收到的验证码</label><input id="accountCode" inputmode="numeric" maxlength="6" /></div><div style="align-self:end"><button id="accountConfirmCode" type="button" class="primary">验证并保存邮箱</button></div></div>
         <p id="accountMessage" class="small" role="status"></p>
+      </section>
+      <section id="personalRecords" style="margin-top:20px" aria-label="私人记录">
+        <div class="card">
+          <h2 class="section-title">日记与健康记录</h2>
+          <p class="small">仅当前登录账号可查看。日期按账号时区的“今天”预填，也可自行修改。</p>
+          <div class="personal-tabs" role="tablist" aria-label="记录类型">
+            <button type="button" class="secondary" data-personal-tab="diary">每日日记</button>
+            <button type="button" class="secondary" data-personal-tab="weight">体重记录</button>
+            <button type="button" class="secondary" data-personal-tab="exercise">锻炼记录</button>
+          </div>
+        </div>
+        <div id="personal-diary" class="personal-grid" style="margin-top:20px">
+          <form class="card" data-personal-form="diary">
+            <h3>写日记</h3>
+            <div class="field"><label for="diaryDate">日期</label><input id="diaryDate" name="entry_date" type="date" required /></div>
+            <div class="field"><label for="diaryTitle">标题</label><input id="diaryTitle" name="title" maxlength="160" /></div>
+            <div class="field"><label for="diaryBody">正文</label><textarea id="diaryBody" name="body" maxlength="20000" style="min-height:230px"></textarea></div>
+            <div class="btn-row"><button class="primary">保存日记</button><button type="button" class="secondary" data-personal-clear="diary">新建</button></div>
+            <p class="small" data-personal-message="diary" role="status"></p>
+          </form>
+          <div class="card"><h3>日期列表</h3><label for="diarySearch">搜索标题或正文</label><input id="diarySearch" type="search" maxlength="100" placeholder="搜索自己的日记" /><div class="personal-list" data-personal-list="diary"></div></div>
+        </div>
+        <div id="personal-weight" class="personal-grid hidden" style="margin-top:20px">
+          <form class="card" data-personal-form="weight">
+            <h3>记录体重</h3>
+            <div class="field"><label for="weightDate">日期</label><input id="weightDate" name="entry_date" type="date" required /></div>
+            <div class="inline-fields"><div class="field"><label for="weightValue">体重</label><input id="weightValue" name="weight" type="number" min="1" step="0.001" required /></div><div class="field"><label for="weightUnit">单位</label><select id="weightUnit" name="unit"><option value="kg">kg</option><option value="lb">lb</option></select></div></div>
+            <div class="field"><label for="weightNote">备注（可选）</label><textarea id="weightNote" name="note" maxlength="1000"></textarea></div>
+            <div class="btn-row"><button class="primary">保存体重</button><button type="button" class="secondary" data-personal-clear="weight">新建</button></div>
+            <p class="small" data-personal-message="weight" role="status"></p>
+          </form>
+          <div class="card"><h3>趋势与历史</h3><p class="small">每天取最后录入的一条绘制趋势；切换单位只改变显示。</p><svg id="weightChart" role="img" aria-label="体重趋势图" viewBox="0 0 600 230"></svg><div class="personal-list" data-personal-list="weight"></div></div>
+        </div>
+        <div id="personal-exercise" class="personal-grid hidden" style="margin-top:20px">
+          <form class="card" data-personal-form="exercise">
+            <h3>记录锻炼</h3>
+            <div class="field"><label for="exerciseDate">日期</label><input id="exerciseDate" name="entry_date" type="date" required /></div>
+            <div class="field"><label for="exerciseType">运动类型</label><input id="exerciseType" name="activity_type" maxlength="80" placeholder="例如：跑步" required /></div>
+            <div class="field"><label for="exerciseMinutes">时长（分钟）</label><input id="exerciseMinutes" name="duration_minutes" type="number" min="1" max="1440" step="1" required /></div>
+            <div class="field"><label for="exerciseNote">备注（可选）</label><textarea id="exerciseNote" name="note" maxlength="1000"></textarea></div>
+            <div class="btn-row"><button class="primary">保存锻炼</button><button type="button" class="secondary" data-personal-clear="exercise">新建</button></div>
+            <p class="small" data-personal-message="exercise" role="status"></p>
+          </form>
+          <div class="card"><h3>汇总与历史</h3><div class="inline-fields"><div><label for="exercisePeriod">周期</label><select id="exercisePeriod"><option value="week">按周</option><option value="month">按月</option></select></div><div><label for="exerciseAnchor">所在日期</label><input id="exerciseAnchor" type="date" /></div></div><p id="exerciseSummary" class="small"></p><div class="personal-list" data-personal-list="exercise"></div></div>
+        </div>
       </section>
     </div>
   </div>
@@ -632,6 +687,7 @@
       refreshCalendar();
       resetEventForm();
       await loadUnified();
+      await loadPersonal();
     }
 
     async function tryAutoLogin() {
@@ -821,5 +877,6 @@
     tryAutoLogin();
   </script>
   <script src="/unified.js"></script>
+  <script src="/personal.js"></script>
 </body>
 </html>

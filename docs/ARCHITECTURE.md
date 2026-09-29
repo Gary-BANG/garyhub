@@ -56,6 +56,12 @@ Miniflux 在 Docker 内部连接 `miniflux-db:5432`。
 
 ## 统一 Calendar 当前状态
 
+## 私人记录候选功能（尚未部署）
+
+Calendar 登录后的同一页面增加日记、体重、锻炼区域，沿用现有 Session、CSRF 和账号 IANA 时区。接口为 `/api/personal/diary`、`/api/personal/weight`、`/api/personal/exercise` 及锻炼汇总。每条读写都通过 Session 中的用户 ID 限定，管理员的事项查看目标不影响私人记录。
+
+新表 `diary_entries`（每用户每日期唯一）、`weight_entries`（整数克，同日多条）、`exercise_entries`（整数分钟，同日多条）只引用 `users`，不加入提醒或通知。日期为用户选定的 `YYYY-MM-DD`，不按 UTC 时间戳反推。服务启动时增量创建新表和索引；当前已部署镜像尚未包含本功能。
+
 正式 Web 与提醒 worker 使用同一 `/opt/garyhub-cutover-20260927-203135/data` 目录，挂载到 `/app/data`。镜像 ID 为 `sha256:0490d2abb87f3c4f167d1f04026d111e36bbd6d9f0a58a19b9f4c7de279b727f`。有效 Compose 使用 `/opt/my-services/calendar-app/docker-compose.yml` 和切换目录下含密钥的 `override.yml`。
 
 旧 Study 页面、API 和独立后端已退役。切换时保留 5 个用户，按照用户选择清空 22 条旧 Calendar 事项、未迁入 45 条旧 Study 任务。旧任务有用户电脑上的离线归档，历史切换备份仍在服务器。

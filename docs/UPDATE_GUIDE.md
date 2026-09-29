@@ -52,6 +52,16 @@ Caddyfile 通过单文件 bind mount 提供给容器。主机上替换文件 ino
 
 ## Calendar 升级
 
+### 私人记录候选版本部署前检查（尚未执行）
+
+1. 核对正式 `calendar-app` 和 reminder worker 的容器、镜像 ID、数据挂载，以及两份 Compose 文件的实际路径；对含密钥的 `override.yml` 只保存在受限服务器备份中，不打印或上传配置内容。
+2. 对 `/opt/garyhub-cutover-20260927-203135/data/calendar.sqlite` 使用 SQLite online backup API 创建当前一致性副本，检查完整性、外键、用户和任务数量，记录备份哈希。不要复制正在写入的单个 `.sqlite` 文件。
+3. 在独立目录、独立端口和独立数据副本中构建候选镜像，先运行 `npm test`、`npm run check`，然后验证迁移运行两次均不改变用户、任务数据；验证账号隔离、CSRF、时区、单位及三种记录。
+4. 记录当前 Web/worker 镜像 ID 和 Compose 文件哈希，保留旧镜像；仅在审核候选变更、备份和回滚后切换 Web 与 worker 到同一候选镜像。不要执行 `docker compose down -v`。
+5. 正式验证登录、旧事项、日记、体重、锻炼、两个用户互不可见、`/health` 与 reminder worker。若应用故障，切回记录的旧镜像及原 Compose 配置，保留新表和数据；确需恢复数据库时先评估备份后新增数据。
+
+源码 ZIP 只是 `origin/main` 的无 Git 历史快照；如在本地应用本候选变更，应先从最新 `origin/main` 新建分支，核对补丁后提交、推送 PR，再按上述步骤部署。GitHub 或服务器状态不能从 ZIP 推断。
+
 - 本地源码：`D:\Codes\Own_Project\garyhub-repo\calendar-app`；服务器 `/opt/my-services/calendar-app` 仍含切换前源码，不等于当前镜像。
 - 当前镜像：`garyhub-calendar-candidate:20260927-200732`，ID `sha256:0490d2abb87f3c4f167d1f04026d111e36bbd6d9f0a58a19b9f4c7de279b727f`。
 - 正式数据：`/opt/garyhub-cutover-20260927-203135/data`；旧 `/opt/my-services/calendar-app/data` 不再挂载到正式容器。

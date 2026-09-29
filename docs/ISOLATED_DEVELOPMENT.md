@@ -3,6 +3,10 @@
 > Historical development procedure. The unified Calendar is now in production.
 > Its active data lives under `/opt/garyhub-cutover-20260927-203135/data`;
 > do not treat the old `/opt/my-services/calendar-app/data` as current.
+> For the personal records candidate, do not execute the historical
+> `--clear-legacy-data` examples below. That flag was only for the original
+> unified Calendar cutover. The current migration creates new tables on an
+> isolated copy and retains existing tasks.
 
 This workflow is deliberately separate from `/opt/my-services` and the
 production `calendar-app` container. It does not stop, replace, or mount the
