@@ -1,6 +1,6 @@
 # 升级、验证与回滚指南
 
-最后核对：2026-09-30 UTC（InterServer 正式环境）
+最后核对：2026-09-30 UTC（InterServer、Calendar v1.3.1.2）
 
 统一 Calendar 已正式切换；旧 Study 页面和 API 返回 410。正式 Web 与提醒 worker 共享新服务器上的 `/opt/garyhub-cutover-20260927-203135/data`，此目录含正式 SQLite 和私密 Outlook 授权文件。旧 Vultr 实例已删除，无法直接切回旧主机。
 
@@ -54,7 +54,19 @@ Caddyfile 通过单文件 bind mount 提供给容器。主机上替换文件 ino
 
 ## Calendar 升级
 
-### 私人记录候选版本部署前检查（尚未执行）
+### Calendar v1.3.1.2 上线记录
+
+2026-09-30，功能分支 `feat/personal-panels-date-reminder-20260930` 的提交 `6cd3102` 已作为镜像 `garyhub-calendar:6cd3102` 部署到正式 Web 与独立 reminder worker。此处记录服务器镜像状态，不代表分支已合并到 `main`。本地语法检查和 24 项测试通过；隔离演练验证界面、迁移及邮件备注、换行、空备注、用户隔离与去重（邮件捕获测试未触发真实发送）。正式公网 `/health` 返回 200，数据库完整性正常、无外键错误，升级后保留 5 个用户与 12 条事项；用户确认正式页面正常。
+
+五个面板（新增事项、事项列表、账号与提醒设置、事项与分类、日记与健康记录）初始收起，支持键盘展开；顶部日记入口为卡片；事项日期筛选可与分类、状态、标题共同使用，跨日事项覆盖所选日期即显示；提醒邮件只在有备注时加入备注并保留换行。日记每用户每天一篇可修改，体重同日可多次记录、编辑和删除。迁移只新增表与索引，未运行 `--clear-legacy-data`。
+
+两份手工临时备份 `/root/garyhub-upgrade-backups/20260930T052821Z`、`/root/garyhub-upgrade-backups/predeploy-20260930T084433Z` 和含生产数据副本的演练目录 `/opt/garyhub-rehearsal-20260930T053329Z` 已依用户要求在验收后删除。旧镜像 `garyhub-calendar-candidate:20260927-200732` 与 `/opt/garyhub-release-6cd3102-20260930T082018Z` 中的回退配置仍保留，可回退应用代码并保留新表与现有数据。Restic/B2 定时备份是另一个体系；历史恢复能力须核对具体快照。不要用旧数据库覆盖上线后新增的数据。
+
+Web 镜像字段已固定在 `/opt/garyhub-cutover-20260927-203135/override.yml`，worker 镜像字段已固定在 `/opt/my-services/reminder-compose.json`，两者均为 `garyhub-calendar:6cd3102`；不带临时发布覆盖文件时，`docker compose config --images` 核对通过。两个文件含正式环境变量，不得提交 Git。登录后的通知铃铛通过 `notifications` 表给当时的 5 个账号各发布了一条升级信息，去重键 `garyhub-v1.3.1.2`；这不是电子邮件，后续新建账号不会自动收到历史公告。
+
+### 部署前检查记录（已完成）
+
+本次开发分支包含私人记录、五个可收起面板、事项日期筛选与提醒邮件备注。ZIP 快照曾用于比对，不以源码推断线上版本。
 
 1. 核对正式 `calendar-app` 和 reminder worker 的容器、镜像 ID、数据挂载，以及两份 Compose 文件的实际路径；对含密钥的 `override.yml` 只保存在受限服务器备份中，不打印或上传配置内容。
 2. 对 `/opt/garyhub-cutover-20260927-203135/data/calendar.sqlite` 使用 SQLite online backup API 创建当前一致性副本，检查完整性、外键、用户和任务数量，记录备份哈希。不要复制正在写入的单个 `.sqlite` 文件。
@@ -62,12 +74,14 @@ Caddyfile 通过单文件 bind mount 提供给容器。主机上替换文件 ino
 4. 记录当前 Web/worker 镜像 ID 和 Compose 文件哈希，保留旧镜像；仅在审核候选变更、备份和回滚后切换 Web 与 worker 到同一候选镜像。不要执行 `docker compose down -v`。
 5. 正式验证登录、旧事项、日记、体重、锻炼、两个用户互不可见、`/health` 与 reminder worker。若应用故障，切回记录的旧镜像及原 Compose 配置，保留新表和数据；确需恢复数据库时先评估备份后新增数据。
 
-源码 ZIP 只是 `origin/main` 的无 Git 历史快照；如在本地应用本候选变更，应先从最新 `origin/main` 新建分支，核对补丁后提交、推送 PR，再按上述步骤部署。GitHub 或服务器状态不能从 ZIP 推断。
+本次额外验收：新增事项、事项列表、账号设置、事项与分类、日记与健康记录五个面板初始收起，键盘 Enter/Space 可展开和再次收起；顶部日记入口显示为卡片并自动展开记录面板，事项编辑自动展开表单；分类、状态、标题、日期联合筛选且跨日事项在首尾两天都出现；日历日期点击设置并展开筛选；有备注邮件保留换行、无备注邮件不出现空段落。上述行为在隔离数据副本中验收，正式站点另由用户检查。
+
+源码 ZIP 只是无 Git 历史快照；本次变更已在独立开发分支提交并推送。GitHub 合并状态与服务器实际镜像应分别核对。
 
 - 本地源码：`D:\Codes\Own_Project\garyhub-repo\calendar-app`；服务器 `/opt/my-services/calendar-app` 仍含切换前源码，不等于当前镜像。
-- 当前镜像：`garyhub-calendar-candidate:20260927-200732`，ID `sha256:0490d2abb87f3c4f167d1f04026d111e36bbd6d9f0a58a19b9f4c7de279b727f`。
+- 当前镜像：`garyhub-calendar:6cd3102`，ID `sha256:45c2b8d289bbec765d28f2313f030c8630d9b3c8ea750551eed7ef9820da1202`。
 - 正式数据：`/opt/garyhub-cutover-20260927-203135/data`；旧 `/opt/my-services/calendar-app/data` 不再挂载到正式容器。
-- 有效 Compose：`/opt/my-services/calendar-app/docker-compose.yml` 加 `/opt/garyhub-cutover-20260927-203135/override.yml`；后者含密钥，不得加入 Git。
+- 有效 Compose：Web 为 `/opt/my-services/calendar-app/docker-compose.yml` 加 `/opt/garyhub-cutover-20260927-203135/override.yml`；worker 为 `/opt/my-services/reminder-compose.json`。后两个文件含密钥，不得加入 Git。
 - 提醒 worker：`/opt/my-services/reminder-compose.json`，同一镜像及数据目录；先停旧 worker 再启动新 worker，避免重复邮件。
 
 数据目录必须位于镜像之外。部署后应验证健康检查、管理员和普通用户登录、事项增删改查、用户隔离、分类、注册审批、Session、HTTPS Secure Cookie，以及提醒 worker 和邮件投递。
@@ -107,7 +121,7 @@ Caddyfile 通过单文件 bind mount 提供给容器。主机上替换文件 ino
 7. 将确认过的版本部署到 `/opt/my-services`。
 8. 验证网站、登录、数据数量和容器日志。
 9. 更新维护文档并提交新的 Git 版本。
-10. 保留旧代码、旧镜像和数据备份用于回滚。
+10. 按实际保留策略管理旧代码、旧镜像和 Restic/B2 数据备份；v1.3.1.2 手工临时备份已按用户要求删除。
 
 GitHub 不是数据库备份。正式数据库和用户数据必须使用独立的备份流程。
 

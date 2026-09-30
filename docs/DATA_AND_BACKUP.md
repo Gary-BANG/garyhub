@@ -1,6 +1,6 @@
 # 数据位置与备份规则
 
-最后核对：2026-09-30 UTC（InterServer 迁移与 Restic 恢复测试）
+最后核对：2026-09-30 UTC（InterServer、Calendar v1.3.1.2）
 
 ## 持久化数据
 
@@ -39,15 +39,17 @@
 
 迁移当天的 `garyhub-state` 快照 `8372824a`（2026-09-30 02:16 UTC）已实际恢复到独立目录：三个 SQLite 数据库 `PRAGMA integrity_check=ok`，Miniflux dump 可列目录，Filebrowser 数据库及令牌文件存在。此记录只证明该快照可读；以后仍应检查定时运行和抽样恢复。
 
+Calendar v1.3.1.2 上线时另创建的两份手工临时备份 `/root/garyhub-upgrade-backups/20260930T052821Z`、`/root/garyhub-upgrade-backups/predeploy-20260930T084433Z`，以及包含生产数据库副本的 `/opt/garyhub-rehearsal-20260930T053329Z`，已在验收后依用户要求删除。这不等于删除 Restic/B2 仓库或定时任务；能否恢复到某个时间点，仍需核对相应快照的存在及可恢复性。正式数据目录未删除。
+
 切换时确认旧 Calendar 有 5 个用户、22 条事项，Study JSON 有 45 条任务。依用户选择，保留 5 个用户，旧事项和任务未迁入新统一事项表。旧 Study 专用文件已导出到用户电脑的 `garyhub-study-removal-export-20260928-012533.tar.gz`，SHA256 为 `7d9d75f9d71a7aef6a762caff8013b02e23b073af0b965f573498e7ce47395ef`；它含私人任务数据，不得上传 Git 或聊天。历史演练/切换备份还可能同时包含旧 Study 数据和 Calendar 回滚资料，不能按目录名批量删除。
 
 旧 Vultr `LA-VPN` 实例已删除。旧服务器上的 `/opt/my-services/backups`、切换目录及其他历史目录不能视作新服务器本地存在；旧 Study 离线归档仍属于用户私人资料。`/opt/garyhub-cutover-20260927-203135/data` 在**新服务器上仍是当前正式数据**，不要因路径像临时目录而删除。只有在能列出备份内容且测试过恢复方法后，备份才可视为可靠。
 
 ## 每次升级前
 
-私人记录升级前，先在**当前**正式数据文件上使用 SQLite online backup API，输出至新建、权限受限的备份目录；随后在备份副本运行 `PRAGMA integrity_check`、`PRAGMA foreign_key_check` 并核对用户和任务数量。备份文件含私人日记，不能提交 Git、上传聊天或放入交付包。保存正式数据目录中的 Outlook 授权文件原位置，不要将整个目录当临时目录清理。
+今后升级前，先在**当前**正式数据文件上使用 SQLite online backup API，输出至新建、权限受限的备份目录；随后在备份副本运行 `PRAGMA integrity_check`、`PRAGMA foreign_key_check` 并核对用户和任务数量。备份文件可能含私人日记，不能提交 Git、上传聊天或放入交付包。保存正式数据目录中的 Outlook 授权文件原位置，不要将整个目录当临时目录清理。
 
-候选迁移 `20260929_personal_records_v1` 仅新增三张表和索引，`CREATE ... IF NOT EXISTS` 加事务可重复执行；不使用旧的 `--clear-legacy-data` 流程。回滚应用镜像时通常保留这些新表，因此在旧应用继续运行期间不要写入新功能数据；恢复整个数据库备份会丢失备份以后产生的任务和新记录，应作为明确的数据恢复决定。
+已部署的迁移 `20260929_personal_records_v1` 仅新增三张表和索引，`CREATE ... IF NOT EXISTS` 加事务可重复执行；本次未使用旧的 `--clear-legacy-data` 流程。回滚应用镜像时通常保留这些新表，因此在旧应用继续运行期间不要写入新功能数据；恢复整个数据库备份会丢失备份以后产生的任务和新记录，应作为明确的数据恢复决定。
 
 1. 创建带时间戳的新备份目录。
 2. 使用数据库支持的一致性备份方法。

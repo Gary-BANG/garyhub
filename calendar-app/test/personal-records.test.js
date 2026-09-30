@@ -72,7 +72,14 @@ test("private records ignore userId and constrain every object mutation to sessi
   assert.equal((await call("delete", `/api/personal/diary/${diary.body.id}`, 1)).status, 404);
   assert.equal((await call("post", "/api/personal/diary", 2,
     { entry_date: "2026-09-29", title: "duplicate", body: "" })).status, 409);
-  assert.equal((await call("get", "/api/personal/diary", 2, {}, { q: "private" })).body.length, 1);
+  const updated = await call("put", `/api/personal/diary/${diary.body.id}`, 2,
+    { entry_date: "2026-09-29", title: "revised", body: "second version" });
+  assert.equal(updated.body.body, "second version");
+  assert.equal((await call("get", "/api/personal/diary", 2)).body.length, 1);
+  assert.equal((await call("post", "/api/personal/diary", 1,
+    { entry_date: "2026-09-29", title: "Alice", body: "own" })).status, 201);
+  assert.equal((await call("get", "/api/personal/diary", 1)).body.length, 1);
+  assert.equal((await call("get", "/api/personal/diary", 2, {}, { q: "second" })).body.length, 1);
   assert.equal((await call("get", "/api/personal/diary", 2, {}, { q: "%" })).body.length, 0);
   db.close();
 });
@@ -89,10 +96,20 @@ test("date and input checks, exact stored grams, exercise weekly summary", async
   const w = await call("post", "/api/personal/weight", 1,
     { entry_date: "2026-09-29", weight: "150", unit: "lb", note: "" });
   assert.equal(w.body.weight_g, 68039);
+  const second = await call("post", "/api/personal/weight", 1,
+    { entry_date: "2026-09-29", weight: "69.2", unit: "kg", note: "later" });
+  assert.equal(second.status, 201);
+  assert.equal((await call("get", "/api/personal/weight", 1)).body.length, 2);
+  assert.deepEqual((await call("get", "/api/personal/weight", 2, {}, { userId: 1 })).body, []);
+  assert.equal((await call("put", `/api/personal/weight/${w.body.id}`, 2,
+    { entry_date: "2026-09-29", weight: "70", unit: "kg" })).status, 404);
+  assert.equal((await call("delete", `/api/personal/weight/${w.body.id}`, 2)).status, 404);
   assert.equal((await call("post", "/api/personal/weight", 1,
     { entry_date: "2026-09-29", weight: "NaN", unit: "kg", note: "" })).status, 400);
   assert.equal((await call("put", `/api/personal/weight/${w.body.id}`, 1,
     { entry_date: "2026-09-29", weight_g: w.body.weight_g, note: "updated" })).body.weight_g, 68039);
+  assert.equal((await call("delete", `/api/personal/weight/${second.body.id}`, 1)).status, 200);
+  assert.equal((await call("get", "/api/personal/weight", 1)).body.length, 1);
   assert.equal((await call("post", "/api/personal/exercise", 1,
     { entry_date: "2026-09-28", activity_type: "跑步", duration_minutes: 0 })).status, 400);
   await call("post", "/api/personal/exercise", 1,

@@ -3,6 +3,10 @@
 const personalState = { active: "diary", rows: {}, editing: {}, originalWeightG: null, weightTouched: false, displayUnit: "kg" };
 const personalKinds = ["diary", "weight", "exercise"];
 
+document.querySelector(".personal-shortcut").addEventListener("click", () => {
+  $("personalRecords").open = true;
+});
+
 function personalToday() {
   try {
     const zone = state.account?.timezone || "Etc/UTC";
