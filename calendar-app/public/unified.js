@@ -9,8 +9,10 @@ function targetQuery() {
 }
 
 function localToday() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: state.account?.timezone || "Etc/UTC",
+    year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
+  const part = name => parts.find(item => item.type === name).value;
+  return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
 function taskStatus(task) {
@@ -19,12 +21,15 @@ function taskStatus(task) {
 }
 
 function taskVisible(task) {
-  const category = task.category_id || "uncategorized";
-  const status = $("statusFilter").value;
-  const search = $("taskSearch").value.trim().toLocaleLowerCase();
-  return (!activeCategoryFilters.size || activeCategoryFilters.has(category)) &&
-    (status === "all" || taskStatus(task) === status) &&
-    (!search || task.title.toLocaleLowerCase().includes(search));
+  return matchesTaskFilters(task, { categories: activeCategoryFilters,
+    status: $("statusFilter").value, search: $("taskSearch").value.trim().toLocaleLowerCase(),
+    date: $("taskDateFilter").value, effectiveStatus: taskStatus(task) });
+}
+
+function setTaskDateFilter(date) {
+  $("taskDateFilter").value = date;
+  $("taskListPanel").open = true;
+  renderUnified();
 }
 
 function nextDate(date) {
@@ -192,17 +197,19 @@ function clearUnifiedForm() {
   renderCategoryChips();
 }
 
-function newTaskOnDate(date) {
+function newTaskOnDate(date, focusTitle = true) {
   clearUnifiedForm();
   $("taskStart").value = date;
   $("taskEnd").value = date;
-  $("taskTitle").focus();
+  $("taskFormPanel").open = true;
+  if (focusTitle) $("taskTitle").focus();
 }
 
 function editUnifiedTask(id) {
   const task = (state.tasks || []).find(t => t.id === id);
   if (!task) return;
   editingTaskId = id;
+  $("taskFormPanel").open = true;
   selectedCategoryId = task.category_id;
   $("unifiedFormTitle").textContent = "编辑事项";
   $("taskTitle").value = task.title;
@@ -336,9 +343,13 @@ $("addCategoryBtn").addEventListener("click", async () => {
   } catch (error) { alert(error.message); }
 });
 $("notificationsBtn").addEventListener("click", () => $("notificationsPanel").classList.toggle("hidden"));
-for (const id of ["statusFilter", "taskSearch"]) {
-  $(id).addEventListener(id === "statusFilter" ? "change" : "input", renderUnified);
+for (const id of ["statusFilter", "taskSearch", "taskDateFilter"]) {
+  $(id).addEventListener(id === "taskSearch" ? "input" : "change", () => {
+    if (id === "taskDateFilter" && $(id).value) $("taskListPanel").open = true;
+    renderUnified();
+  });
 }
+$("clearTaskDateFilter").addEventListener("click", () => setTaskDateFilter(""));
 
 window.registrationVerification = null;
 let registrationRequestId = null;

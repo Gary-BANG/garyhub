@@ -37,7 +37,7 @@ async function runCycle({ db = database, sendMail = mailer.sendMail, now = new D
   }
 
   const due = await db.all(`SELECT d.*,t.title,u.email FROM reminder_deliveries d
-    JOIN tasks t ON t.id=d.task_id JOIN users u ON u.id=d.user_id
+    JOIN tasks t ON t.id=d.task_id AND t.user_id=d.user_id JOIN users u ON u.id=d.user_id
     WHERE d.status IN ('pending','failed') AND d.scheduled_for_utc<=?
       AND (d.next_retry_at IS NULL OR d.next_retry_at<=?) AND d.attempt_count<3
       AND t.reminder_enabled=1 AND t.status<>'done' AND t.completed_at IS NULL
@@ -51,15 +51,16 @@ async function runCycle({ db = database, sendMail = mailer.sendMail, now = new D
         AND (next_retry_at IS NULL OR next_retry_at<=?)`, [delivery.id,now.toISOString()]);
     if (!claim.changes) continue;
     try {
-      const active = await db.get(`SELECT t.id FROM tasks t JOIN users u ON u.id=t.user_id
-        WHERE t.id=? AND t.reminder_enabled=1 AND t.status<>'done' AND t.completed_at IS NULL
-          AND u.email_verified_at IS NOT NULL AND u.enabled=1`, [delivery.task_id]);
+      const active = await db.get(`SELECT t.id,t.note FROM tasks t JOIN users u ON u.id=t.user_id
+        WHERE t.id=? AND t.user_id=? AND t.reminder_enabled=1 AND t.status<>'done' AND t.completed_at IS NULL
+          AND u.email_verified_at IS NOT NULL AND u.enabled=1`, [delivery.task_id,delivery.user_id]);
       if (!active) {
         await db.run("UPDATE reminder_deliveries SET status='cancelled' WHERE id=?", [delivery.id]);
         continue;
       }
       await sendMail({ to: delivery.email, subject: `Gary Hub 提醒：${delivery.title}`,
-        text: `事项：${delivery.title}\n日期：${delivery.local_date}\n提醒时间：${delivery.local_time}\n` });
+        text: `事项：${delivery.title}\n日期：${delivery.local_date}\n提醒时间：${delivery.local_time}\n` +
+          (active.note ? `备注：\n${active.note}\n` : "") });
       await db.run(`UPDATE reminder_deliveries SET status='sent',sent_at=?,next_retry_at=NULL,
         last_error=NULL,updated_at=CURRENT_TIMESTAMP WHERE id=?`, [new Date().toISOString(),delivery.id]);
       sent++;
