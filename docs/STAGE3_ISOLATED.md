@@ -3,6 +3,8 @@
 > Historical rehearsal record. Production cutover completed on 2026-09-27;
 > the separate Study API was retired on 2026-09-28. The commands below describe
 > the old isolated test environment and must not be used as a production update.
+> The old Vultr instance was deleted after the 2026-09-30 migration; its SSH
+> tunnel and test port are no longer available.
 
 Stage 3 uses a new copy of the Stage 2 test database and port `127.0.0.1:3103`.
 It does not modify the production database, production containers, old Study JSON,
@@ -29,13 +31,10 @@ does not send; a repeated local time during fall DST is scheduled once.
 
 ## Testing
 
-After the kit reports `STAGE 3 ISOLATED READY`, open a PowerShell window:
-
-```powershell
-ssh -N -L 3103:127.0.0.1:3103 root@45.32.84.89
-```
-
-Visit `http://127.0.0.1:3103` and log in with an existing account. Create a
+Historical procedure: after the kit reported `STAGE 3 ISOLATED READY`, an SSH
+tunnel to the now-deleted old server exposed `127.0.0.1:3103`. Do not point
+this historical test workflow at the current production server. The tester
+visited `http://127.0.0.1:3103` and logged in with an existing account. Create a
 category and a task spanning several days, change its status, delete the
 category, and confirm the task remains uncategorized. Admin user management and
 registration approval remain on the page. Stage 2 and production are separate.

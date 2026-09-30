@@ -1,9 +1,9 @@
 # Gary Hub — 服务器维护总览
 
-最后核对：2026-09-28 UTC（依据生产切换与旧 Study 清理报告）
-服务器主机名：`LA-VPN`
+最后核对：2026-09-30 UTC（Vultr → InterServer 迁移）
+正式服务器：InterServer `vps3666849`，IPv4 `162.35.168.17`
 
-本目录是 `garyhub.uk` 正式服务的部署目录。修改 Docker、Caddy、应用代码或数据前，请先阅读本文档及 `docs/` 中的说明。
+本仓库保存源码与脱敏维护文档；正式服务运行在新服务器的 `/opt/my-services`，该目录不是 Git working tree。修改 Docker、Caddy、应用代码或数据前，请先阅读本文档及 `docs/` 中的说明。
 
 ## 当前正式服务
 
@@ -18,7 +18,7 @@
 | 仅 Docker 内部 | `miniflux-db` | Miniflux 的 PostgreSQL 数据库 |
 | `127.0.0.1:19999` | `netdata` | 服务器监控 |
 
-Caddy 是唯一对公网开放 80/443 端口的正式服务。
+Caddy 对公网提供 80/443；独立的 Xray systemd 服务监听 TCP 8080。Cloudflare 的五条网站 A 记录均指向 `162.35.168.17`，保持 DNS only。
 
 ## 当前重要状态
 
@@ -26,9 +26,13 @@ Caddy 是唯一对公网开放 80/443 端口的正式服务。
 - 正式 Calendar 镜像：`garyhub-calendar-candidate:20260927-200732`，镜像 ID `sha256:0490d2abb87f3c4f167d1f04026d111e36bbd6d9f0a58a19b9f4c7de279b727f`。
 - 正式 Web 与提醒 worker 共用 `/opt/garyhub-cutover-20260927-203135/data`，挂载至 `/app/data`。其中的 Outlook 授权文件是密钥。
 - 正式 Compose override：`/opt/garyhub-cutover-20260927-203135/override.yml`，含密钥，不可提交 Git。
+- 主 Compose 必须同时加载 `/opt/my-services/docker-compose.yml`、`docker-compose.override.yml` 和 `docker-compose.migration.yml`；第三个文件将 Filebrowser 的实际数据库固定挂载在 `/opt/my-services/filebrowser/database`。
+- 提醒 worker 使用 `/opt/my-services/reminder-compose.json` 独立启动；此文件含正式环境变量，权限为 `0600`，不可提交 Git。
+- 备份使用 Restic/B2；每日 03:20 UTC 运行主服务备份，每日 05:00 UTC 运行状态备份，周日 04:10 UTC 执行 prune。备份和恢复见 [数据与备份](docs/DATA_AND_BACKUP.md)。
+- 旧 Vultr `LA-VPN` 实例（`45.32.84.89`）已在数据切换和恢复测试后删除；不能再以旧服务器作为回滚目标。
 - 切换时保留 5 个用户；依用户选择，22 条旧 Calendar 事项和 45 条旧 Study 任务没有迁入新统一事项表。
 - 旧 Study 容器、镜像标签、源码、数据目录和专用回滚目录已移除。旧 `/study/*` 和 `/api/study/*` 在源站返回 HTTP 410；主页和 Calendar 健康检查为 200。
-- 原 Calendar 数据及部分含 Study 数据的历史切换/演练备份仍在服务器上。旧 Study 专用文件另已导出到用户电脑，不能提交 Git。
+- 旧 Study 专用文件曾导出到用户电脑；旧 Vultr 上的历史目录不应视作新服务器本地存在。部分历史快照仍在 Restic 仓库；不能提交 Git。
 
 ## 文档入口
 
@@ -37,6 +41,7 @@ Caddy 是唯一对公网开放 80/443 端口的正式服务。
 - [系统架构](docs/ARCHITECTURE.md)
 - [数据与备份](docs/DATA_AND_BACKUP.md)
 - [升级与回滚](docs/UPDATE_GUIDE.md)
+- [服务器迁移记录](docs/SERVER_MIGRATION_20260930.md)
 - [统一 Calendar 隔离开发](docs/ISOLATED_DEVELOPMENT.md)
 - [Outlook 邮件配置](docs/OUTLOOK_MAIL.md)
 
@@ -45,8 +50,10 @@ Caddy 是唯一对公网开放 80/443 端口的正式服务。
 | 内容 | 位置 |
 |---|---|
 | 主 Compose 配置 | `/opt/my-services/docker-compose.yml` |
+| 主 Compose 附加文件 | `/opt/my-services/docker-compose.override.yml`、`docker-compose.migration.yml` |
 | Calendar Compose 基础文件 | `/opt/my-services/calendar-app/docker-compose.yml` |
 | Calendar 正式 override | `/opt/garyhub-cutover-20260927-203135/override.yml`（敏感） |
+| 提醒 worker Compose | `/opt/my-services/reminder-compose.json`（敏感） |
 | Caddy 路由 | `/opt/my-services/caddy/Caddyfile` |
 | 个人主页 | `/opt/my-services/site/index.html` |
 | Calendar 正式数据 | `/opt/garyhub-cutover-20260927-203135/data`（敏感） |
@@ -64,4 +71,4 @@ Caddy 是唯一对公网开放 80/443 端口的正式服务。
 
 GitHub 保存经过脱敏的源码、配置示例和维护文档，不保存正式数据库、任务数据、密码、Cookie、Session Secret、邮件令牌、TLS 私钥或备份。
 
-当前 `/opt/my-services` 是正式运行目录，不是 Git working tree。GitHub 推送不会自动修改服务器，服务器也不应直接执行未经测试的 `git pull`。未合并分支的源码与已部署镜像可能不同步；操作前应核对实际镜像、Compose 和数据挂载。
+当前 `/opt/my-services` 是正式运行目录，不是 Git working tree。GitHub 推送不会自动修改服务器，服务器也不应直接执行未经测试的 `git pull`。本仓库的私人记录候选代码尚未部署；操作前应核对实际镜像、Compose 和数据挂载。

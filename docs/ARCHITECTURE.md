@@ -1,6 +1,8 @@
 # Gary Hub 系统架构
 
-最后核对：2026-09-28 UTC（生产切换与旧 Study 清理报告）
+最后核对：2026-09-30 UTC（InterServer 正式环境）
+
+正式主机 `vps3666849`，IPv4 `162.35.168.17`。Cloudflare 的五条网站 A 记录为 DNS only。旧 Vultr `LA-VPN` 实例已删除。
 
 ## 请求路径
 
@@ -30,22 +32,22 @@ Miniflux 在 Docker 内部连接 `miniflux-db:5432`。
 | `caddy` | `caddy:2` | `always` | `caddy/data`、`caddy/config`、`site` |
 | `calendar-app` | `garyhub-calendar-candidate:20260927-200732` | `unless-stopped` | `/opt/garyhub-cutover-20260927-203135/data` |
 | `garyhub-reminder-production-20260927-203135` | 同一 Calendar 镜像 | `unless-stopped` | 同一正式数据目录 |
-| `filebrowser` | `filebrowser/filebrowser:latest` | `always` | `filebrowser`、`filebrowser/data` |
+| `filebrowser` | `filebrowser/filebrowser:latest` | `always` | `filebrowser/data`、`filebrowser/database/filebrowser.db`、`filebrowser/settings.json` |
 | `uptime-kuma` | `louislam/uptime-kuma:1` | `always` | `uptime-kuma` |
 | `miniflux` | `miniflux/miniflux:latest` | `always` | 数据位于 `miniflux-db` |
 | `miniflux-db` | `postgres:15-alpine` | `always` | `postgres` |
 | `netdata` | `netdata/netdata:stable` | `always` | 只读系统监控挂载 |
 
-旧测试容器和隔离环境是否仍运行，需在清理前重新盘点；它们不属于正式 Calendar 架构。
+旧 Vultr 上的测试容器未迁入新服务器；它们不属于正式 Calendar 架构。
 
 ## 端口
 
 - `80/tcp`：Caddy HTTP
 - `443/tcp`、`443/udp`：Caddy HTTPS/HTTP3
 - `127.0.0.1:19999`：Netdata，仅本机
-- `127.0.0.1:3101/3103/3104`：历史测试端口，不属于正式入口；实际占用以现场检查为准
+- `8080/tcp`：主机上的 Xray systemd 服务（VLESS）；不经过 Caddy
 
-其他应用端口仅供 Docker 内部通信，不应直接暴露到公网。
+其他应用端口仅供 Docker 内部通信，不应直接暴露到公网。Xray 配置在 `/usr/local/etc/xray/config.json`，服务单元在 `/etc/systemd/system/xray.service`；两者可能包含敏感信息，不要提交 Git。
 
 ## Caddy
 
@@ -53,6 +55,12 @@ Miniflux 在 Docker 内部连接 `miniflux-db:5432`。
 - 证书和状态：`/opt/my-services/caddy/data`
 - 配置状态：`/opt/my-services/caddy/config`
 - 静态页面挂载：`/opt/my-services/site -> /srv`（只读）
+
+## 正式 Compose 与数据挂载
+
+- 主项目以 `/opt/my-services/docker-compose.yml`、`docker-compose.override.yml`、`docker-compose.migration.yml` 三个文件组合运行。第三个文件把 Filebrowser 的 Bolt 数据库从旧服务器的匿名卷迁到显式 bind mount：`/opt/my-services/filebrowser/database/filebrowser.db` → `/database/filebrowser.db`。
+- Calendar Web 使用 `/opt/my-services/calendar-app/docker-compose.yml` 和 `/opt/garyhub-cutover-20260927-203135/override.yml`；提醒 worker 使用单独的 `/opt/my-services/reminder-compose.json`。这两个补充文件含正式环境变量，不得加入 Git。
+- Web 与 worker 连接 `my-services_default`，共享 `/opt/garyhub-cutover-20260927-203135/data`。worker 只应运行一个实例，以免重复发邮件。
 
 ## 统一 Calendar 当前状态
 
