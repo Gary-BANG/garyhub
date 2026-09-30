@@ -1,6 +1,6 @@
 # Gary Hub — 服务器维护总览
 
-最后核对：2026-09-30 UTC（Vultr → InterServer 迁移）
+最后核对：2026-09-30 UTC（InterServer、Calendar v1.3.1.2）
 正式服务器：InterServer `vps3666849`，IPv4 `162.35.168.17`
 
 本仓库保存源码与脱敏维护文档；正式服务运行在新服务器的 `/opt/my-services`，该目录不是 Git working tree。修改 Docker、Caddy、应用代码或数据前，请先阅读本文档及 `docs/` 中的说明。
@@ -23,7 +23,7 @@ Caddy 对公网提供 80/443；独立的 Xray systemd 服务监听 TCP 8080。Cl
 ## 当前重要状态
 
 - 新个人主页已上线：`/opt/my-services/site/index.html`
-- 正式 Calendar 镜像：`garyhub-calendar-candidate:20260927-200732`，镜像 ID `sha256:0490d2abb87f3c4f167d1f04026d111e36bbd6d9f0a58a19b9f4c7de279b727f`。
+- 正式 Calendar Web 与提醒 worker 镜像：`garyhub-calendar:6cd3102`，镜像 ID `sha256:45c2b8d289bbec765d28f2313f030c8630d9b3c8ea750551eed7ef9820da1202`。对应功能分支提交 `6cd3102`；GitHub 是否已合并以实际状态为准。
 - 正式 Web 与提醒 worker 共用 `/opt/garyhub-cutover-20260927-203135/data`，挂载至 `/app/data`。其中的 Outlook 授权文件是密钥。
 - 正式 Compose override：`/opt/garyhub-cutover-20260927-203135/override.yml`，含密钥，不可提交 Git。
 - 主 Compose 必须同时加载 `/opt/my-services/docker-compose.yml`、`docker-compose.override.yml` 和 `docker-compose.migration.yml`；第三个文件将 Filebrowser 的实际数据库固定挂载在 `/opt/my-services/filebrowser/database`。
@@ -36,7 +36,7 @@ Caddy 对公网提供 80/443；独立的 Xray systemd 服务监听 TCP 8080。Cl
 
 ## 文档入口
 
-候选功能（日记、体重、锻炼）尚未部署；见架构、数据备份和升级文档中的私人记录章节。服务器版本仍应以实际镜像与 Compose 现场检查为准。
+Calendar 对外版本 v1.3.1.2 已上线：每用户每日一篇可修改的日记、同日多条可编辑删除的体重记录、锻炼记录、可收起面板、事项日期联合筛选，以及含备注的提醒邮件。当时的 5 个账号各收到一条站内升级通知。`calendar-app/package.json` 的 `2.0.0` 是 Node 包版本，与对外发布号分别管理。服务器版本仍应以实际镜像与 Compose 现场检查为准。
 
 - [系统架构](docs/ARCHITECTURE.md)
 - [数据与备份](docs/DATA_AND_BACKUP.md)
@@ -71,4 +71,4 @@ Caddy 对公网提供 80/443；独立的 Xray systemd 服务监听 TCP 8080。Cl
 
 GitHub 保存经过脱敏的源码、配置示例和维护文档，不保存正式数据库、任务数据、密码、Cookie、Session Secret、邮件令牌、TLS 私钥或备份。
 
-当前 `/opt/my-services` 是正式运行目录，不是 Git working tree。GitHub 推送不会自动修改服务器，服务器也不应直接执行未经测试的 `git pull`。本仓库的私人记录候选代码尚未部署；操作前应核对实际镜像、Compose 和数据挂载。
+当前 `/opt/my-services` 是正式运行目录，不是 Git working tree。GitHub 推送不会自动修改服务器，服务器也不应直接执行未经测试的 `git pull`。私人记录功能已在正式镜像中上线；操作前仍需核对实际镜像、Compose 和数据挂载。
