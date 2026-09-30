@@ -28,6 +28,7 @@ function taskVisible(task) {
 
 function setTaskDateFilter(date) {
   $("taskDateFilter").value = date;
+  $("taskFilterPanel").open = true;
   $("taskListPanel").open = true;
   renderUnified();
 }

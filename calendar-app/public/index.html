@@ -51,6 +51,21 @@
       font-size: 12px;
       font-weight: 700;
     }
+    .personal-shortcut {
+      display: inline-flex;
+      align-items: center;
+      width: auto;
+      padding: 10px 14px;
+      border: 1px solid #a5b4fc;
+      border-radius: 12px;
+      background: #eef2ff;
+      color: #312e81;
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: 0 3px 10px rgba(49, 46, 129, 0.12);
+    }
+    .personal-shortcut:hover { background: #e0e7ff; }
+    .personal-shortcut:focus-visible { outline: 3px solid #2563eb; outline-offset: 3px; }
     .layout {
       display: grid;
       grid-template-columns: 1fr;
@@ -260,7 +275,7 @@
         </div>
 
         <div class="userbox">
-          <a href="#personalRecords">日记 · 健康记录</a>
+          <a class="personal-shortcut" href="#personalRecords">📖 日记 · 健康记录</a>
           <span id="currentUserText"></span>
           <span id="currentRoleBadge" class="badge"></span>
           <button id="notificationsBtn" class="secondary compact-button" type="button" aria-label="通知">🔔 <span id="unreadCount">0</span></button>
@@ -352,15 +367,17 @@
           </div>
         </div>
       </div>
-      <section class="card" style="margin-top:20px" aria-label="事项筛选">
-        <h2 class="section-title">事项与分类</h2>
+      <details id="taskFilterPanel" class="card collapsible" style="margin-top:20px">
+        <summary>事项与分类</summary>
+        <div class="panel-content">
         <div id="filterCategories" class="category-chips"></div>
         <div class="inline-fields">
           <div><label for="statusFilter">状态筛选</label><select id="statusFilter"><option value="all">全部状态</option><option value="todo">未开始</option><option value="doing">进行中</option><option value="done">已完成</option></select></div>
           <div><label for="taskSearch">搜索事项</label><input id="taskSearch" type="search" placeholder="按标题搜索" /></div>
         </div>
         <div class="field" style="margin-top:12px"><label for="taskDateFilter">查看指定日期的事项</label><div class="btn-row"><input id="taskDateFilter" type="date" style="flex:1;min-width:160px" /><button id="clearTaskDateFilter" type="button" class="secondary compact-button">清除日期</button></div></div>
-      </section>
+        </div>
+      </details>
       <div class="unified-grid">
         <details id="taskFormPanel" class="card collapsible">
           <summary id="unifiedFormTitle">新增事项</summary>
@@ -399,16 +416,15 @@
         <p id="accountMessage" class="small" role="status"></p>
         </div>
       </details>
-      <section id="personalRecords" style="margin-top:20px" aria-label="私人记录">
-        <div class="card">
-          <h2 class="section-title">日记与健康记录</h2>
+      <details id="personalRecords" class="card collapsible" style="margin-top:20px">
+        <summary>日记与健康记录</summary>
+        <div class="panel-content">
           <p class="small">仅当前登录账号可查看。日期按账号时区的“今天”预填，也可自行修改。</p>
           <div class="personal-tabs" role="tablist" aria-label="记录类型">
             <button type="button" class="secondary" data-personal-tab="diary">每日日记</button>
             <button type="button" class="secondary" data-personal-tab="weight">体重记录</button>
             <button type="button" class="secondary" data-personal-tab="exercise">锻炼记录</button>
           </div>
-        </div>
         <div id="personal-diary" class="personal-grid" style="margin-top:20px">
           <form class="card" data-personal-form="diary">
             <h3>写日记</h3>
@@ -443,7 +459,8 @@
           </form>
           <div class="card"><h3>汇总与历史</h3><div class="inline-fields"><div><label for="exercisePeriod">周期</label><select id="exercisePeriod"><option value="week">按周</option><option value="month">按月</option></select></div><div><label for="exerciseAnchor">所在日期</label><input id="exerciseAnchor" type="date" /></div></div><p id="exerciseSummary" class="small"></p><div class="personal-list" data-personal-list="exercise"></div></div>
         </div>
-      </section>
+        </div>
+      </details>
     </div>
   </div>
 
