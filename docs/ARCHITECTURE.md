@@ -1,3 +1,4 @@
+> 2026-10-07 production correction: Filebrowser actually uses `/config/database.db`, mapped to `/opt/my-services/filebrowser/database.db`. Its command-line option overrides the JSON configuration. The additional `/database` mount is not proof of the active database. Tools and Lab are now deployed; see [deployment record](DEPLOYMENT_20261007.md) and [verified backup](BACKUP_VERIFICATION_20261007.md).
 # Gary Hub 系统架构
 
 最后核对：2026-09-30 UTC（InterServer、Calendar v1.3.1.2）
@@ -32,7 +33,7 @@ Miniflux 在 Docker 内部连接 `miniflux-db:5432`。
 | `caddy` | `caddy:2` | `always` | `caddy/data`、`caddy/config`、`site` |
 | `calendar-app` | `garyhub-calendar:6cd3102` | `unless-stopped` | `/opt/garyhub-cutover-20260927-203135/data` |
 | `garyhub-reminder-production-20260927-203135` | 同一 Calendar 镜像 | `unless-stopped` | 同一正式数据目录 |
-| `filebrowser` | `filebrowser/filebrowser:latest` | `always` | `filebrowser/data`、`filebrowser/database/filebrowser.db`、`filebrowser/settings.json` |
+| `filebrowser` | `filebrowser/filebrowser:latest` | `always` | `filebrowser/data`、`filebrowser/database.db`、`filebrowser/settings.json` |
 | `uptime-kuma` | `louislam/uptime-kuma:1` | `always` | `uptime-kuma` |
 | `miniflux` | `miniflux/miniflux:latest` | `always` | 数据位于 `miniflux-db` |
 | `miniflux-db` | `postgres:15-alpine` | `always` | `postgres` |
@@ -58,7 +59,7 @@ Miniflux 在 Docker 内部连接 `miniflux-db:5432`。
 
 ## 正式 Compose 与数据挂载
 
-- 主项目以 `/opt/my-services/docker-compose.yml`、`docker-compose.override.yml`、`docker-compose.migration.yml` 三个文件组合运行。第三个文件把 Filebrowser 的 Bolt 数据库从旧服务器的匿名卷迁到显式 bind mount：`/opt/my-services/filebrowser/database/filebrowser.db` → `/database/filebrowser.db`。
+- 主项目仍由 `/opt/my-services/docker-compose.yml`、`docker-compose.override.yml` 和 `docker-compose.migration.yml` 组合运行。Filebrowser 实际使用 `/config/database.db`，对应宿主机 `/opt/my-services/filebrowser/database.db`；额外的 /database 挂载不是当前数据库的依据。
 - Calendar Web 使用 `/opt/my-services/calendar-app/docker-compose.yml` 和 `/opt/garyhub-cutover-20260927-203135/override.yml`；提醒 worker 使用单独的 `/opt/my-services/reminder-compose.json`。后两个文件含正式环境变量，不得加入 Git；两者镜像字段已固定为 `garyhub-calendar:6cd3102`。
 - Web 与 worker 连接 `my-services_default`，共享 `/opt/garyhub-cutover-20260927-203135/data`。worker 只应运行一个实例，以免重复发邮件。
 

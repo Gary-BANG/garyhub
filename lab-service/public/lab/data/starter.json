@@ -1,0 +1,1023 @@
+{
+  "schema_version": 1,
+  "title": "ECE 470 · Starter practice",
+  "problems": [
+    {
+      "id": "rotation-z",
+      "version": 1,
+      "title": "Rotate about the z axis",
+      "category": "Rotations",
+      "similarity_group": "axis-angle",
+      "statement_en": "Frames 0 and 1 are initially aligned. Frame 1 rotates by **theta radians** about the fixed **z₀ axis**. Find the rotation matrix **R01**. Use the numerical values below.",
+      "inputs": {
+        "axis": {
+          "type": "array",
+          "value": [
+            0,
+            0,
+            1
+          ]
+        },
+        "theta": {
+          "type": "scalar",
+          "value": -0.3,
+          "random": {
+            "min": -2.8,
+            "max": 2.8,
+            "step": 0.1,
+            "unit": "rad"
+          }
+        }
+      },
+      "answers": [
+        {
+          "name": "R01",
+          "shape": [
+            3,
+            3
+          ],
+          "rtol": 1e-05,
+          "atol": 1e-07,
+          "expected": [
+            [
+              0.955336489125606,
+              0.29552020666133955,
+              0.0
+            ],
+            [
+              -0.29552020666133955,
+              0.955336489125606,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        }
+      ],
+      "reference_code": "R01 = MatrixExp3(VecToso3(axis * theta))",
+      "formula_latex": "R_{01}=e^{[\\hat\\omega]\\theta}",
+      "explanation_md": "轴向量乘角度得到旋转向量；`VecToso3` converts the vector into a skew-symmetric matrix, and `MatrixExp3` computes the rotation.\n\n负角度直接代入。Do not invert again."
+    },
+    {
+      "id": "rotation-y",
+      "version": 1,
+      "title": "Rotate about the y axis",
+      "category": "Rotations",
+      "similarity_group": "axis-angle",
+      "statement_en": "Frames 0 and 1 are initially aligned. Frame 1 rotates by **theta radians** about the fixed **y₀ axis**. Find the rotation matrix **R01**. Use the numerical values below.",
+      "inputs": {
+        "axis": {
+          "type": "array",
+          "value": [
+            0,
+            1,
+            0
+          ]
+        },
+        "theta": {
+          "type": "scalar",
+          "value": -0.3,
+          "random": {
+            "min": -2.8,
+            "max": 2.8,
+            "step": 0.1,
+            "unit": "rad"
+          }
+        }
+      },
+      "answers": [
+        {
+          "name": "R01",
+          "shape": [
+            3,
+            3
+          ],
+          "rtol": 1e-05,
+          "atol": 1e-07,
+          "expected": [
+            [
+              0.955336489125606,
+              0.0,
+              -0.29552020666133955
+            ],
+            [
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.29552020666133955,
+              0.0,
+              0.955336489125606
+            ]
+          ]
+        }
+      ],
+      "reference_code": "R01 = MatrixExp3(VecToso3(axis * theta))",
+      "formula_latex": "R_{01}=e^{[\\hat\\omega]\\theta}",
+      "explanation_md": "轴向量乘角度得到旋转向量；`VecToso3` converts the vector into a skew-symmetric matrix, and `MatrixExp3` computes the rotation.\n\n负角度直接代入。Do not invert again."
+    },
+    {
+      "id": "point-forward",
+      "version": 1,
+      "title": "Change point coordinates",
+      "category": "Coordinates",
+      "similarity_group": "point-transform",
+      "statement_en": "The pose of frame b in frame a is given by **R_ab** and **p_ab**. The point is given in frame b. Compute its coordinates in frame a. Return a **(3, 1) column vector**.",
+      "inputs": {
+        "R_ab": {
+          "type": "array",
+          "value": [
+            [
+              0.8253356149096783,
+              -0.5646424733950354,
+              0.0
+            ],
+            [
+              0.5646424733950354,
+              0.8253356149096783,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "p_ab": {
+          "type": "array",
+          "value": [
+            [
+              1.0
+            ],
+            [
+              2.0
+            ],
+            [
+              0.0
+            ]
+          ]
+        },
+        "q_b": {
+          "type": "array",
+          "value": [
+            [
+              0.5
+            ],
+            [
+              -1.0
+            ],
+            [
+              2.0
+            ]
+          ],
+          "random": {
+            "min": -3,
+            "max": 3,
+            "step": 0.25,
+            "unit": "length"
+          }
+        }
+      },
+      "answers": [
+        {
+          "name": "q_a",
+          "shape": [
+            3,
+            1
+          ],
+          "rtol": 1e-05,
+          "atol": 1e-07,
+          "expected": [
+            [
+              1.9773102808498746
+            ],
+            [
+              1.4569856217878394
+            ],
+            [
+              2.0
+            ]
+          ]
+        }
+      ],
+      "reference_code": "q_a = R_ab @ q_b + p_ab",
+      "formula_latex": "q_a=R_{ab}q_b+p_{ab}",
+      "explanation_md": "先确认坐标转换方向。Forward: rotate, then add the origin position. Inverse: subtract the origin position first, then rotate with the transpose.\n\n保持两个向量形状一致，避免 NumPy broadcasting."
+    },
+    {
+      "id": "point-inverse",
+      "version": 1,
+      "title": "Change point coordinates · inverse",
+      "category": "Coordinates",
+      "similarity_group": "point-transform",
+      "statement_en": "The pose of frame b in frame a is given by **R_ab** and **p_ab**. The point is given in frame a. Compute its coordinates in frame b. Return a **(3, 1) column vector**.",
+      "inputs": {
+        "R_ab": {
+          "type": "array",
+          "value": [
+            [
+              0.8253356149096783,
+              -0.5646424733950354,
+              0.0
+            ],
+            [
+              0.5646424733950354,
+              0.8253356149096783,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "p_ab": {
+          "type": "array",
+          "value": [
+            [
+              1.0
+            ],
+            [
+              2.0
+            ],
+            [
+              0.0
+            ]
+          ]
+        },
+        "q_a": {
+          "type": "array",
+          "value": [
+            [
+              0.5
+            ],
+            [
+              -1.0
+            ],
+            [
+              2.0
+            ]
+          ],
+          "random": {
+            "min": -3,
+            "max": 3,
+            "step": 0.25,
+            "unit": "length"
+          }
+        }
+      },
+      "answers": [
+        {
+          "name": "q_b",
+          "shape": [
+            3,
+            1
+          ],
+          "rtol": 1e-05,
+          "atol": 1e-07,
+          "expected": [
+            [
+              -2.106595227639945
+            ],
+            [
+              -2.1936856080315175
+            ],
+            [
+              2.0
+            ]
+          ]
+        }
+      ],
+      "reference_code": "q_b = R_ab.T @ (q_a - p_ab)",
+      "formula_latex": "q_b=R_{ab}^T(q_a-p_{ab})",
+      "explanation_md": "先确认坐标转换方向。Forward: rotate, then add the origin position. Inverse: subtract the origin position first, then rotate with the transpose.\n\n保持两个向量形状一致，避免 NumPy broadcasting."
+    },
+    {
+      "id": "screw-space",
+      "version": 1,
+      "title": "Spatial screw motion",
+      "category": "Rigid motion",
+      "similarity_group": "screw-pose",
+      "statement_en": "A rigid body has initial pose **M**. It undergoes a **spatial screw motion** with axis **axis** and magnitude **theta**. Find its new pose **T01**.",
+      "inputs": {
+        "M": {
+          "type": "array",
+          "value": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              2.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "axis": {
+          "type": "array",
+          "value": [
+            0,
+            0,
+            1,
+            0,
+            -1,
+            0.2
+          ]
+        },
+        "theta": {
+          "type": "scalar",
+          "value": 0.7,
+          "random": {
+            "min": -2,
+            "max": 2,
+            "step": 0.1,
+            "unit": "rad"
+          }
+        }
+      },
+      "answers": [
+        {
+          "name": "T01",
+          "shape": [
+            4,
+            4
+          ],
+          "rtol": 1e-05,
+          "atol": 1e-07,
+          "expected": [
+            [
+              0.7648421872844885,
+              -0.644217687237691,
+              0.0,
+              -0.28843537447538203
+            ],
+            [
+              0.644217687237691,
+              0.7648421872844885,
+              0.0,
+              1.5296843745689772
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.13999999999999999
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        }
+      ],
+      "reference_code": "D = MatrixExp6(VecTose3(axis * theta))\nT01 = D @ M",
+      "formula_latex": "T_{01}=e^{[S]\\theta}M",
+      "explanation_md": "Body motion multiplies on the right; spatial motion multiplies on the left.\n\n先乘运动量 θ，再做 `VecTose3` 和 `MatrixExp6`。漏乘 θ 相当于把运动量设成 1。"
+    },
+    {
+      "id": "screw-body",
+      "version": 1,
+      "title": "Body screw motion",
+      "category": "Rigid motion",
+      "similarity_group": "screw-pose",
+      "statement_en": "A rigid body has initial pose **M**. It undergoes a **body screw motion** with axis **axis** and magnitude **theta**. Find its new pose **T01**.",
+      "inputs": {
+        "M": {
+          "type": "array",
+          "value": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              2.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "axis": {
+          "type": "array",
+          "value": [
+            0,
+            0,
+            1,
+            0,
+            -1,
+            0.2
+          ]
+        },
+        "theta": {
+          "type": "scalar",
+          "value": 0.7,
+          "random": {
+            "min": -2,
+            "max": 2,
+            "step": 0.1,
+            "unit": "rad"
+          }
+        }
+      },
+      "answers": [
+        {
+          "name": "T01",
+          "shape": [
+            4,
+            4
+          ],
+          "rtol": 1e-05,
+          "atol": 1e-07,
+          "expected": [
+            [
+              0.7648421872844885,
+              -0.644217687237691,
+              0.0,
+              1.2351578127155114
+            ],
+            [
+              0.644217687237691,
+              0.7648421872844885,
+              0.0,
+              1.355782312762309
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.13999999999999999
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        }
+      ],
+      "reference_code": "D = MatrixExp6(VecTose3(axis * theta))\nT01 = M @ D",
+      "formula_latex": "T_{01}=M e^{[B]\\theta}",
+      "explanation_md": "Body motion multiplies on the right; spatial motion multiplies on the left.\n\n先乘运动量 θ，再做 `VecTose3` 和 `MatrixExp6`。漏乘 θ 相当于把运动量设成 1。"
+    },
+    {
+      "id": "twist-space",
+      "version": 1,
+      "title": "Recover a spatial twist",
+      "category": "Twists",
+      "similarity_group": "recover-twist",
+      "statement_en": "Find a constant **spatial twist V** that moves the body from **T_initial** to **T_target** in **dt seconds**. Return a **(6, 1) column vector**, angular components first.",
+      "inputs": {
+        "T_initial": {
+          "type": "array",
+          "value": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              2.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "T_target": {
+          "type": "array",
+          "value": [
+            [
+              0.8779917826797222,
+              -0.3247514336481421,
+              -0.35166309998400425,
+              1.1925834525549408
+            ],
+            [
+              0.2466661745631643,
+              0.9365557269934556,
+              -0.2490364803841688,
+              2.472238941308683
+            ],
+            [
+              0.4102270442977376,
+              0.1319085917567021,
+              0.9023934261437778,
+              0.7012629533749498
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "dt": {
+          "type": "scalar",
+          "value": 1.0,
+          "random": {
+            "min": 0.5,
+            "max": 3,
+            "step": 0.25,
+            "unit": "s"
+          }
+        }
+      },
+      "answers": [
+        {
+          "name": "V",
+          "shape": [
+            6,
+            1
+          ],
+          "rtol": 1e-05,
+          "atol": 1e-07,
+          "expected": [
+            [
+              0.19999999999999998
+            ],
+            [
+              -0.39999999999999997
+            ],
+            [
+              0.3
+            ],
+            [
+              1.0000000000000002
+            ],
+            [
+              0.20000000000000015
+            ],
+            [
+              -0.19999999999999993
+            ]
+          ]
+        }
+      ],
+      "reference_code": "D = T_target @ TransInv(T_initial)\nV = (se3ToVec(MatrixLog6(D)) / dt).reshape(6, 1)",
+      "formula_latex": "[V_s]=\\frac{1}{\\Delta t}\\log(T_fT_i^{-1})",
+      "explanation_md": "已知前后位姿，反求运动，使用 MatrixLog6。`se3ToVec` only changes representation; it does not compute a logarithm.\n\n除以时间得到 twist，再 reshape 为题目要求的列向量。"
+    },
+    {
+      "id": "twist-body",
+      "version": 1,
+      "title": "Recover a body twist",
+      "category": "Twists",
+      "similarity_group": "recover-twist",
+      "statement_en": "Find a constant **body twist V** that moves the body from **T_initial** to **T_target** in **dt seconds**. Return a **(6, 1) column vector**, angular components first.",
+      "inputs": {
+        "T_initial": {
+          "type": "array",
+          "value": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              2.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "T_target": {
+          "type": "array",
+          "value": [
+            [
+              0.8779917826797222,
+              -0.3247514336481421,
+              -0.35166309998400425,
+              1.1925834525549408
+            ],
+            [
+              0.2466661745631643,
+              0.9365557269934556,
+              -0.2490364803841688,
+              2.472238941308683
+            ],
+            [
+              0.4102270442977376,
+              0.1319085917567021,
+              0.9023934261437778,
+              0.7012629533749498
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "dt": {
+          "type": "scalar",
+          "value": 1.0,
+          "random": {
+            "min": 0.5,
+            "max": 3,
+            "step": 0.25,
+            "unit": "s"
+          }
+        }
+      },
+      "answers": [
+        {
+          "name": "V",
+          "shape": [
+            6,
+            1
+          ],
+          "rtol": 1e-05,
+          "atol": 1e-07,
+          "expected": [
+            [
+              0.19999999999999998
+            ],
+            [
+              -0.39999999999999997
+            ],
+            [
+              0.3
+            ],
+            [
+              0.40000000000000024
+            ],
+            [
+              0.5000000000000003
+            ],
+            [
+              0.6
+            ]
+          ]
+        }
+      ],
+      "reference_code": "D = TransInv(T_initial) @ T_target\nV = (se3ToVec(MatrixLog6(D)) / dt).reshape(6, 1)",
+      "formula_latex": "[V_b]=\\frac{1}{\\Delta t}\\log(T_i^{-1}T_f)",
+      "explanation_md": "已知前后位姿，反求运动，使用 MatrixLog6。`se3ToVec` only changes representation; it does not compute a logarithm.\n\n除以时间得到 twist，再 reshape 为题目要求的列向量。"
+    },
+    {
+      "id": "twist-matrix",
+      "version": 1,
+      "title": "Read a twist matrix",
+      "category": "Twists",
+      "similarity_group": "twist-representation",
+      "statement_en": "A twist is supplied in its **4 × 4 matrix representation V_mat**. Find the **(6, 1)** twist vector **V**, angular components first.",
+      "inputs": {
+        "V_mat": {
+          "type": "array",
+          "value": [
+            [
+              0,
+              5,
+              1,
+              4
+            ],
+            [
+              -5,
+              0,
+              -1,
+              10
+            ],
+            [
+              -1,
+              1,
+              0,
+              9
+            ],
+            [
+              0,
+              0,
+              0,
+              0
+            ]
+          ]
+        }
+      },
+      "answers": [
+        {
+          "name": "V",
+          "shape": [
+            6,
+            1
+          ],
+          "rtol": 1e-05,
+          "atol": 1e-07,
+          "expected": [
+            [
+              1.0
+            ],
+            [
+              1.0
+            ],
+            [
+              -5.0
+            ],
+            [
+              4.0
+            ],
+            [
+              10.0
+            ],
+            [
+              9.0
+            ]
+          ]
+        }
+      ],
+      "reference_code": "V = se3ToVec(V_mat).reshape(6, 1)",
+      "formula_latex": "[V]=\\begin{bmatrix}[\\omega]&v\\\\0&0\\end{bmatrix},\\quad V=\\begin{bmatrix}\\omega\\\\v\\end{bmatrix}",
+      "explanation_md": "输入已经是 twist 矩阵，直接 se3ToVec。No MatrixLog6 is needed. 最后一行全是零，区别于位姿矩阵。"
+    },
+    {
+      "id": "dh-link",
+      "version": 1,
+      "title": "Compose a DH link transform",
+      "category": "DH parameters",
+      "similarity_group": "dh-transform",
+      "statement_en": "Compute **T** using the stated convention: $T=\\operatorname{Rot}(x,\\alpha)\\operatorname{Trans}(x,a)\\operatorname{Trans}(z,d)\\operatorname{Rot}(z,\\phi)$. Both angles below are in **radians**.",
+      "inputs": {
+        "alpha": {
+          "type": "scalar",
+          "value": 0.7853981633974483
+        },
+        "a": {
+          "type": "scalar",
+          "value": 2.0
+        },
+        "d": {
+          "type": "scalar",
+          "value": -3.0,
+          "random": {
+            "min": -4,
+            "max": 4,
+            "step": 0.5,
+            "unit": "length"
+          }
+        },
+        "phi": {
+          "type": "scalar",
+          "value": -0.5,
+          "random": {
+            "min": -2,
+            "max": 2,
+            "step": 0.1,
+            "unit": "rad"
+          }
+        }
+      },
+      "answers": [
+        {
+          "name": "T",
+          "shape": [
+            4,
+            4
+          ],
+          "rtol": 1e-05,
+          "atol": 1e-07,
+          "expected": [
+            [
+              0.8775825618903728,
+              0.479425538604203,
+              0.0,
+              2.0
+            ],
+            [
+              -0.33900504942104487,
+              0.6205445805637456,
+              -0.7071067811865475,
+              2.1213203435596424
+            ],
+            [
+              -0.3390050494210448,
+              0.6205445805637455,
+              0.7071067811865476,
+              -2.121320343559643
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        }
+      ],
+      "reference_code": "Rx = MatrixExp3(VecToso3(np.array([alpha, 0, 0])))\nRz = MatrixExp3(VecToso3(np.array([0, 0, phi])))\nT = RpToTrans(Rx, np.zeros(3)) @ RpToTrans(np.eye(3), np.array([a, 0, 0])) @ RpToTrans(np.eye(3), np.array([0, 0, d])) @ RpToTrans(Rz, np.zeros(3))",
+      "formula_latex": "T=R_x(\\alpha)\\,T_x(a)\\,T_z(d)\\,R_z(\\phi)",
+      "explanation_md": "按题目给定顺序相乘。A pure rotation has zero translation. A pure translation has identity rotation.\n\n注意 d 的平移还会被左侧 Rx 旋转，不能直接把位置写成 (a,0,d)。"
+    },
+    {
+      "id": "planar3r-1",
+      "version": 1,
+      "title": "Planar 3R · tool pose",
+      "category": "Forward kinematics",
+      "similarity_group": "planar-fk",
+      "statement_en": "The diagram shows a planar 3R robot in its **zero configuration**. All revolute axes point along **+z (out of the page)**. Frame b is aligned with frame 0. Using the fixed geometry and joint angles **theta**, compute the tool pose **T01**. **Geometry is fixed; only theta changes between variants.**",
+      "inputs": {
+        "L": {
+          "type": "array",
+          "value": [
+            2.0,
+            1.5,
+            1.0
+          ]
+        },
+        "theta": {
+          "type": "array",
+          "value": [
+            0.3,
+            -0.5,
+            0.8
+          ],
+          "random": {
+            "min": -2,
+            "max": 2,
+            "step": 0.1,
+            "unit": "rad"
+          }
+        }
+      },
+      "answers": [
+        {
+          "name": "T01",
+          "shape": [
+            4,
+            4
+          ],
+          "rtol": 1e-05,
+          "atol": 1e-07,
+          "expected": [
+            [
+              0.8253356149096782,
+              -0.5646424733950354,
+              0.0,
+              4.206108459922753
+            ],
+            [
+              0.5646424733950354,
+              0.8253356149096783,
+              0.0,
+              0.8576788905251227
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        }
+      ],
+      "reference_code": "L1, L2, L3 = L\nM = RpToTrans(np.eye(3), np.array([L1 + L2 + L3, 0, 0]))\nS = np.column_stack([ScrewToAxis(np.array([x, 0, 0]), np.array([0, 0, 1]), 0) for x in [0, L1, L1 + L2]])\nT01 = FKinSpace(M, S, theta.flatten())",
+      "formula_latex": "T=e^{[S_1]\\theta_1}e^{[S_2]\\theta_2}e^{[S_3]\\theta_3}M,\\quad S_i=(\\omega_i,-\\omega_i\\times q_i)",
+      "explanation_md": "先从零位图读 M 和空间螺旋轴 S。All axes are +z. For an axis through (x,0,0), v=(0,-x,0).\n\nS 的每列对应一个关节；FKinSpace 自动按顺序计算指数积。图片和杆长固定，只有 theta 改变。",
+      "image": "images/planar3r.png"
+    },
+    {
+      "id": "planar3r-2",
+      "version": 1,
+      "title": "Planar 3R · another configuration",
+      "category": "Forward kinematics",
+      "similarity_group": "planar-fk",
+      "statement_en": "The diagram shows a planar 3R robot in its **zero configuration**. All revolute axes point along **+z (out of the page)**. Frame b is aligned with frame 0. Using the fixed geometry and joint angles **theta**, compute the tool pose **T01**. **Geometry is fixed; only theta changes between variants.**",
+      "inputs": {
+        "L": {
+          "type": "array",
+          "value": [
+            2.0,
+            1.5,
+            1.0
+          ]
+        },
+        "theta": {
+          "type": "array",
+          "value": [
+            -0.6,
+            0.4,
+            -0.2
+          ],
+          "random": {
+            "min": -2,
+            "max": 2,
+            "step": 0.1,
+            "unit": "rad"
+          }
+        }
+      },
+      "answers": [
+        {
+          "name": "T01",
+          "shape": [
+            4,
+            4
+          ],
+          "rtol": 1e-05,
+          "atol": 1e-07,
+          "expected": [
+            [
+              0.9210609940028852,
+              0.38941834230865047,
+              0.0,
+              4.041832090584105
+            ],
+            [
+              -0.3894183423086506,
+              0.9210609940028851,
+              0.0,
+              -1.816707285291313
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        }
+      ],
+      "reference_code": "L1, L2, L3 = L\nM = RpToTrans(np.eye(3), np.array([L1 + L2 + L3, 0, 0]))\nS = np.column_stack([ScrewToAxis(np.array([x, 0, 0]), np.array([0, 0, 1]), 0) for x in [0, L1, L1 + L2]])\nT01 = FKinSpace(M, S, theta.flatten())",
+      "formula_latex": "T=e^{[S_1]\\theta_1}e^{[S_2]\\theta_2}e^{[S_3]\\theta_3}M,\\quad S_i=(\\omega_i,-\\omega_i\\times q_i)",
+      "explanation_md": "先从零位图读 M 和空间螺旋轴 S。All axes are +z. For an axis through (x,0,0), v=(0,-x,0).\n\nS 的每列对应一个关节；FKinSpace 自动按顺序计算指数积。图片和杆长固定，只有 theta 改变。",
+      "image": "images/planar3r.png"
+    }
+  ]
+}

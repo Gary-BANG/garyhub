@@ -1,0 +1,4 @@
+test
+deploy
+*.md
+**/__pycache__

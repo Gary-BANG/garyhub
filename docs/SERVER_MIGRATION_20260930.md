@@ -1,3 +1,4 @@
+> 2026-10-07 production correction: Filebrowser actually uses `/config/database.db`, mapped to `/opt/my-services/filebrowser/database.db`. Its command-line option overrides the JSON configuration. The additional `/database` mount is not proof of the active database. Tools and Lab are now deployed; see [deployment record](DEPLOYMENT_20261007.md) and [verified backup](BACKUP_VERIFICATION_20261007.md).
 # 2026-09-30 服务器迁移记录
 
 ## 当前入口
@@ -15,7 +16,7 @@ GaryHub 从 Vultr `LA-VPN`（旧 IPv4 `45.32.84.89`）迁至 InterServer `vps366
 | Reminder worker | `/opt/my-services/reminder-compose.json` | 与 Calendar Web 共享正式数据和 Graph 令牌 |
 | Xray | `/etc/systemd/system/xray.service`、`/usr/local/etc/xray/config.json` | root 管理的配置文件 |
 
-Calendar 的 `override.yml`、`reminder-compose.json` 以及 Xray 配置可能含真实密钥；这些文件都不是本仓库的模板，不得提交。提醒 worker 的镜像与 Calendar Web 相同：`garyhub-calendar-candidate:20260927-200732`。Filebrowser 的真实数据库挂载为 `/opt/my-services/filebrowser/database/filebrowser.db`，不要把旧的 `filebrowser/database.db` 当作当前数据库。
+Calendar 的 `override.yml`、`reminder-compose.json` 以及 Xray 配置可能含真实密钥；这些文件都不是本仓库的模板，不得提交。提醒 worker 的镜像与 Calendar Web 相同：`garyhub-calendar-candidate:20260927-200732`。Filebrowser 的真实数据库挂载为 `/opt/my-services/filebrowser/database.db`，实际运行使用 `filebrowser/database.db`，此前将它认定为旧数据库的记录有误。
 
 ## 备份与回滚
 

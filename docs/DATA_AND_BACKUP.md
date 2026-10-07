@@ -1,3 +1,4 @@
+> 2026-10-07 production correction: Filebrowser actually uses `/config/database.db`, mapped to `/opt/my-services/filebrowser/database.db`. Its command-line option overrides the JSON configuration. The additional `/database` mount is not proof of the active database. Tools and Lab are now deployed; see [deployment record](DEPLOYMENT_20261007.md) and [verified backup](BACKUP_VERIFICATION_20261007.md).
 # 数据位置与备份规则
 
 最后核对：2026-09-30 UTC（InterServer、Calendar v1.3.1.2）
@@ -11,8 +12,8 @@
 | Uptime Kuma | `/opt/my-services/uptime-kuma` | SQLite 和运行状态 |
 | Miniflux | `/opt/my-services/postgres` | PostgreSQL 数据目录 |
 | FileBrowser 文件 | `/opt/my-services/filebrowser/data` | 用户文件 |
-| FileBrowser 数据库 | `/opt/my-services/filebrowser/database/filebrowser.db` | UID/GID 1000 的 Bolt 数据库；通过 `docker-compose.migration.yml` 显式挂载 |
-| FileBrowser 设置 | `/opt/my-services/filebrowser/settings.json` | 设置文件；旧的 `filebrowser/database.db` 不是当前挂载的数据库 |
+| FileBrowser 数据库 | `/opt/my-services/filebrowser/database.db` | Bolt 数据库；经 /config 挂载，由启动参数明确指定 |
+| FileBrowser 设置 | `/opt/my-services/filebrowser/settings.json` | 设置文件；`filebrowser/database.db` 是已核实的实际数据库；启动参数优先于设置文件 |
 | Caddy 状态 | `/opt/my-services/caddy/data` | TLS 证书和状态 |
 | Caddy 路由 | `/opt/my-services/caddy/Caddyfile` | 配置文件 |
 | Xray 配置 | `/usr/local/etc/xray/config.json` | VLESS 客户端信息；敏感 |
@@ -81,3 +82,7 @@ sqlite3 /opt/garyhub-cutover-20260927-203135/data/calendar.sqlite 'PRAGMA integr
 ## 临时目录
 
 旧文档提及的 `/opt/garyhub-upgrade-lJdq1ju8` 属于已删除旧服务器。新服务器的 `/root/garyhub-migration`（包括 `garyhub-final-20260930-*`）等迁移备份可能含数据库和令牌；清理前需确认 Restic 快照与当前数据，而不能按目录名批量删除。
+
+## 2026-10-07 Lab and Files backup update
+
+Lab state is stored in `/opt/my-services/lab-data`. The state backup now uses the actual Files database and briefly stops each of Files/Lab during its copy. A new snapshot was restored and verified; see [verification results](BACKUP_VERIFICATION_20261007.md). The daily 03:20 whole-directory snapshot is not a substitute for consistent database snapshots.

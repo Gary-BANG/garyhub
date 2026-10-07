@@ -72,3 +72,12 @@ Calendar 对外版本 v1.3.1.2 已上线：每用户每日一篇可修改的日�
 GitHub 保存经过脱敏的源码、配置示例和维护文档，不保存正式数据库、任务数据、密码、Cookie、Session Secret、邮件令牌、TLS 私钥或备份。
 
 当前 `/opt/my-services` 是正式运行目录，不是 Git working tree。GitHub 推送不会自动修改服务器，服务器也不应直接执行未经测试的 `git pull`。私人记录功能已在正式镜像中上线；操作前仍需核对实际镜像、Compose 和数据挂载。
+
+## Tools and ECE 470 Lab (2026-10-07)
+
+- Tools: https://tools.garyhub.uk
+- Lab: https://lab.garyhub.uk/lab/
+- Source: `lab-service/`. Calendar accounts, separate site sessions, per-user persisted workspaces.
+- [Deployment record](docs/DEPLOYMENT_20261007.md)
+- [Backup and restore verification](docs/BACKUP_VERIFICATION_20261007.md)
+- GitHub updates do not automatically deploy to the server.

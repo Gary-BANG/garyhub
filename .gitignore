@@ -51,3 +51,7 @@ backup/
 *.backup.*
 *_backup_*
 *-backup-*
+
+# Public built-in question bank and reference data (not production user data)
+!lab-service/public/lab/data/
+!lab-service/public/lab/data/**
