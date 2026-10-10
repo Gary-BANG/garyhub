@@ -1,0 +1,18 @@
+[
+  {
+    "path": "server.cjs",
+    "sha256": "87a8f5a869274da40d0b6ee699a84dd5026ba6df07574bc4808e94d90b70bdb9"
+  },
+  {
+    "path": "public/index.html",
+    "sha256": "4433446f06b137f4b379d73176e09f5de04bf1b19346cdee1c6ccb4897e00b94"
+  },
+  {
+    "path": "public/login.html",
+    "sha256": "587ed6e65dfdd6d40c5ebf2fe9150c0a43b3b2f66e2e843d07dc5e82b17039fe"
+  },
+  {
+    "path": "public/login.js",
+    "sha256": "f543e4ab2ca17e1fa57c1761b7ea2d63e733d7029cb94669307b3c282149d43c"
+  }
+]

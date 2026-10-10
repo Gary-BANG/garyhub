@@ -1,0 +1,31 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const os=require('node:os');
+const path=require('node:path');
+const {createAccessStore}=require('../access-store.cjs');
+
+test('single-use codes, user isolation, stacking, expiry and permanent grants survive restart',t=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'garyhub-access-'));
+  t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+  const store=createAccessStore(dir), now=Date.parse('2026-10-10T00:00:00Z');
+  const [first,second,forever]=store.createCodes(9,7,2).concat(store.createCodes(9,'permanent',1));
+  assert.notEqual(first,second);
+  assert.equal(store.status(1),null);
+  assert.equal(store.redeem(1,first,now).expiresAt,'2026-10-17T00:00:00.000Z');
+  assert.equal(store.status(1,now).clientId,undefined);
+  assert.equal(store.status(1,now).subscriptionToken,undefined);
+  const firstCredential=JSON.parse(fs.readFileSync(path.join(dir,'access-entitlements.json'),'utf8')).grants['1'].clientId;
+  assert.equal(store.status(2),null);
+  assert.throws(()=>store.redeem(2,first,now),/已使用/);
+  assert.equal(store.redeem(1,second,now+1000).expiresAt,'2026-10-24T00:00:00.000Z');
+  assert.equal(JSON.parse(fs.readFileSync(path.join(dir,'access-entitlements.json'),'utf8')).grants['1'].clientId,firstCredential);
+  assert.equal(store.status(1,Date.parse('2026-10-25T00:00:00Z')).active,false);
+  const renewed=createAccessStore(dir).createCodes(9,30,1)[0];
+  assert.equal(store.redeem(1,renewed,Date.parse('2026-10-26T00:00:00Z')).expiresAt,'2026-11-25T00:00:00.000Z');
+  assert.equal(store.redeem(1,forever,now).permanent,true);
+  assert.equal(createAccessStore(dir).status(1,Date.parse('2050-01-01T00:00:00Z')).active,true);
+  assert.equal(fs.readFileSync(path.join(dir,'access-entitlements.json'),'utf8').includes(first),false);
+  assert.equal(store.listCodes().length,4);
+  assert.throws(()=>store.createCodes(9,7,21),/无效/);
+});

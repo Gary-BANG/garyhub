@@ -1,0 +1,22 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const os=require('node:os');
+const path=require('node:path');
+const {createAccessStore}=require('../access-store.cjs');
+const {createConnections}=require('../access-connection.cjs');
+test('subscriptions deny expired grants and stale or mismatched provisioning',t=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'access-connection-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+ const store=createAccessStore(dir);const file=path.join(dir,'runtime.json');
+ const connections=createConnections(store,file,'https://vpn.garyhub.uk');
+ const code=store.createCodes(1,7,1)[0];store.redeem(1,code,Date.now()-8*86400000);
+ const g=store.privateGrant(1);
+ const runtime={ok:true,updatedAt:new Date().toISOString(),host:'vpn.garyhub.uk',wsPath:'/ws',clients:{1:g.clientId}};
+ fs.writeFileSync(file,JSON.stringify(runtime));assert.equal(connections.subscription(g.subscriptionToken),null);
+ store.redeem(1,store.createCodes(1,'permanent',1)[0]);assert.ok(connections.subscription(g.subscriptionToken));
+ runtime.updatedAt=new Date(Date.now()-100000).toISOString();fs.writeFileSync(file,JSON.stringify(runtime));
+ assert.equal(connections.subscription(g.subscriptionToken),null);
+ runtime.updatedAt=new Date().toISOString();runtime.clients['1']='different';fs.writeFileSync(file,JSON.stringify(runtime));
+ assert.equal(connections.subscription(g.subscriptionToken),null);
+ store.revoke(1,1);store.redeem(1,store.createCodes(1,7,1)[0]);assert.equal(store.status(1).permanent,false);
+});

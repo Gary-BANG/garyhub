@@ -7,8 +7,13 @@ services:
       PUBLIC_ORIGIN: https://lab.garyhub.uk
       CALENDAR_URL: http://calendar-app:3000
       LAB_DATA_DIR: /data
+      # Set this to the HTTPS address of the store homepage after verification.
+      ACCESS_STORE_URL: ""
+      ACCESS_RUNTIME_FILE: /access-runtime/status.json
+      ACCESS_SUB_ORIGIN: https://vpn.garyhub.uk
     volumes:
       - /opt/my-services/lab-data:/data
+      - /opt/garyhub-access/runtime:/access-runtime:ro
     networks:
       - services
     healthcheck:

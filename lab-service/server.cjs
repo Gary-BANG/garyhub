@@ -3,12 +3,16 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { pipeline } = require('node:stream');
+const { createAccessStore } = require('./access-store.cjs');
+const { createConnections } = require('./access-connection.cjs');
 const ROOT = path.join(__dirname, 'public');
 const DATA = process.env.LAB_DATA_DIR || '/data';
 const CALENDAR = process.env.CALENDAR_URL || 'http://calendar-app:3000';
 const ORIGIN = process.env.PUBLIC_ORIGIN || 'https://lab.garyhub.uk';
 const LIMIT = 24 * 1024 * 1024;
 fs.mkdirSync(DATA, {recursive:true, mode:0o700});
+const access = createAccessStore(DATA);
+const connections=createConnections(access,process.env.ACCESS_RUNTIME_FILE||'/access-runtime/status.json',process.env.ACCESS_SUB_ORIGIN||ORIGIN);
 function json(res, status, value) { res.writeHead(status, {'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}); res.end(JSON.stringify(value)); }
 async function calendar(req, route, method='GET', body) {
   return fetch(CALENDAR + route, {method, redirect:'manual', signal:AbortSignal.timeout(10000), headers:{
@@ -25,9 +29,20 @@ async function identity(req) {
   return user;
 }
 async function body(req) {
+  const maxSize=req.url.startsWith('/api/access/')?8192:LIMIT;
   let size=0; const chunks=[];
-  for await (const chunk of req) { size+=chunk.length; if(size>LIMIT) { const e=Error('Payload too large'); e.status=413; throw e; } chunks.push(chunk); }
+  for await (const chunk of req) { size+=chunk.length; if(size>maxSize) { const e=Error('Payload too large'); e.status=413; throw e; } chunks.push(chunk); }
   try {return JSON.parse(Buffer.concat(chunks).toString());} catch {const e=Error('Invalid JSON');e.status=400;throw e;}
+}
+async function validCsrf(req) {
+  const csrf=await calendar(req,'/api/csrf');
+  if(!csrf.ok) throw Error('CSRF service unavailable');
+  const token=(await csrf.json()).token;
+  const supplied=req.headers['x-csrf-token'];
+  return typeof token==='string' && typeof supplied==='string' && /^[0-9a-f]{64}$/.test(token) && /^[0-9a-f]{64}$/.test(supplied) && crypto.timingSafeEqual(Buffer.from(token,'hex'),Buffer.from(supplied,'hex'));
+}
+function storeUrl() {
+  try {const configured=access.settings().storeUrl;const url=new URL(configured===undefined?process.env.ACCESS_STORE_URL:configured);return url.protocol==='https:'?url.href:null;} catch {return null;}
 }
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.wasm':'application/wasm','.png':'image/png','.svg':'image/svg+xml','.woff2':'font/woff2','.woff':'font/woff','.zip':'application/zip','.md':'text/plain; charset=utf-8'};
 const server = http.createServer(async (req,res)=>{
@@ -36,7 +51,14 @@ const server = http.createServer(async (req,res)=>{
   res.setHeader('Referrer-Policy','same-origin');
   try {
     const url=new URL(req.url, 'http://localhost');
-    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1});
+    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2});
+    if(url.pathname.startsWith('/sub/')) {
+      if(req.method!=='GET') return json(res,405,{message:'Method not allowed'});
+      const sub=connections.subscription(url.pathname.slice(5));
+      if(!sub)return json(res,404,{message:'订阅不可用、未开通或已到期'});
+      res.writeHead(200,{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','profile-update-interval':'1',...(sub.expires?{'subscription-userinfo':`expire=${sub.expires}`}:{})});
+      return res.end(sub.body);
+    }
     if(url.pathname.startsWith('/api/')) {
       res.setHeader('Cache-Control','no-store');
       if(!['GET','HEAD'].includes(req.method) && req.headers.origin!==ORIGIN) return json(res,403,{message:'Origin check failed'});
@@ -48,17 +70,48 @@ const server = http.createServer(async (req,res)=>{
         if(cookies.length) res.setHeader('Set-Cookie',cookies);
         return json(res,upstream.status,await upstream.json());
       }
+      if(url.pathname.startsWith('/api/access/')) {
+        const user=await identity(req);
+        if(!user) return json(res,401,{message:'请使用 Calendar 账号登录'});
+        if(url.pathname==='/api/access/status' && req.method==='GET') return json(res,200,{user:{id:user.id,username:user.username,role:user.role},grant:connections.status(user.id),storeUrl:storeUrl(),syncHealthy:connections.healthy()});
+        if(url.pathname==='/api/access/redeem' && req.method==='POST') {
+          if(!await validCsrf(req)) return json(res,403,{message:'请刷新登录校验后重试'});
+          const input=await body(req);
+          access.redeem(user.id,input.code);
+          return json(res,200,{grant:connections.status(user.id)});
+        }
+        if(url.pathname==='/api/access/rotate'&&req.method==='POST') {
+          if(!await validCsrf(req))return json(res,403,{message:'请刷新登录校验后重试'});
+          access.rotate(user.id);return json(res,200,{ok:true});
+        }
+        if(['/api/access/admin/grants','/api/access/admin/revoke','/api/access/admin/settings'].includes(url.pathname)) {
+          if(user.role!=='admin')return json(res,403,{message:'需要管理员权限'});
+          if(req.method==='GET'&&url.pathname.endsWith('/grants'))return json(res,200,{grants:access.listGrants()});
+          if(req.method==='GET'&&url.pathname.endsWith('/settings'))return json(res,200,{storeUrl:storeUrl()});
+          if(req.method!=='POST')return json(res,405,{message:'Method not allowed'});
+          if(!await validCsrf(req))return json(res,403,{message:'请刷新登录校验后重试'});
+          const input=await body(req);
+          if(url.pathname.endsWith('/revoke'))access.revoke(user.id,input.userId);
+          else if(url.pathname.endsWith('/settings'))access.setStore(user.id,input.storeUrl);
+          else return json(res,405,{message:'Method not allowed'});
+          return json(res,200,{ok:true});
+        }
+        if(url.pathname==='/api/access/admin/codes' && ['GET','POST'].includes(req.method)) {
+          if(user.role!=='admin') return json(res,403,{message:'需要管理员权限'});
+          if(req.method==='GET') return json(res,200,{codes:access.listCodes()});
+          if(!await validCsrf(req)) return json(res,403,{message:'请刷新登录校验后重试'});
+          const input=await body(req);
+          return json(res,201,{codes:access.createCodes(user.id,input.duration,input.count)});
+        }
+        return json(res,404,{message:'Not found'});
+      }
       if(url.pathname!=='/api/lab/state' || !['GET','PUT'].includes(req.method)) return json(res,404,{message:'Not found'});
       const user=await identity(req);
       if(!user) return json(res,401,{message:'请重新登录；未保存的代码仍留在本机。'});
       const file=path.join(DATA,`user-${user.id}.json`);
       const current=()=>fs.existsSync(file)?JSON.parse(fs.readFileSync(file,'utf8')):{revision:0,state:null};
       if(req.method==='GET') return json(res,200,{...current(),user});
-      const csrf=await calendar(req,'/api/csrf');
-      if(!csrf.ok) throw Error('CSRF service unavailable');
-      const token=(await csrf.json()).token;
-      const supplied=req.headers['x-csrf-token'];
-      if(typeof token!=='string'||typeof supplied!=='string'||token.length!==supplied.length||!crypto.timingSafeEqual(Buffer.from(token),Buffer.from(supplied))) return json(res,403,{message:'请刷新登录校验后重试'});
+      if(!await validCsrf(req)) return json(res,403,{message:'请刷新登录校验后重试'});
       const input=await body(req);
       if(!Number.isSafeInteger(input.revision)||input.revision<0||!input.state||!Array.isArray(input.state.custom)||!Array.isArray(input.state.instances)||!Array.isArray(input.state.history)||!input.state.images||typeof input.state.images!=='object') return json(res,400,{message:'Invalid workspace'});
       // Synchronous compare + durable replace keeps a single process's writes serialized.
@@ -71,9 +124,10 @@ const server = http.createServer(async (req,res)=>{
       return json(res,200,{revision:next.revision,updatedAt:next.updatedAt});
     }
     if(!['GET','HEAD'].includes(req.method)) return json(res,405,{message:'Method not allowed'});
-    if(url.pathname==='/lab' || url.pathname==='/lab/' || url.pathname==='/lab/index.html') {
-      if(!await identity(req)) {res.writeHead(302,{Location:'/login.html','Cache-Control':'no-store'});return res.end();}
+    if(url.pathname==='/lab' || url.pathname==='/lab/' || url.pathname==='/lab/index.html' || url.pathname==='/access' || url.pathname==='/access/' || url.pathname==='/access/index.html') {
+      if(!await identity(req)) {res.writeHead(302,{Location:url.pathname.startsWith('/access')?'/login.html?next=%2Faccess%2F':'/login.html','Cache-Control':'no-store'});return res.end();}
       if(url.pathname==='/lab') {res.writeHead(302,{Location:'/lab/'});return res.end();}
+      if(url.pathname==='/access') {res.writeHead(302,{Location:'/access/'});return res.end();}
     }
     let name=decodeURIComponent(url.pathname); if(name.endsWith('/')) name+='index.html';
     const file=path.resolve(ROOT,'.'+name);
