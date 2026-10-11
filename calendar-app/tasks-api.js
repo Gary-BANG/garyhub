@@ -179,7 +179,7 @@ module.exports = function registerTasksApi(app, { requireLogin, resolveTargetUse
   app.get("/api/notifications", requireLogin, route(async (req,res) => {
     const userId = req.session.user.id;
     res.json(await all(`SELECT id,type,title,body,action_url,read_at,created_at FROM notifications
-      WHERE user_id=? ORDER BY created_at DESC,id DESC LIMIT 100`, [userId]));
+      WHERE user_id=? AND scope='calendar' ORDER BY created_at DESC,id DESC LIMIT 100`, [userId]));
   }));
   app.post("/api/notifications/:id/read", requireLogin, route(async (req,res) => {
     const result = await run(`UPDATE notifications SET read_at=COALESCE(read_at,CURRENT_TIMESTAMP)

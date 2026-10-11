@@ -81,3 +81,7 @@ GitHub 保存经过脱敏的源码、配置示例和维护文档，不保存正�
 - [Deployment record](docs/DEPLOYMENT_20261007.md)
 - [Backup and restore verification](docs/BACKUP_VERIFICATION_20261007.md)
 - GitHub updates do not automatically deploy to the server.
+
+
+<!-- GARYHUB_RELEASE_POLICY_20261011 -->
+Every user-visible production update must publish unread in-app release notes to all approved, enabled accounts, including administrators. Follow docs/RELEASE_POLICY.md and verify recipient counts and idempotency. Deployment state and current effective Compose paths are recorded in /opt/my-services/garyhub-active-deployment.json. Never commit private Compose files, runtime data or server backups.

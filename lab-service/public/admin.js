@@ -1,0 +1,11 @@
+(()=>{const $=id=>document.getElementById(id),el=(tag,text)=>{const n=document.createElement(tag);n.textContent=text;return n;};let busy=false;
+ async function act(button,fn){if(busy)return;busy=true;button.disabled=true;try{await fn();$('admin-status').textContent='已保存';await load();}catch(e){$('admin-status').textContent=e.message;}finally{busy=false;button.disabled=false;}}
+ async function load(){const {api,mutate}=window.GaryHub;const me=await api('/api/hub/me');if(me.user?.role!=='admin'){$('admin-content').hidden=true;$('admin-status').textContent='需要管理员账号';return;}
+ const [requests,users]=await Promise.all([api('/api/admin/register-requests'),api('/api/hub/admin/users')]);$('admin-content').hidden=false;$('requests').replaceChildren();$('users').replaceChildren();
+ if(!requests.length)$('requests').append(el('p','当前没有待审批注册请求。'));
+ for(const r of requests){const row=el('article','');row.className='manage-row';row.append(el('h3',r.username),el('p',r.note||'无备注'),el('small',r.created_at));for(const [action,label] of [['approve','批准'],['reject','拒绝']]){const b=el('button',label);b.className='gh-button';b.onclick=()=>act(b,async()=>{if(action==='reject'&&!confirm('拒绝 '+r.username+' 的注册申请？'))return;await mutate(`/api/admin/register-requests/${r.id}/${action}`);});row.append(b);}$('requests').append(row);}
+ for(const u of users){const row=el('article','');row.className='manage-row';row.append(el('strong',u.username),el('small',`用户 ${u.id} · ${u.role==='admin'?'管理员':'普通用户'}${u.enabled?'':' · 已禁用'}`));const label=el('label',''),input=document.createElement('input');input.type='checkbox';input.checked=u.role==='admin'||!!u.view_academics;input.disabled=u.role==='admin';input.onchange=()=>{const checked=input.checked;act(input,async()=>{try{await mutate(`/api/hub/admin/users/${u.id}/academics`,'PUT',{allowed:checked});}catch(e){input.checked=!checked;throw e;}});};label.append(input,document.createTextNode(' 允许查看主页 GPA / Rank'));row.append(label);$('users').append(row);}
+ }
+ document.addEventListener('garyhub:identity',e=>{if(e.detail.user?.role!=='admin'){$('admin-content').hidden=true;$('admin-status').textContent='需要管理员账号';}});
+ $('refresh-users').onclick=()=>load().catch(e=>$('admin-status').textContent=e.message);load().catch(e=>$('admin-status').textContent=e.message);
+})();

@@ -362,8 +362,7 @@
           </div>
 
           <div id="adminRegisterRequestsCard" class="card hidden">
-            <h2 class="section-title">待审核注册申请</h2>
-            <div id="registerRequestsList" class="small">加载中...</div>
+            <h2 class="section-title">用户管理</h2><a href="https://tools.garyhub.uk/admin/" target="_blank" rel="noopener">前往 Tools 审批注册和管理主页查看权限 ↗</a>
           </div>
         </div>
       </div>
@@ -587,75 +586,7 @@
       select.value = String(state.selectedUserId || state.me.id);
     }
 
-    async function loadRegisterRequests() {
-      if (!state.me || state.me.role !== "admin") return;
-
-      const list = $("registerRequestsList");
-      list.textContent = "加载中...";
-
-      try {
-        const rows = await api("/api/admin/register-requests");
-        if (!rows.length) {
-          list.innerHTML = '<div class="small">当前没有待审核申请</div>';
-          return;
-        }
-
-        list.innerHTML = "";
-
-        rows.forEach(row => {
-          const div = document.createElement("div");
-          div.className = "request-item";
-
-          div.innerHTML = `
-            <div class="request-title">${escapeHtml(row.username)}</div>
-            <div class="request-meta">
-              申请ID: ${row.id}<br>
-              提交时间: ${escapeHtml(row.created_at || "")}
-            </div>
-            <div class="request-note">${escapeHtml(row.note || "无备注")}</div>
-            <div class="btn-row">
-              <button class="success" data-approve="${row.id}">批准</button>
-              <button class="danger" data-reject="${row.id}">拒绝</button>
-            </div>
-          `;
-
-          list.appendChild(div);
-        });
-
-        list.querySelectorAll("[data-approve]").forEach(btn => {
-          btn.addEventListener("click", async function() {
-            const id = this.getAttribute("data-approve");
-            try {
-              await api(`/api/admin/register-requests/${id}/approve`, {
-                method: "POST"
-              });
-              alert("已批准");
-              await loadUsersForAdmin();
-              await loadRegisterRequests();
-            } catch (err) {
-              alert(err.message);
-            }
-          });
-        });
-
-        list.querySelectorAll("[data-reject]").forEach(btn => {
-          btn.addEventListener("click", async function() {
-            const id = this.getAttribute("data-reject");
-            try {
-              await api(`/api/admin/register-requests/${id}/reject`, {
-                method: "POST"
-              });
-              alert("已拒绝");
-              await loadRegisterRequests();
-            } catch (err) {
-              alert(err.message);
-            }
-          });
-        });
-      } catch (err) {
-        list.innerHTML = `<div class="message">${escapeHtml(err.message)}</div>`;
-      }
-    }
+    async function loadRegisterRequests() { /* Registration approval lives in Tools. */ }
 
     function updateHeader() {
       setText("currentUserText", `当前登录：${state.me.username}`);
@@ -754,6 +685,7 @@
           headers: { "Content-Type": "application/json" }
         });
 
+        csrfToken = null;
         $("loginUsername").value = "";
         $("loginPassword").value = "";
         await enterApp();
@@ -911,5 +843,5 @@
   <script src="/task-filter.js"></script>
   <script src="/unified.js"></script>
   <script src="/personal.js"></script>
-</body>
+<script src="/hub-watch.js"></script></body>
 </html>

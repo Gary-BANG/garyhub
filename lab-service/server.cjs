@@ -9,6 +9,7 @@ const ROOT = path.join(__dirname, 'public');
 const DATA = process.env.LAB_DATA_DIR || '/data';
 const CALENDAR = process.env.CALENDAR_URL || 'http://calendar-app:3000';
 const ORIGIN = process.env.PUBLIC_ORIGIN || 'https://lab.garyhub.uk';
+const TRUSTED = new Set(['https://garyhub.uk','https://tools.garyhub.uk','https://lab.garyhub.uk','https://calendar.garyhub.uk']);
 const LIMIT = 24 * 1024 * 1024;
 fs.mkdirSync(DATA, {recursive:true, mode:0o700});
 const access = createAccessStore(DATA);
@@ -17,7 +18,7 @@ function json(res, status, value) { res.writeHead(status, {'Content-Type':'appli
 async function calendar(req, route, method='GET', body) {
   return fetch(CALENDAR + route, {method, redirect:'manual', signal:AbortSignal.timeout(10000), headers:{
     cookie:req.headers.cookie || '', 'content-type':'application/json',
-    'x-forwarded-proto':'https', 'x-csrf-token':req.headers['x-csrf-token'] || ''
+    'x-forwarded-proto':'https', origin:req.headers.origin||'', 'x-csrf-token':req.headers['x-csrf-token'] || ''
   }, body});
 }
 async function identity(req) {
@@ -51,7 +52,8 @@ const server = http.createServer(async (req,res)=>{
   res.setHeader('Referrer-Policy','same-origin');
   try {
     const url=new URL(req.url, 'http://localhost');
-    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2});
+    url.pathname=decodeURIComponent(url.pathname);
+    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"20261011-v1"});
     if(url.pathname.startsWith('/sub/')) {
       if(req.method!=='GET') return json(res,405,{message:'Method not allowed'});
       const sub=connections.subscription(url.pathname.slice(5));
@@ -61,7 +63,23 @@ const server = http.createServer(async (req,res)=>{
     }
     if(url.pathname.startsWith('/api/')) {
       res.setHeader('Cache-Control','no-store');
-      if(!['GET','HEAD'].includes(req.method) && req.headers.origin!==ORIGIN) return json(res,403,{message:'Origin check failed'});
+      if(!['GET','HEAD'].includes(req.method) && !TRUSTED.has(req.headers.origin)) return json(res,403,{message:'Origin check failed'});
+      if(url.pathname==='/api/hub/academics' && req.method==='GET') {
+        const upstream=await calendar(req,'/api/hub/me');
+        if(!upstream.ok) return json(res,upstream.status,{allowed:false});
+        const me=await upstream.json();
+        if(!me.canViewAcademics)return json(res,200,{allowed:false});
+        const profile=JSON.parse(fs.readFileSync(path.join(__dirname,'profile-private.json'),'utf8'));
+        return json(res,200,{allowed:true,gpa:profile.gpa,rank:profile.rank});
+      }
+      const hubRoute=/^\/api\/hub\/(?:me|notifications(?:\/\d+\/read)?|admin\/users(?:\/\d+\/academics)?)$/.test(url.pathname);
+      const registrationRoute=/^\/api\/admin\/register-requests(?:\/\d+\/(?:approve|reject))?$/.test(url.pathname);
+      if(hubRoute||registrationRoute){
+        if(!['GET','POST','PUT'].includes(req.method))return json(res,405,{message:'Method not allowed'});
+        const payload=req.method==='GET'?undefined:JSON.stringify(await body(req));
+        const upstream=await calendar(req,url.pathname+url.search,req.method,payload);
+        return json(res,upstream.status,await upstream.json());
+      }
       const allowed={'/api/csrf':'GET','/api/me':'GET','/api/login':'POST','/api/logout':'POST'};
       if(allowed[url.pathname]===req.method) {
         const payload=req.method==='POST'?JSON.stringify(await body(req)):undefined;
@@ -113,6 +131,7 @@ const server = http.createServer(async (req,res)=>{
       if(req.method==='GET') return json(res,200,{...current(),user});
       if(!await validCsrf(req)) return json(res,403,{message:'请刷新登录校验后重试'});
       const input=await body(req);
+      if(input.accountId!==user.id)return json(res,409,{message:'当前登录账号已变化，请先导出本机备份，再重新加载页面'});
       if(!Number.isSafeInteger(input.revision)||input.revision<0||!input.state||!Array.isArray(input.state.custom)||!Array.isArray(input.state.instances)||!Array.isArray(input.state.history)||!input.state.images||typeof input.state.images!=='object') return json(res,400,{message:'Invalid workspace'});
       // Synchronous compare + durable replace keeps a single process's writes serialized.
       const old=current();
@@ -129,7 +148,16 @@ const server = http.createServer(async (req,res)=>{
       if(url.pathname==='/lab') {res.writeHead(302,{Location:'/lab/'});return res.end();}
       if(url.pathname==='/access') {res.writeHead(302,{Location:'/access/'});return res.end();}
     }
+    if(url.pathname==='/admin/' || url.pathname==='/admin' || url.pathname==='/admin.html' || url.pathname==='/admin/index.html') {
+      const user=await identity(req);
+      if(!user){res.writeHead(302,{Location:'/login.html?next=%2Fadmin%2F','Cache-Control':'no-store'});return res.end();}
+      if(user.role!=='admin')return json(res,403,{message:'需要管理员权限'});
+    }
+    const isHome=(req.headers.host||'').split(':')[0]==='garyhub.uk';
+    if(isHome&&!['/','/index.html','/hub-account.js','/hub-account.css','/login.html','/login.js','/hub.css'].includes(url.pathname))return json(res,404,{message:'Not found'});
     let name=decodeURIComponent(url.pathname); if(name.endsWith('/')) name+='index.html';
+    if(isHome&&name==='/index.html')name='/homepage.html';
+    if(['/admin','/admin/','/admin/index.html'].includes(name))name='/admin.html';
     const file=path.resolve(ROOT,'.'+name);
     if(!file.startsWith(ROOT+path.sep)) return json(res,404,{message:'Not found'});
     const stat=fs.statSync(file); if(!stat.isFile()) return json(res,404,{message:'Not found'});

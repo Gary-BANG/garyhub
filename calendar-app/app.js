@@ -13,6 +13,7 @@ const { migratePersonalRecords } = require("./migrations/personal-records");
 const { consumeVerification, normalizeEmail } = require("./email-api");
 const { rateLimit } = require("./rate-limit");
 
+const { migrateHub, registerHubApi } = require("./hub-api");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -29,12 +30,13 @@ const sessionStore = createSqliteSessionStore(session, {
 app.use(
   session({
     store: sessionStore,
-    name: "garyhub.sid",
+    name: "garyhub.shared.sid",
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
+      ...(process.env.COOKIE_DOMAIN ? { domain: process.env.COOKIE_DOMAIN } : {}),
       sameSite: "lax",
       secure: process.env.COOKIE_SECURE === "true",
       maxAge: 7 * 24 * 60 * 60 * 1000
@@ -48,6 +50,22 @@ app.use((req, res, next) => {
   res.set("X-Frame-Options", "DENY");
   res.set("Referrer-Policy", "strict-origin-when-cross-origin");
   next();
+});
+
+app.use("/api", async (req,res,next) => {
+  res.set("Cache-Control", "no-store");
+  try {
+    if(req.session.user){
+      const user=await get("SELECT id,username,role,enabled FROM users WHERE id=?",[req.session.user.id]);
+      if(!user || user.enabled!==1){await new Promise((resolve,reject)=>req.session.destroy(e=>e?reject(e):resolve()));return res.status(401).json({message:"登录已失效"});}
+      req.session.user={id:user.id,username:user.username,role:user.role};
+    }
+    if(!["GET","HEAD","OPTIONS"].includes(req.method)){
+      const allowed=new Set((process.env.TRUSTED_ORIGINS||"https://garyhub.uk,https://calendar.garyhub.uk,https://tools.garyhub.uk,https://lab.garyhub.uk").split(","));
+      if(!allowed.has(req.get("origin")))return res.status(403).json({message:"Origin check failed"});
+    }
+    next();
+  }catch(e){next(e);}
 });
 
 app.get("/api/csrf", (req, res) => {
@@ -125,7 +143,7 @@ async function resolveTargetUserId(req) {
 }
 
 app.get("/health", (req, res) => {
-  res.json({ ok: true });
+  res.json({ ok: true, hubVersion: "20261011-v1" });
 });
 
 // 登录
@@ -152,6 +170,7 @@ app.post("/api/login", rateLimit(12, 15 * 60_000), async (req, res) => {
       return res.status(401).json({ message: "用户名或密码错误" });
     }
 
+    await new Promise((resolve,reject)=>req.session.regenerate(e=>e?reject(e):resolve()));
     req.session.user = {
       id: user.id,
       username: user.username,
@@ -246,7 +265,7 @@ app.post("/api/logout", requireLogin, (req, res) => {
       console.error("退出失败:", err);
       return res.status(500).json({ message: "退出失败" });
     }
-    res.clearCookie("garyhub.sid");
+    res.clearCookie("garyhub.shared.sid", {path:"/", ...(process.env.COOKIE_DOMAIN ? {domain:process.env.COOKIE_DOMAIN}:{}), httpOnly:true, sameSite:"lax", secure:process.env.COOKIE_SECURE==="true"});
     res.json({ message: "已退出登录" });
   });
 });
@@ -660,12 +679,14 @@ app.delete("/api/events/:id", requireLogin, async (req, res) => {
   }
 });
 
+registerHubApi(app,{db:require("./db"),requireLogin,requireAdmin});
 registerTasksApi(app, { requireLogin, resolveTargetUserId });
 registerEmailApi(app, { requireLogin });
 registerPersonalApi(app, { requireLogin });
 
 initDb()
   .then(() => migratePersonalRecords(require("./db")))
+  .then(() => migrateHub(require("./db")))
   .then(() => {
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Calendar app listening on port ${PORT}`);
