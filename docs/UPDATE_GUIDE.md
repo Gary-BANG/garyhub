@@ -126,3 +126,7 @@ Web 镜像字段已固定在 `/opt/garyhub-cutover-20260927-203135/override.yml`
 GitHub 不是数据库备份。正式数据库和用户数据必须使用独立的备份流程。
 
 当前服务器目录没有配置为 Git 仓库，所以不要在 `/opt/my-services` 中直接运行 `git pull`。在部署流程完全自动化之前，继续采用“本地 Git → 独立测试 → 备份 → 正式部署”的方式。
+
+
+<!-- GARYHUB_RELEASE_POLICY_20261011 -->
+Every user-visible production update must publish unread in-app release notes to all approved, enabled accounts, including administrators. Follow docs/RELEASE_POLICY.md and verify recipient counts and idempotency. Deployment state and current effective Compose paths are recorded in /opt/my-services/garyhub-active-deployment.json. Never commit private Compose files, runtime data or server backups.

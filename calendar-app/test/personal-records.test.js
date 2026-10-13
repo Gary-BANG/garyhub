@@ -124,3 +124,28 @@ test("date and input checks, exact stored grams, exercise weekly summary", async
     { period: "week", start: "2026-09-29" })).status, 400);
   db.close();
 });
+
+test('old diary schema gains mood without changing records; repeated migration and old-client edits preserve it',async()=>{
+ const db=fixture();
+ await db.exec("CREATE TABLE diary_entries(id INTEGER PRIMARY KEY AUTOINCREMENT,user_id INTEGER,entry_date TEXT,title TEXT NOT NULL DEFAULT '',body TEXT NOT NULL DEFAULT '',created_at TEXT DEFAULT CURRENT_TIMESTAMP,updated_at TEXT DEFAULT CURRENT_TIMESTAMP,UNIQUE(user_id,entry_date)); INSERT INTO diary_entries(user_id,entry_date,title,body) VALUES(2,'2026-10-01','Old title','Original body');");
+ await migratePersonalRecords(db);await migratePersonalRecords(db);
+ let row=await db.get('SELECT * FROM diary_entries WHERE id=1');assert.equal(row.body,'Original body');assert.equal(row.mood,'');
+ const call=appHarness(db);let r=await call('put','/api/personal/diary/1',2,{entry_date:'2026-10-01',title:'Old title',body:'Original body',mood:'happy'});assert.equal(r.body.mood,'happy');
+ r=await call('put','/api/personal/diary/1',2,{entry_date:'2026-10-01',title:'Old client',body:'Still here'});assert.equal(r.body.mood,'happy');
+ assert.equal((await call('post','/api/personal/diary',2,{entry_date:'2026-10-02',title:'Bad mood',mood:'not-valid'})).status,400);db.close();
+});
+test('diary paging is complete, summaries omit body, title-only and dates compose, detail and markers stay private',async()=>{
+ const db=fixture();await migratePersonalRecords(db);const call=appHarness(db);
+ for(let n=1;n<=25;n++)await call('post','/api/personal/diary',2,{entry_date:`2026-10-${String(n).padStart(2,'0')}`,title:n===3?'needle title':`Day ${n}`,body:'needle private body',mood:'calm'});
+ const pages=[];for(let page=1;page<=3;page++){const r=await call('get','/api/personal/diary',2,{}, {page:String(page),page_size:'10'});assert.equal(r.body.total,25);pages.push(...r.body.items);assert.ok(r.body.items.every(x=>!('body' in x)));}
+ assert.equal(new Set(pages.map(x=>x.id)).size,25);
+ const filtered=await call('get','/api/personal/diary',2,{}, {page:'1',title:'needle',date:'2026-10-03'});assert.equal(filtered.body.total,1);
+ assert.equal((await call('get','/api/personal/diary',2,{}, {page:'1',title:'needle',date:'2026-10-04'})).body.total,0);
+ assert.equal((await call('get','/api/personal/diary/dates',2,{}, {month:'2026-10',title:'needle'})).body.length,1);
+ assert.equal((await call('get','/api/personal/diary/dates',1,{}, {month:'2026-10',userId:'2'})).body.length,0);
+ assert.equal((await call('get','/api/personal/diary/1',1)).status,404);
+ assert.equal((await call('get','/api/personal/diary/1',2)).body.body,'needle private body');
+ for(const page of ['0','-1','1.1','Infinity','100001'])assert.equal((await call('get','/api/personal/diary',2,{}, {page})).status,400);
+ assert.equal((await call('get','/api/personal/diary',2,{}, {page:'1',date:'2026-02-30'})).status,400);
+ assert.equal((await call('get','/api/personal/diary/dates',2,{}, {month:'2026-13'})).status,400);db.close();
+});

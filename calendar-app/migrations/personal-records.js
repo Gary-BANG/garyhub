@@ -44,6 +44,11 @@ async function migratePersonalRecords(db) {
       );
       CREATE INDEX IF NOT EXISTS idx_exercise_user_date ON exercise_entries(user_id, entry_date DESC, id DESC);
     `);
+    const diaryColumns = await db.all("PRAGMA table_info(diary_entries)");
+    if (!diaryColumns.some(column => column.name === "mood")) {
+      await db.exec("ALTER TABLE diary_entries ADD COLUMN mood TEXT NOT NULL DEFAULT ''");
+    }
+    await db.run("INSERT OR IGNORE INTO schema_migrations(version) VALUES(?)", ["20261013_diary_mood_v1"]);
     await db.run("INSERT OR IGNORE INTO schema_migrations(version) VALUES(?)", [VERSION]);
     await db.exec("COMMIT");
   } catch (error) {

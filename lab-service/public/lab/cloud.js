@@ -15,7 +15,7 @@ async function flush(){
   label('正在保存到服务器…');
   try{
     csrf=(await api('/api/csrf')).token;
-    const r=await api('/api/lab/state',{method:'PUT',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({revision,state:snapshot})});
+    const r=await api('/api/lab/state',{method:'PUT',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({revision,state:snapshot,accountId:user.id})});
     revision=r.revision;
     await local(true,{revision,state:pending||snapshot,dirty:!!pending});
     dirty=!!pending;label(pending?'还有更改待保存':'已保存到服务器');
@@ -45,7 +45,7 @@ document.querySelector('#cloud-export').onclick=async()=>{
   const out={kind:'ece470-backup',version:1,pack:{schema_version:1,problems:[...map.values()]},custom_ids:s.custom.map(p=>p.id),images,instances:s.instances,current:s.current,history:s.history};
   const url=URL.createObjectURL(new Blob([JSON.stringify(out)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='ece470-personal-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
 };
-document.querySelector('#cloud-reload').onclick=async()=>{if(!confirm('将丢弃本机未同步的更改并加载云端。请先导出本机备份。继续？'))return;try{blocked=true;clearTimeout(timer);await chain;const r=await api('/api/lab/state');await local(true,{revision:r.revision,state:r.state,dirty:false});dirty=false;location.reload();}catch(e){label(e.message);}};
+document.querySelector('#cloud-reload').onclick=async()=>{if(!confirm('将丢弃本机未同步的更改并加载云端。请先导出本机备份。继续？'))return;try{blocked=true;clearTimeout(timer);await chain;const r=await api('/api/lab/state');if(r.user.id!==user.id){label('登录账号已变化；旧账号的本机备份已保留，请重新加载页面。');return;}await local(true,{revision:r.revision,state:r.state,dirty:false});dirty=false;location.reload();}catch(e){label(e.message);}};
 document.querySelector('#cloud-logout').onclick=async()=>{if(dirty){label('请先等待同步成功，或导出备份后再退出。');return;}try{const token=(await api('/api/csrf')).token;await api('/api/logout',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':token},body:'{}'});location.href='/login.html';}catch(e){label(e.message);}};
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
 window.addEventListener('online',()=>{if(!blocked)queue();});
