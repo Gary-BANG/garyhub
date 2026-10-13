@@ -39,7 +39,9 @@ function validate(kind, body) {
     const title = field(body.title ?? "", 160, "标题");
     const text = field(body.body ?? "", 20000, "正文");
     if (!title && !text) invalid("标题或正文至少填写一项");
-    return { entry_date, title, body: text };
+    const mood = body.mood ?? "";
+    if (!["", "happy", "calm", "excited", "grateful", "tired", "sad", "anxious", "angry"].includes(mood)) invalid("请选择有效的心情");
+    return { entry_date, title, body: text, mood };
   }
   const note = field(body.note ?? "", 1000, "备注");
   if (kind === "weight") {
@@ -56,14 +58,18 @@ function validate(kind, body) {
 }
 
 const kinds = {
-  diary: { table: "diary_entries", columns: ["entry_date", "title", "body"] },
+  diary: { table: "diary_entries", columns: ["entry_date", "title", "body", "mood"] },
   weight: { table: "weight_entries", columns: ["entry_date", "weight_g", "note"] },
   exercise: { table: "exercise_entries", columns: ["entry_date", "activity_type", "duration_minutes", "note"] }
 };
 
 module.exports = function registerPersonalApi(app, { requireLogin, db = require("./db") }) {
   const route = handler => async (req, res) => {
-    try { await handler(req, res); }
+    try {
+      const expected = req.get ? req.get("X-GaryHub-User") : undefined;
+      if (expected !== undefined && expected !== String(req.session.user.id)) return res.status(409).json({ message: "账号已变化，请刷新页面后继续。" });
+      await handler(req, res);
+    }
     catch (error) {
       if (error.clientError) return res.status(400).json({ message: error.message });
       if (/SQLITE_CONSTRAINT/.test(error.code || "") || /UNIQUE constraint failed/.test(error.message || "")) {
@@ -87,6 +93,20 @@ module.exports = function registerPersonalApi(app, { requireLogin, db = require(
         where += " AND (instr(lower(title), lower(?)) > 0 OR instr(lower(body), lower(?)) > 0)";
         params.push(query.trim(), query.trim());
       }
+      if (kind === "diary") {
+        if (req.query.title !== undefined) {
+          if (typeof req.query.title !== "string" || req.query.title.length > 100) invalid("标题搜索词无效");
+          if (req.query.title.trim()) { where += " AND instr(lower(title), lower(?)) > 0"; params.push(req.query.title.trim()); }
+        }
+        if (req.query.date !== undefined) { where += " AND entry_date = ?"; params.push(dateField(req.query.date)); }
+        if (req.query.page !== undefined) {
+          const page = Number(req.query.page), size = Number(req.query.page_size ?? 10);
+          if (typeof req.query.page !== "string" || !Number.isSafeInteger(page) || page < 1 || page > 100000 || !Number.isSafeInteger(size) || size < 1 || size > 100) invalid("分页参数无效");
+          const total = (await db.get(`SELECT COUNT(*) AS n FROM ${table} WHERE ${where}`, params)).n;
+          const items = await db.all(`SELECT id,entry_date,title,mood,updated_at FROM ${table} WHERE ${where} ORDER BY entry_date DESC,id DESC LIMIT ? OFFSET ?`, [...params,size,(page-1)*size]);
+          return res.set("Cache-Control", "no-store").json({items,total,page,page_size:size});
+        }
+      }
       const rows = await db.all(`SELECT * FROM ${table} WHERE ${where} ORDER BY entry_date DESC,id DESC LIMIT 500`, params);
       res.set("Cache-Control", "no-store").json(rows);
     }));
@@ -100,8 +120,10 @@ module.exports = function registerPersonalApi(app, { requireLogin, db = require(
     }));
     app.put(`${base}/:id`, requireLogin, route(async (req, res) => {
       const item = validate(kind, req.body);
-      const result = await db.run(`UPDATE ${table} SET ${columns.map(name => `${name}=?`).join(",")}, updated_at=CURRENT_TIMESTAMP WHERE id=? AND user_id=?`,
-        [...columns.map(name => item[name]), req.params.id, req.session.user.id]);
+      // Older open pages do not send mood. Preserve the stored value in that case.
+      const updateColumns = columns.filter(name => name !== "mood" || req.body.mood !== undefined);
+      const result = await db.run(`UPDATE ${table} SET ${updateColumns.map(name => `${name}=?`).join(",")}, updated_at=CURRENT_TIMESTAMP WHERE id=? AND user_id=?`,
+        [...updateColumns.map(name => item[name]), req.params.id, req.session.user.id]);
       if (!result.changes) return res.status(404).json({ message: "记录不存在" });
       res.set("Cache-Control", "no-store").json(await db.get(`SELECT * FROM ${table} WHERE id=? AND user_id=?`,
         [req.params.id, req.session.user.id]));
@@ -112,6 +134,20 @@ module.exports = function registerPersonalApi(app, { requireLogin, db = require(
       res.json({ message: "删除成功" });
     }));
   }
+
+  app.get("/api/personal/diary/dates", requireLogin, route(async (req,res) => {
+    const {month,title=""} = req.query;
+    if (typeof month !== "string" || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month) || !validDate(month+"-01")) invalid("月份无效");
+    if (typeof title !== "string" || title.length > 100) invalid("标题搜索词无效");
+    const rows = await db.all("SELECT entry_date FROM diary_entries WHERE user_id=? AND substr(entry_date,1,7)=? AND instr(lower(title),lower(?))>0 ORDER BY entry_date",[req.session.user.id,month,title.trim()]);
+    res.set("Cache-Control","no-store").json(rows);
+  }));
+  app.get("/api/personal/diary/:id", requireLogin, route(async (req,res) => {
+    if (!/^\d+$/.test(req.params.id)) invalid("记录编号无效");
+    const row = await db.get("SELECT * FROM diary_entries WHERE id=? AND user_id=?",[req.params.id,req.session.user.id]);
+    if (!row) return res.status(404).json({message:"记录不存在"});
+    res.set("Cache-Control","no-store").json(row);
+  }));
 
   app.get("/api/personal/exercise/summary", requireLogin, route(async (req, res) => {
     const { period, start } = req.query;

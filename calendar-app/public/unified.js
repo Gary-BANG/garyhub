@@ -28,8 +28,7 @@ function taskVisible(task) {
 
 function setTaskDateFilter(date) {
   $("taskDateFilter").value = date;
-  $("taskFilterPanel").open = true;
-  $("taskListPanel").open = true;
+  openPanel("taskListPanel");
   renderUnified();
 }
 
@@ -192,6 +191,7 @@ function clearUnifiedForm() {
   editingTaskId = null;
   selectedCategoryId = null;
   $("taskForm").reset();
+  $("taskForm").dispatchEvent(new Event("saved"));
   $("unifiedFormTitle").textContent = "新增事项";
   $("taskMessage").textContent = "";
   toggleReminderFields();
@@ -199,18 +199,20 @@ function clearUnifiedForm() {
 }
 
 function newTaskOnDate(date, focusTitle = true) {
+  if (!confirmDiscard()) return;
   clearUnifiedForm();
   $("taskStart").value = date;
   $("taskEnd").value = date;
-  $("taskFormPanel").open = true;
+  openPanel("taskFormPanel");
   if (focusTitle) $("taskTitle").focus();
 }
 
 function editUnifiedTask(id) {
+  if (!confirmDiscard()) return;
   const task = (state.tasks || []).find(t => t.id === id);
   if (!task) return;
   editingTaskId = id;
-  $("taskFormPanel").open = true;
+  openPanel("taskFormPanel");
   selectedCategoryId = task.category_id;
   $("unifiedFormTitle").textContent = "编辑事项";
   $("taskTitle").value = task.title;
@@ -330,7 +332,7 @@ $("taskForm").addEventListener("submit", async event => {
   }
 });
 
-$("clearTaskBtn").addEventListener("click", clearUnifiedForm);
+$("clearTaskBtn").addEventListener("click", () => { if (confirmDiscard()) clearUnifiedForm(); });
 $("reminderEnabled").addEventListener("change", toggleReminderFields);
 $("reminderFrequency").addEventListener("change", toggleReminderFields);
 $("addCategoryBtn").addEventListener("click", async () => {
@@ -346,40 +348,13 @@ $("addCategoryBtn").addEventListener("click", async () => {
 $("notificationsBtn").addEventListener("click", () => $("notificationsPanel").classList.toggle("hidden"));
 for (const id of ["statusFilter", "taskSearch", "taskDateFilter"]) {
   $(id).addEventListener(id === "taskSearch" ? "input" : "change", () => {
-    if (id === "taskDateFilter" && $(id).value) $("taskListPanel").open = true;
+    if (id === "taskDateFilter" && $(id).value) openPanel("taskListPanel");
     renderUnified();
   });
 }
 $("clearTaskDateFilter").addEventListener("click", () => setTaskDateFilter(""));
 
-window.registrationVerification = null;
-let registrationRequestId = null;
 let accountRequestId = null;
-api("/api/mail-config").then(config => {
-  $("registrationEmailFields").classList.toggle("hidden", !config.available);
-  if (config.registration_required) $("reqEmail").required = true;
-}).catch(() => {});
-
-$("reqSendCode").addEventListener("click", async () => {
-  try {
-    const result = await api("/api/email-verifications/request", { method: "POST",
-      body: JSON.stringify({ email: $("reqEmail").value, purpose: "registration" }) });
-    registrationRequestId = result.verification_id;
-    window.registrationVerification = null;
-    $("reqEmailMessage").textContent = "验证码已发送，请在 10 分钟内填写。";
-  } catch (error) { $("reqEmailMessage").textContent = error.message; }
-});
-$("reqConfirmCode").addEventListener("click", async () => {
-  try {
-    const result = await api("/api/email-verifications/confirm", { method: "POST",
-      body: JSON.stringify({ email: $("reqEmail").value, purpose: "registration",
-        verification_id: registrationRequestId, code: $("reqCode").value }) });
-    window.registrationVerification = { id: result.verification_id, token: result.verification_token };
-    $("reqEmailMessage").textContent = "邮箱验证成功，可以提交注册申请。";
-  } catch (error) { $("reqEmailMessage").textContent = error.message; }
-});
-$("reqEmail").addEventListener("input", () => { window.registrationVerification = null; });
-
 $("accountSendCode").addEventListener("click", async () => {
   try {
     const purpose = state.account?.email_verified_at ? "change_email" : "add_email";
@@ -407,6 +382,7 @@ $("saveTimezone").addEventListener("click", async () => {
   try {
     await api("/api/account/timezone", { method: "PUT",
       body: JSON.stringify({ timezone: $("accountTimeZone").value.trim() }) });
+    await loadUnified();
     $("accountMessage").textContent = "时区已保存。";
   } catch (error) { $("accountMessage").textContent = error.message; }
 });

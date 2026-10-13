@@ -1,0 +1,15 @@
+'use strict';
+function openPanel(id,toggle=false){const panel=$(id);const open=!(toggle&&panel.open);document.querySelectorAll('.module-panels>details').forEach(p=>p.open=p===panel&&open);document.querySelectorAll('[data-panel]').forEach(b=>{b.setAttribute('aria-expanded',String(b.dataset.panel===id&&open));b.querySelector('.expand-mark').textContent=b.dataset.panel===id&&open?'−':'＋';});}
+document.querySelectorAll('[data-panel]').forEach(b=>b.addEventListener('click',()=>openPanel(b.dataset.panel,true)));
+document.querySelectorAll('.module-panels summary').forEach(s=>{s.addEventListener('click',e=>e.preventDefault());s.tabIndex=-1;});
+function getCurrentTargetUserId(){return Number(state.selectedUserId||state.me.id);}
+function refreshCalendar(){state.calendar?.refetchEvents();}
+function initCalendarIfNeeded(){if(state.calendar)return;if(!window.FullCalendar){$('calendarFallback').classList.remove('hidden');return;}
+ state.calendar=new FullCalendar.Calendar($('calendar'),{locale:'zh-cn',firstDay:1,initialView:'dayGridMonth',height:'auto',fixedWeekCount:false,dayMaxEvents:3,headerToolbar:{left:'title',center:'',right:'today prev,next'},buttonText:{today:'今天'},events:(_i,done)=>done((state.tasks||[]).filter(taskVisible).map(taskToCalendarEvent)),dateClick:info=>{newTaskOnDate(info.dateStr);$('taskFormPanel').scrollIntoView({behavior:'smooth',block:'start'});},eventClick:info=>editUnifiedTask(info.event.id),eventDidMount:info=>{info.el.title=info.event.extendedProps.note||info.event.title;}});state.calendar.render();}
+$('quickAdd').onclick=()=>{newTaskOnDate(localToday());$('taskFormPanel').scrollIntoView({behavior:'smooth'});};
+$('userSelect').onchange=async e=>{if(!confirmDiscard()){e.target.value=state.selectedUserId;return;}state.selectedUserId=Number(e.target.value);clearUnifiedForm();try{await loadUnified();}catch(error){$('pageMessage').textContent=error.message;}};
+$('createUserToggle').onclick=()=>$('createUserForm').classList.toggle('hidden');
+$('createUserForm').onsubmit=async e=>{e.preventDefault();try{await api('/api/admin/users',{method:'POST',body:JSON.stringify({username:$('newUsername').value.trim(),password:$('newPassword').value,role:$('newRole').value})});e.target.reset();$('createUserMessage').textContent='账号已创建';await loadUsers();}catch(error){$('createUserMessage').textContent=error.message;}};
+async function loadUsers(){const users=await api('/api/admin/users');$('userSelect').replaceChildren();for(const user of users){const option=document.createElement('option');option.value=user.id;option.textContent=user.username+' · '+(user.role==='admin'?'管理员':'用户');$('userSelect').append(option);}$('userSelect').value=state.selectedUserId;}
+// defer-loaded calendar assets are ready by DOMContentLoaded.
+addEventListener('DOMContentLoaded',()=>initWorkspace(async()=>{await loadUnified();$('currentRoleBadge').textContent=state.me.role==='admin'?'管理员':'个人空间';$('todayCaption').textContent=localToday();if(state.me.role==='admin'){$('adminArea').classList.remove('hidden');await loadUsers();}$('appSection').classList.remove('hidden');initCalendarIfNeeded();installDirtyGuard([$('taskForm')]);}));
