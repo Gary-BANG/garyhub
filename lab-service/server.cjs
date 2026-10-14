@@ -46,12 +46,15 @@ function storeUrl() {
   try {const configured=access.settings().storeUrl;const url=new URL(configured===undefined?process.env.ACCESS_STORE_URL:configured);return url.protocol==='https:'?url.href:null;} catch {return null;}
 }
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.wasm':'application/wasm','.png':'image/png','.svg':'image/svg+xml','.woff2':'font/woff2','.woff':'font/woff','.zip':'application/zip','.md':'text/plain; charset=utf-8'};
+const academic = require('./academic.cjs').createAcademic({DATA,identity,validCsrf,calendar,json});
 const server = http.createServer(async (req,res)=>{
   res.setHeader('X-Content-Type-Options','nosniff');
   res.setHeader('X-Frame-Options','DENY');
   res.setHeader('Referrer-Policy','same-origin');
   try {
     const url=new URL(req.url, 'http://localhost');
+    if(await academic(req,res,url))return;
+    if(['/grades','/grades/','/study','/study/'].includes(url.pathname))url.pathname='/academic/index.html';
     url.pathname=decodeURIComponent(url.pathname);
     if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"20261011-v1"});
     if(url.pathname.startsWith('/sub/')) {
