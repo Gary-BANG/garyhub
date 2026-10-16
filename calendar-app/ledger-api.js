@@ -1,6 +1,7 @@
 'use strict';
 const crypto=require('node:crypto');
 const path=require('node:path');
+const {createFx,convert}=require('./fx-rates');
 const BUILTIN=[['food','🍜','餐饮'],['groceries','🛒','食品与日用品'],['transport','🚗','交通出行'],['housing','🏠','住房与水电'],['shopping','🛍️','服饰购物'],['education','📚','学习教育'],['fun','🎮','娱乐社交'],['health','💊','医疗健康'],['subscription','📱','通讯与订阅'],['travel','✈️','旅行'],['gifts','🎁','礼物与人情'],['other','📦','其他'],['salary','💼','工资兼职','income'],['scholarship','🎓','奖学金','income'],['allowance','👪','生活费','income'],['income-other','💰','其他收入','income']].map(([id,icon,name,type='expense'])=>({id,icon,name,type,active:1,builtin:true}));
 const fail=(message,status=400)=>{throw Object.assign(Error(message),{status});};
 function date(s){if(typeof s!=='string'||!/^\d{4}-\d\d-\d\d$/.test(s)||s<'1900-01-01'||s>'2199-12-31'||!Number.isFinite(Date.parse(s+'T00:00:00Z'))||new Date(s+'T00:00:00Z').toISOString().slice(0,10)!==s)fail('日期应为有效的 YYYY-MM-DD（1900–2199）');return s;}
@@ -12,7 +13,7 @@ async function migrateLedger(db){
  await db.run('CREATE INDEX IF NOT EXISTS idx_ledger_user_date ON ledger_entries(user_id,currency,date)');
  await db.run('CREATE INDEX IF NOT EXISTS idx_ledger_refund ON ledger_entries(refund_of)');
 }
-function registerLedger(app,{requireLogin,db=connection()}){
+function registerLedger(app,{requireLogin,db=connection(),fx=createFx({dataDir:require('./db').dataDir})}){
  // Dedicated connection + serialized transactions keep refund checks atomic, without sharing transactions with Calendar.
  let queue=db.run('PRAGMA foreign_keys = ON');
  const route=fn=>[requireLogin,(req,res,next)=>{
@@ -23,6 +24,7 @@ function registerLedger(app,{requireLogin,db=connection()}){
  const fetchEntry=(uid,id)=>db.get('SELECT * FROM ledger_entries WHERE user_id=? AND id=?',[uid,id]);
  async function transaction(fn){await db.run('BEGIN IMMEDIATE');try{const value=await fn();await db.run('COMMIT');return value;}catch(e){await db.run('ROLLBACK');throw e;}}
  function output(row){return {...row,amount:(row.amount/100).toFixed(2)};}
+ app.get('/api/ledger/fx',...route(async(req,res)=>res.json(await fx.get())));
  app.get('/api/ledger/categories',...route(async(req,res)=>res.json(await categories(req.session.user.id))));
  app.post('/api/ledger/categories',...route(async(req,res)=>{
   const uid=req.session.user.id,v=req.body;if(!['expense','income'].includes(v.type)||typeof v.name!=='string'||!v.name.trim()||v.name.trim().length>24||typeof v.icon!=='string'||!v.icon.trim()||[...v.icon].length>12)fail('请填写类别名称（最多24字）和图标');
@@ -36,12 +38,13 @@ function registerLedger(app,{requireLogin,db=connection()}){
  function range(q){const from=date(q.from),to=date(q.to);if(to<from)fail('结束日期不能早于开始日期');if(!['CNY','USD'].includes(q.currency))fail('请选择人民币或美元');return {from,to,currency:q.currency,days:Math.round((Date.parse(to)-Date.parse(from))/86400000)+1};}
  app.get('/api/ledger/entries',...route(async(req,res)=>{
   const uid=req.session.user.id,r=range(req.query),category=typeof req.query.category==='string'?req.query.category:'',page=Number(req.query.page||1);if(!Number.isSafeInteger(page)||page<1||page>100000)fail('页码无效');
-  const params=[uid,r.currency,r.from,r.to,...(category?[category]:[])],where='user_id=? AND currency=? AND date BETWEEN ? AND ?'+(category?' AND category_id=?':'');
+  const params=[uid,r.from,r.to,...(category?[category]:[])],where='user_id=? AND date BETWEEN ? AND ?'+(category?' AND category_id=?':'');
   const all=await db.all(`SELECT * FROM ledger_entries WHERE ${where} ORDER BY date DESC,created_at DESC,id DESC`,params);
+  const rate=await fx.get(),rawTotals={USD:{expense:0,income:0,refund:0},CNY:{expense:0,income:0,refund:0}};
   let expense=0,income=0,refund=0;const byCategory={},daily={};
-  for(const x of all){if(x.kind==='income')income+=x.amount;else if(x.kind==='refund')refund+=x.amount;else expense+=x.amount;const delta=x.kind==='expense'?x.amount:x.kind==='refund'?-x.amount:0;if(delta){byCategory[x.category_id]=(byCategory[x.category_id]||0)+delta;daily[x.date]=(daily[x.date]||0)+delta;}}
-  const consumption=expense-refund,net=consumption-income;
-  res.json({items:all.slice((page-1)*30,page*30).map(output),page,total:all.length,pages:Math.max(1,Math.ceil(all.length/30)),summary:{...r,expense,income,refund,consumption,net,averageConsumption:consumption/r.days,averageNet:net/r.days,byCategory,daily},categories:await categories(uid)});
+  for(const x of all){rawTotals[x.currency][x.kind]+=x.amount;if(!rate.available)continue;const value=convert(x.amount,x.currency,r.currency,rate.rate);if(x.kind==='income')income+=value;else if(x.kind==='refund')refund+=value;else expense+=value;const delta=x.kind==='expense'?value:x.kind==='refund'?-value:0;if(delta){byCategory[x.category_id]=(byCategory[x.category_id]||0)+delta;daily[x.date]=(daily[x.date]||0)+delta;}}
+  const consumption=expense-refund,net=consumption-income;if(![expense,income,refund,consumption,net,...Object.values(rawTotals).flatMap(x=>Object.values(x))].every(Number.isSafeInteger))fail('统计金额超过安全范围');
+  res.json({items:all.slice((page-1)*30,page*30).map(x=>({...output(x),convertedAmount:rate.available?(convert(x.amount,x.currency,r.currency,rate.rate)/100).toFixed(2):null,summaryCurrency:r.currency})),page,total:all.length,pages:Math.max(1,Math.ceil(all.length/30)),fx:rate,period:r,rawTotals,summary:rate.available?{...r,expense,income,refund,consumption,net,averageConsumption:consumption/r.days,averageNet:net/r.days,byCategory,daily}:null,categories:await categories(uid)});
  }));
  app.get('/api/ledger/expenses',...route(async(req,res)=>{
   const uid=req.session.user.id;const rows=await db.all(`SELECT e.*,e.amount-COALESCE((SELECT SUM(r.amount) FROM ledger_entries r WHERE r.user_id=e.user_id AND r.refund_of=e.id),0) AS remaining FROM ledger_entries e WHERE e.user_id=? AND e.kind='expense' ORDER BY e.date DESC,e.created_at DESC LIMIT 1000`,[uid]);res.json(rows.map(x=>({...output(x),remaining:(x.remaining/100).toFixed(2)})));

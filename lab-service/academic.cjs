@@ -5,7 +5,7 @@ const RELEASE='v1.3.3.2';
 const err=(status,message)=>Object.assign(Error(message),{status});
 function atomic(file,value){const tmp=file+'.'+crypto.randomUUID()+'.tmp';const fd=fs.openSync(tmp,'wx',0o600);try{fs.writeFileSync(fd,JSON.stringify(value));fs.fsyncSync(fd);}finally{fs.closeSync(fd);}fs.renameSync(tmp,file);}
 async function readBody(req,max=24*1024*1024){let size=0;const parts=[];for await(const p of req){size+=p.length;if(size>max)throw err(413,'上传内容过大');parts.push(p);}try{return JSON.parse(Buffer.concat(parts).toString());}catch{throw err(400,'请求格式无效');}}
-function makeStore(dir){fs.mkdirSync(dir,{recursive:true,mode:0o700});function file(uid){if(!Number.isSafeInteger(uid)||uid<1)throw err(401,'登录身份无效');return path.join(dir,'user-'+uid+'.json');}return {read(uid){const p=file(uid);return fs.existsSync(p)?JSON.parse(fs.readFileSync(p,'utf8')):{revision:0,state:A.empty()};},save(uid,input){if(input.accountId!==uid)throw err(409,'登录账号已变化，请先导出未保存内容，再重新登录');try{A.validate(input.state);}catch(e){throw err(400,e.message);}const old=this.read(uid);if(!Number.isSafeInteger(input.revision)||input.revision!==old.revision)throw err(409,'另一页面已更新资料，请导出当前内容后重新加载，避免覆盖');const next={revision:old.revision+1,state:input.state,updatedAt:new Date().toISOString()};atomic(file(uid),next);return next;}};}
+function makeStore(dir){fs.mkdirSync(dir,{recursive:true,mode:0o700});function file(uid){if(!Number.isSafeInteger(uid)||uid<1)throw err(401,'登录身份无效');if(fs.existsSync(path.join(path.dirname(dir),'.deleting-user-'+uid)))throw err(409,'账号正在删除');return path.join(dir,'user-'+uid+'.json');}return {read(uid){const p=file(uid);return fs.existsSync(p)?JSON.parse(fs.readFileSync(p,'utf8')):{revision:0,state:A.empty()};},save(uid,input){if(input.accountId!==uid)throw err(409,'登录账号已变化，请先导出未保存内容，再重新登录');try{A.validate(input.state);}catch(e){throw err(400,e.message);}const old=this.read(uid);if(!Number.isSafeInteger(input.revision)||input.revision!==old.revision)throw err(409,'另一页面已更新资料，请导出当前内容后重新加载，避免覆盖');const next={revision:old.revision+1,state:input.state,updatedAt:new Date().toISOString()};atomic(file(uid),next);return next;}};}
 async function github(input,fetcher=fetch){
  const {owner,repo,branch,folder='',token=''}=input;
  if(!/^[A-Za-z0-9-]{1,100}$/.test(owner||'')||!/^[-\w.]{1,100}$/.test(repo||'')||typeof branch!=='string'||!branch||branch.length>200||typeof token!=='string'||token.length>1000||(folder&&!A.safePath(folder)))throw err(400,'仓库、分支或目录格式无效');
@@ -54,7 +54,7 @@ function createAcademic({DATA,identity,validCsrf,calendar,json}){
   const fields=input.task||{};const task={title:fields.title,start_date:fields.start_date,end_date:fields.end_date,note:fields.note,category_id:fields.category_id||null,reminder_enabled:fields.reminder_enabled===true,reminder:fields.reminder,status:'todo'};
   if(typeof task.title!=='string'||task.title.length>160||typeof task.note!=='string'||task.note.length>4000||!/^\d{4}-\d{2}-\d{2}$/.test(task.start_date)||!/^\d{4}-\d{2}-\d{2}$/.test(task.end_date)||task.end_date<task.start_date)throw err(400,'请检查事项标题及日期');
   busy.add(key);atomic(ledger,{courseId:c.id,lectureId:l.id,createdAt:new Date().toISOString(),status:'pending'});
-  try{const r=await calendar(req,'/api/tasks','POST',JSON.stringify(task));const value=await r.json();if(!r.ok){if(r.status<500)fs.unlinkSync(ledger);throw err(r.status,value.message||'Calendar 保存失败');}atomic(ledger,{courseId:c.id,lectureId:l.id,task:value,status:'complete'});json(res,201,{task:value});}finally{busy.delete(key);}return true;
+  try{const r=await calendar(req,'/api/tasks','POST',JSON.stringify(task));const value=await r.json();if(!r.ok){if(r.status<500&&fs.existsSync(ledger))fs.unlinkSync(ledger);throw err(r.status,value.message||'Calendar 保存失败');}if(fs.existsSync(path.join(DATA,'.deleting-user-'+user.id)))throw err(409,'账号正在删除');atomic(ledger,{courseId:c.id,lectureId:l.id,task:value,status:'complete'});json(res,201,{task:value});}finally{busy.delete(key);}return true;
  }
  if(route==='links'&&req.method==='GET'){const result=[];for(const name of fs.readdirSync(dir)){if(name.startsWith('calendar-'+user.id+'-')&&name.endsWith('.json')){const x=JSON.parse(fs.readFileSync(path.join(dir,name)));if(x.task)result.push({courseId:x.courseId,lectureId:x.lectureId,taskId:x.task.id});}}json(res,200,{links:result});return true;}
  throw err(404,'接口不存在');
@@ -62,3 +62,4 @@ function createAcademic({DATA,identity,validCsrf,calendar,json}){
  };
 }
 module.exports={createAcademic,makeStore,github,RELEASE};
+

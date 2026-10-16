@@ -34,6 +34,7 @@ function createAccessStore(dataDir) {
     return codes;
   }
   function redeem(userId, rawCode, now = Date.now()) {
+    if(fs.existsSync(path.join(dataDir,'.deleting-user-'+userId)))throw Object.assign(Error('账号正在删除'),{status:409});
     if (typeof rawCode !== 'string' || !/^GH-[A-Za-z0-9_-]{24}$/.test(rawCode)) throw Object.assign(Error('邀请码格式不正确'), { status: 400 });
     const db = read(), hash = crypto.createHash('sha256').update(rawCode).digest('hex');
     const entry = db.codes.find(x => x.hash === hash);
@@ -79,6 +80,11 @@ function createAccessStore(dataDir) {
     g.revoked=true;g.updatedAt=new Date().toISOString();
     db.audit.push({action:'revoke',adminId,userId,at:g.updatedAt});save(db);
   }
+  function forgetUser(userId) {
+    const db=read();delete db.grants[String(userId)];
+    for(const code of db.codes){if(code.redeemedBy===userId)code.redeemedBy=0;if(code.createdBy===userId)code.createdBy=0;}
+    db.audit=db.audit.filter(x=>x.userId!==userId&&x.adminId!==userId);save(db);
+  }
   function settings() { return read().settings || {}; }
   function setStore(adminId,storeUrl) {
     if(typeof storeUrl!=='string'||storeUrl.length>2048) throw Object.assign(Error('店铺地址无效'),{status:400});
@@ -91,7 +97,8 @@ function createAccessStore(dataDir) {
     db.audit.push({action:'store',adminId,at:new Date().toISOString()});save(db);
   }
   function listGrants() { return Object.values(read().grants).map(g=>status(g.userId)); }
-  return { createCodes, redeem, status, listCodes, privateGrant, byToken, rotate, revoke, settings, setStore, listGrants };
+  return { createCodes, redeem, status, listCodes, privateGrant, byToken, rotate, revoke, forgetUser, settings, setStore, listGrants };
 }
 
 module.exports = { createAccessStore };
+

@@ -27,6 +27,8 @@ async function identity(req) {
   if (!r.ok) throw Error('Identity service unavailable');
   const {user} = await r.json();
   if (!user || !Number.isSafeInteger(user.id) || user.id < 1) throw Error('Invalid identity');
+  if(fs.existsSync(path.join(DATA,'.deleting-user-'+user.id)))return null;
+  if(user.mustChangePassword)throw Object.assign(Error('请先修改临时密码'),{status:428});
   return user;
 }
 async function body(req) {
@@ -48,6 +50,7 @@ function storeUrl() {
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.wasm':'application/wasm','.png':'image/png','.svg':'image/svg+xml','.woff2':'font/woff2','.woff':'font/woff','.zip':'application/zip','.md':'text/plain; charset=utf-8'};
 const academic = require('./academic.cjs').createAcademic({DATA,identity,validCsrf,calendar,json});
 const profileHandler=require("./homepage-privacy.cjs").createProfile({calendar,json});
+const cleanup=require('./user-cleanup.cjs').createCleanup({DATA,CALENDAR,access,identity,validCsrf,calendar,json,body,runtimeFile:process.env.ACCESS_RUNTIME_FILE||'/access-runtime/status.json'});
 const server = http.createServer(async (req,res)=>{
   res.setHeader('X-Content-Type-Options','nosniff');
   res.setHeader('X-Frame-Options','DENY');
@@ -55,6 +58,7 @@ const server = http.createServer(async (req,res)=>{
   try {
     const url=new URL(req.url, 'http://localhost');
     if(await profileHandler(req,res,url))return;
+    if(await cleanup(req,res,url))return;
     if(await academic(req,res,url))return;
     if(['/grades','/grades/','/study','/study/'].includes(url.pathname))url.pathname='/academic/index.html';
     url.pathname=decodeURIComponent(url.pathname);
@@ -77,7 +81,7 @@ const server = http.createServer(async (req,res)=>{
         return json(res,200,{allowed:true,gpa:p.gpa,rank:p.rank});
       }
       const profileRoute=/^\/api\/hub\/(?:profile-access|profile-unlock|profile-lock|admin\/profile-privacy|admin\/profile-revoke)$/.test(url.pathname);
-      const hubRoute=/^\/api\/hub\/(?:me|notifications(?:\/\d+\/read)?|admin\/users(?:\/\d+\/academics)?)$/.test(url.pathname);
+      const hubRoute=/^\/api\/hub\/(?:me|notifications(?:\/\d+\/read)?|admin\/users(?:\/\d+\/(?:academics|status|reset-password|deletion-preview))?)$/.test(url.pathname);
       const registrationRoute=/^\/api\/admin\/register-requests(?:\/\d+\/(?:approve|reject))?$/.test(url.pathname);
       if(hubRoute||registrationRoute||profileRoute){
         if(!['GET','POST','PUT'].includes(req.method))return json(res,405,{message:'Method not allowed'});
@@ -140,6 +144,7 @@ const server = http.createServer(async (req,res)=>{
       if(input.accountId!==user.id)return json(res,409,{message:'当前登录账号已变化，请先导出本机备份，再重新加载页面'});
       if(!Number.isSafeInteger(input.revision)||input.revision<0||!input.state||!Array.isArray(input.state.custom)||!Array.isArray(input.state.instances)||!Array.isArray(input.state.history)||!input.state.images||typeof input.state.images!=='object') return json(res,400,{message:'Invalid workspace'});
       // Synchronous compare + durable replace keeps a single process's writes serialized.
+      if(fs.existsSync(path.join(DATA,'.deleting-user-'+user.id)))return json(res,409,{message:'账号正在删除'});
       const old=current();
       if(input.revision!==old.revision) return json(res,409,{message:'另一页面或设备已更新进度。请先导出本机备份，再重新加载云端。'});
       const next={revision:old.revision+1,state:input.state,updatedAt:new Date().toISOString()};
@@ -170,7 +175,7 @@ const server = http.createServer(async (req,res)=>{
     res.writeHead(200,{'Content-Type':mime[path.extname(file)]||'application/octet-stream','Content-Length':stat.size,'Cache-Control':name.includes('/vendor/')?'public, max-age=86400':'no-store'});
     if(req.method==='HEAD')return res.end();
     pipeline(fs.createReadStream(file),res,()=>{});
-  } catch(e) {if(!res.headersSent)json(res,e.code==='ENOENT'?404:e.status||503,{message:e.code==='ENOENT'?'Not found':e.status?e.message:'服务暂时不可用，请稍后重试。'});else res.destroy();}
+  } catch(e) {if(e.status===428&&!req.url.startsWith('/api/')){res.writeHead(302,{Location:'https://calendar.garyhub.uk/change-password/','Cache-Control':'no-store'});return res.end();}if(!res.headersSent)json(res,e.code==='ENOENT'?404:e.status||503,{message:e.code==='ENOENT'?'Not found':e.status?e.message:'服务暂时不可用，请稍后重试。'});else res.destroy();}
 });
 server.listen(Number(process.env.PORT||3000),'0.0.0.0');
 
