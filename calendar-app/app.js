@@ -14,6 +14,8 @@ const { consumeVerification, normalizeEmail } = require("./email-api");
 const { rateLimit } = require("./rate-limit");
 
 const { migrateHub, registerHubApi } = require("./hub-api");
+const {migrateProfile,registerProfile}=require("./profile-access");
+const {migrateLedger,registerLedger}=require("./ledger-api");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -679,14 +681,20 @@ app.delete("/api/events/:id", requireLogin, async (req, res) => {
   }
 });
 
+registerProfile(app,{db:require("./db"),requireAdmin});
+registerLedger(app,{requireLogin});
 registerHubApi(app,{db:require("./db"),requireLogin,requireAdmin});
 registerTasksApi(app, { requireLogin, resolveTargetUserId });
 registerEmailApi(app, { requireLogin });
 registerPersonalApi(app, { requireLogin });
 
+app.use((err,req,res,next)=>{if(res.headersSent)return next(err);res.status(err.status||500).json({message:err.status?err.message:"服务暂时不可用，请重试"});});
+
 initDb()
   .then(() => migratePersonalRecords(require("./db")))
   .then(() => migrateHub(require("./db")))
+  .then(() => migrateProfile(require("./db")))
+  .then(() => migrateLedger(require("./db")))
   .then(() => {
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Calendar app listening on port ${PORT}`);
@@ -696,3 +704,4 @@ initDb()
     console.error("数据库初始化失败:", err);
     process.exit(1);
   });
+
