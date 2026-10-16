@@ -55,3 +55,5 @@ backup/
 # Public built-in question bank and reference data (not production user data)
 !lab-service/public/lab/data/
 !lab-service/public/lab/data/**
+/lab-service/homepage-protected.json
+/lab-service/profile-private.json

@@ -16,7 +16,7 @@ function registerHubApi(app,{db,requireLogin,requireAdmin}){
     res.json({user,canViewAcademics:!!user&&(user.role==='admin'||permission?.view_academics===1)});
   }));
   app.get('/api/hub/admin/users',requireAdmin,route(async(req,res)=>{
-    res.json(await all(`SELECT u.id,u.username,u.role,u.enabled,COALESCE(p.view_academics,0) AS view_academics FROM users u LEFT JOIN hub_permissions p ON p.user_id=u.id ORDER BY u.id`));
+    res.json(await all(`SELECT u.id,u.username,u.role,u.enabled,u.email,u.email_verified_at,u.auth_version,u.must_change_password,u.deletion_pending,COALESCE(p.view_academics,0) AS view_academics FROM users u LEFT JOIN hub_permissions p ON p.user_id=u.id ORDER BY u.id`));
   }));
   app.put('/api/hub/admin/users/:id/academics',requireAdmin,route(async(req,res)=>{
     const id=Number(req.params.id),allow=req.body.allowed;
@@ -65,3 +65,4 @@ async function publishRelease(db,release){
   }catch(e){await db.run('ROLLBACK');throw e;}
 }
 module.exports={migrateHub,registerHubApi,publishRelease};
+

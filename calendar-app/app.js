@@ -14,6 +14,9 @@ const { consumeVerification, normalizeEmail } = require("./email-api");
 const { rateLimit } = require("./rate-limit");
 
 const { migrateHub, registerHubApi } = require("./hub-api");
+const {migrateAccounts,registerAccounts}=require("./account-admin");
+const {migrateProfile,registerProfile}=require("./profile-access");
+const {migrateLedger,registerLedger}=require("./ledger-api");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -56,9 +59,10 @@ app.use("/api", async (req,res,next) => {
   res.set("Cache-Control", "no-store");
   try {
     if(req.session.user){
-      const user=await get("SELECT id,username,role,enabled FROM users WHERE id=?",[req.session.user.id]);
-      if(!user || user.enabled!==1){await new Promise((resolve,reject)=>req.session.destroy(e=>e?reject(e):resolve()));return res.status(401).json({message:"登录已失效"});}
-      req.session.user={id:user.id,username:user.username,role:user.role};
+      const user=await get("SELECT id,username,role,enabled,auth_version,must_change_password,deletion_pending FROM users WHERE id=?",[req.session.user.id]);
+      if(!user || user.enabled!==1 || user.deletion_pending || (req.session.authVersion||0)!==user.auth_version){await new Promise((resolve,reject)=>req.session.destroy(e=>e?reject(e):resolve()));return res.status(401).json({message:"登录已失效"});}
+      req.session.user={id:user.id,username:user.username,role:user.role,mustChangePassword:!!user.must_change_password};
+      if(user.must_change_password&&!new Set(["/api/me","/api/csrf","/api/logout","/api/hub/me","/api/account/password"]).has(req.path.startsWith("/api/")?req.path:"/api"+req.path))return res.status(428).json({message:"请先修改临时密码",mustChangePassword:true,changePasswordUrl:"https://calendar.garyhub.uk/change-password/"});
     }
     if(!["GET","HEAD","OPTIONS"].includes(req.method)){
       const allowed=new Set((process.env.TRUSTED_ORIGINS||"https://garyhub.uk,https://calendar.garyhub.uk,https://tools.garyhub.uk,https://lab.garyhub.uk").split(","));
@@ -112,7 +116,7 @@ async function findUserById(id) {
 
 async function findUserByUsername(username) {
   return await get(
-    "SELECT id, username, password_hash, role, enabled, created_at FROM users WHERE username = ?",
+    "SELECT id, username, password_hash, role, enabled, created_at,auth_version,must_change_password,deletion_pending FROM users WHERE username = ?",
     [username]
   );
 }
@@ -161,7 +165,7 @@ app.post("/api/login", rateLimit(12, 15 * 60_000), async (req, res) => {
       return res.status(401).json({ message: "用户名或密码错误" });
     }
 
-    if (user.enabled !== 1) {
+    if (user.enabled !== 1 || user.deletion_pending) {
       return res.status(403).json({ message: "该账号已被禁用" });
     }
 
@@ -174,8 +178,10 @@ app.post("/api/login", rateLimit(12, 15 * 60_000), async (req, res) => {
     req.session.user = {
       id: user.id,
       username: user.username,
-      role: user.role
+      role: user.role,
+      mustChangePassword: !!user.must_change_password
     };
+    req.session.authVersion=user.auth_version;
 
     res.json({
       message: "登录成功",
@@ -461,33 +467,6 @@ app.post("/api/admin/register-requests/:id/reject", requireAdmin, async (req, re
   }
 });
 
-app.put("/api/admin/users/:id/status", requireAdmin, async (req, res) => {
-  try {
-    const userId = Number(req.params.id);
-    const enabled = req.body.enabled === 1 || req.body.enabled === true ? 1 : 0;
-
-    if (!Number.isInteger(userId) || userId <= 0) {
-      return res.status(400).json({ message: "用户ID非法" });
-    }
-
-    const target = await findUserById(userId);
-    if (!target) {
-      return res.status(404).json({ message: "用户不存在" });
-    }
-
-    await run("UPDATE users SET enabled = ? WHERE id = ?", [enabled, userId]);
-
-    const updated = await findUserById(userId);
-    res.json({
-      message: enabled ? "用户已启用" : "用户已禁用",
-      user: updated
-    });
-  } catch (err) {
-    console.error("修改用户状态失败:", err);
-    res.status(500).json({ message: "服务器错误" });
-  }
-});
-
 // 事件接口
 app.get("/api/events", requireLogin, async (req, res) => {
   try {
@@ -679,14 +658,22 @@ app.delete("/api/events/:id", requireLogin, async (req, res) => {
   }
 });
 
+registerAccounts(app,{requireLogin,requireAdmin,sessionStore});
+registerProfile(app,{db:require("./db"),requireAdmin});
+registerLedger(app,{requireLogin});
 registerHubApi(app,{db:require("./db"),requireLogin,requireAdmin});
 registerTasksApi(app, { requireLogin, resolveTargetUserId });
 registerEmailApi(app, { requireLogin });
 registerPersonalApi(app, { requireLogin });
 
+app.use((err,req,res,next)=>{if(res.headersSent)return next(err);res.status(err.status||500).json({message:err.status?err.message:"服务暂时不可用，请重试"});});
+
 initDb()
   .then(() => migratePersonalRecords(require("./db")))
   .then(() => migrateHub(require("./db")))
+  .then(() => migrateAccounts(require("./db")))
+  .then(() => migrateProfile(require("./db")))
+  .then(() => migrateLedger(require("./db")))
   .then(() => {
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Calendar app listening on port ${PORT}`);
@@ -696,3 +683,4 @@ initDb()
     console.error("数据库初始化失败:", err);
     process.exit(1);
   });
+
