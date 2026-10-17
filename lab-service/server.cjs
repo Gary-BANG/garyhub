@@ -18,7 +18,7 @@ function json(res, status, value) { res.writeHead(status, {'Content-Type':'appli
 async function calendar(req, route, method='GET', body) {
   return fetch(CALENDAR + route, {method, redirect:'manual', signal:AbortSignal.timeout(10000), headers:{
     cookie:req.headers.cookie || '', 'content-type':'application/json',
-    'x-forwarded-proto':'https', origin:req.headers.origin||'', 'x-csrf-token':req.headers['x-csrf-token'] || ''
+    'x-forwarded-proto':'https', origin:req.headers.origin||'', 'x-forwarded-for':(req.headers['x-forwarded-for']||req.socket.remoteAddress||'').split(',').at(-1).trim(), 'x-csrf-token':req.headers['x-csrf-token'] || ''
   }, body});
 }
 async function identity(req) {
@@ -32,7 +32,7 @@ async function identity(req) {
   return user;
 }
 async function body(req) {
-  const maxSize=req.url.startsWith('/api/access/')?8192:LIMIT;
+  const maxSize=req.url.startsWith('/api/access/')||req.url.startsWith('/api/hub/totp')?8192:LIMIT;
   let size=0; const chunks=[];
   for await (const chunk of req) { size+=chunk.length; if(size>maxSize) { const e=Error('Payload too large'); e.status=413; throw e; } chunks.push(chunk); }
   try {return JSON.parse(Buffer.concat(chunks).toString());} catch {const e=Error('Invalid JSON');e.status=400;throw e;}
@@ -62,7 +62,7 @@ const server = http.createServer(async (req,res)=>{
     if(await academic(req,res,url))return;
     if(['/grades','/grades/','/study','/study/'].includes(url.pathname))url.pathname='/academic/index.html';
     url.pathname=decodeURIComponent(url.pathname);
-    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"20261011-v1"});
+    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"1.3.4.2"});
     if(url.pathname.startsWith('/sub/')) {
       if(req.method!=='GET') return json(res,405,{message:'Method not allowed'});
       const sub=connections.subscription(url.pathname.slice(5));
@@ -81,10 +81,11 @@ const server = http.createServer(async (req,res)=>{
         return json(res,200,{allowed:true,gpa:p.gpa,rank:p.rank});
       }
       const profileRoute=/^\/api\/hub\/(?:profile-access|profile-unlock|profile-lock|admin\/profile-privacy|admin\/profile-revoke)$/.test(url.pathname);
-      const hubRoute=/^\/api\/hub\/(?:me|notifications(?:\/\d+\/read)?|admin\/users(?:\/\d+\/(?:academics|status|reset-password|deletion-preview))?)$/.test(url.pathname);
+      const hubRoute=/^\/api\/hub\/(?:me|notifications(?:\/\d+\/read)?|admin\/users(?:\/\d+\/(?:academics|status|reset-password|deletion-preview|tier))?)$/.test(url.pathname);
       const registrationRoute=/^\/api\/admin\/register-requests(?:\/\d+\/(?:approve|reject))?$/.test(url.pathname);
-      if(hubRoute||registrationRoute||profileRoute){
-        if(!['GET','POST','PUT'].includes(req.method))return json(res,405,{message:'Method not allowed'});
+      const totpRoute=/^\/api\/hub\/totp(?:\/codes|\/[0-9a-f-]{36}(?:\/reveal|\/grants(?:\/[1-9][0-9]*)?)?)?$/.test(url.pathname);
+      if(hubRoute||registrationRoute||profileRoute||totpRoute){
+        if(!(totpRoute?['GET','POST','PUT','DELETE']:['GET','POST','PUT']).includes(req.method))return json(res,405,{message:'Method not allowed'});
         const payload=req.method==='GET'?undefined:JSON.stringify(await body(req));
         const upstream=await calendar(req,url.pathname+url.search,req.method,payload);
         const cookies=upstream.headers.getSetCookie();if(cookies.length)res.setHeader('Set-Cookie',cookies);
@@ -154,6 +155,7 @@ const server = http.createServer(async (req,res)=>{
       return json(res,200,{revision:next.revision,updatedAt:next.updatedAt});
     }
     if(!['GET','HEAD'].includes(req.method)) return json(res,405,{message:'Method not allowed'});
+    if(['/totp','/totp/','/totp/index.html'].includes(url.pathname)){if(!await identity(req)){res.writeHead(302,{Location:'/login.html?next=%2Ftotp%2F','Cache-Control':'no-store'});return res.end();}if(url.pathname==='/totp'){res.writeHead(302,{Location:'/totp/'});return res.end();}}
     if(url.pathname==='/lab' || url.pathname==='/lab/' || url.pathname==='/lab/index.html' || url.pathname==='/access' || url.pathname==='/access/' || url.pathname==='/access/index.html') {
       if(!await identity(req)) {res.writeHead(302,{Location:url.pathname.startsWith('/access')?'/login.html?next=%2Faccess%2F':'/login.html','Cache-Control':'no-store'});return res.end();}
       if(url.pathname==='/lab') {res.writeHead(302,{Location:'/lab/'});return res.end();}

@@ -29,7 +29,7 @@ function prepare(root){const file=path.join(root,'public/homepage.html'),p=path.
 function createProfile({calendar,json,root=__dirname}){return async(req,res,url)=>{
  if(url.pathname!=='/api/hub/profile-content')return false;
  if(req.method!=='GET'){json(res,405,{message:'Method not allowed'});return true;}
- const upstream=await calendar(req,'/api/hub/profile-access'+(['guest','member','1'].includes(url.searchParams.get('preview'))?'?preview='+url.searchParams.get('preview'):''));
+ const upstream=await calendar(req,'/api/hub/profile-access'+(['guest','member','subscriber','1'].includes(url.searchParams.get('preview'))?'?preview='+url.searchParams.get('preview'):''));
  if(!upstream.ok){json(res,upstream.status,{message:'无法确认资料访问权限'});return true;}
  const access=await upstream.json(),all=JSON.parse(fs.readFileSync(path.join(root,'homepage-protected.json'),'utf8')),fragments={};
  for(const [id,item] of Object.entries(all))if(access.allowed.includes(item.key))fragments[id]=item.html;

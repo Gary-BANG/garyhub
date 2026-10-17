@@ -17,6 +17,8 @@ const { migrateHub, registerHubApi } = require("./hub-api");
 const {migrateAccounts,registerAccounts}=require("./account-admin");
 const {migrateProfile,registerProfile}=require("./profile-access");
 const {migrateLedger,registerLedger}=require("./ledger-api");
+const {migrateMembership,registerMembership}=require("./membership");
+const {migrateTotp,registerTotp}=require("./totp-api");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -59,9 +61,9 @@ app.use("/api", async (req,res,next) => {
   res.set("Cache-Control", "no-store");
   try {
     if(req.session.user){
-      const user=await get("SELECT id,username,role,enabled,auth_version,must_change_password,deletion_pending FROM users WHERE id=?",[req.session.user.id]);
+      const user=await get("SELECT id,username,role,enabled,account_tier,tier_version,auth_version,must_change_password,deletion_pending FROM users WHERE id=?",[req.session.user.id]);
       if(!user || user.enabled!==1 || user.deletion_pending || (req.session.authVersion||0)!==user.auth_version){await new Promise((resolve,reject)=>req.session.destroy(e=>e?reject(e):resolve()));return res.status(401).json({message:"登录已失效"});}
-      req.session.user={id:user.id,username:user.username,role:user.role,mustChangePassword:!!user.must_change_password};
+      req.session.user={id:user.id,username:user.username,role:user.role,accountTier:user.account_tier,mustChangePassword:!!user.must_change_password};
       if(user.must_change_password&&!new Set(["/api/me","/api/csrf","/api/logout","/api/hub/me","/api/account/password"]).has(req.path.startsWith("/api/")?req.path:"/api"+req.path))return res.status(428).json({message:"请先修改临时密码",mustChangePassword:true,changePasswordUrl:"https://calendar.garyhub.uk/change-password/"});
     }
     if(!["GET","HEAD","OPTIONS"].includes(req.method)){
@@ -116,7 +118,7 @@ async function findUserById(id) {
 
 async function findUserByUsername(username) {
   return await get(
-    "SELECT id, username, password_hash, role, enabled, created_at,auth_version,must_change_password,deletion_pending FROM users WHERE username = ?",
+    "SELECT id, username, password_hash, role, enabled, created_at,account_tier,tier_version,auth_version,must_change_password,deletion_pending FROM users WHERE username = ?",
     [username]
   );
 }
@@ -147,7 +149,7 @@ async function resolveTargetUserId(req) {
 }
 
 app.get("/health", (req, res) => {
-  res.json({ ok: true, hubVersion: "20261011-v1" });
+  res.json({ ok: true, hubVersion: "1.3.4.2" });
 });
 
 // 登录
@@ -179,6 +181,7 @@ app.post("/api/login", rateLimit(12, 15 * 60_000), async (req, res) => {
       id: user.id,
       username: user.username,
       role: user.role,
+      accountTier: user.account_tier,
       mustChangePassword: !!user.must_change_password
     };
     req.session.authVersion=user.auth_version;
@@ -659,6 +662,8 @@ app.delete("/api/events/:id", requireLogin, async (req, res) => {
 });
 
 registerAccounts(app,{requireLogin,requireAdmin,sessionStore});
+registerMembership(app,{requireAdmin});
+registerTotp(app,{requireLogin,requireAdmin});
 registerProfile(app,{db:require("./db"),requireAdmin});
 registerLedger(app,{requireLogin});
 registerHubApi(app,{db:require("./db"),requireLogin,requireAdmin});
@@ -672,7 +677,9 @@ initDb()
   .then(() => migratePersonalRecords(require("./db")))
   .then(() => migrateHub(require("./db")))
   .then(() => migrateAccounts(require("./db")))
+  .then(() => migrateMembership(require("./db")))
   .then(() => migrateProfile(require("./db")))
+  .then(() => migrateTotp(require("./db")))
   .then(() => migrateLedger(require("./db")))
   .then(() => {
     app.listen(PORT, "0.0.0.0", () => {

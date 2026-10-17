@@ -85,3 +85,7 @@ GitHub 保存经过脱敏的源码、配置示例和维护文档，不保存正�
 
 <!-- GARYHUB_RELEASE_POLICY_20261011 -->
 Every user-visible production update must publish unread in-app release notes to all approved, enabled accounts, including administrators. Follow docs/RELEASE_POLICY.md and verify recipient counts and idempotency. Deployment state and current effective Compose paths are recorded in /opt/my-services/garyhub-active-deployment.json. Never commit private Compose files, runtime data or server backups.
+
+## v1.3.4.2 开发与升级包
+
+新增服务端加密的 TOTP 工具、管理员限时授权及订阅用户首页资料规则。详见 [v1.3.4.2 安装与权限说明](docs/GARYHUB_V1_3_4_2.md) 和 [验证记录](docs/GARYHUB_V1_3_4_2_TESTS.md)。安装器及可复现打包脚本保存在 `scripts/releases/v1.3.4.2/`。正式服务器是否已升级，以现场 `deployment-state.json` 与有效部署索引为准。
