@@ -1,0 +1,1773 @@
+{
+  "baselines": {
+    "1.3.4.1": {
+      ".gitattributes": {
+        "raw": "7b4fd97b54f023beb518ef85e49dafd0e96e5a26d9058fab10cd742f06fada4b",
+        "normalized": "cb13bb8486e0ab7f2ebc2bb0716410bb2e8edffaca31d0bd71e9e6a0ad07f390"
+      },
+      "README-ACCESS-INSTALL.md": {
+        "raw": "17e47712085d82ffe6070030724a8418dd9855fe7da01a364113d44102d03879",
+        "normalized": "af70e007e5fb020e3823357c33162e337ea4bf94acc2a7113f4c1e23a83c9d79"
+      },
+      "AGENTS.md": {
+        "raw": "8b83ae04a01101326825fed56306d0416dde1301ec121f17b463c91a9e967249",
+        "normalized": "0a62b42414281d65066b7d91809bffe7b789cf5abc4911b6b2033b9e0c0b9ff4"
+      },
+      "SECURITY.md": {
+        "raw": "163b710ac31a8af9d54b9041c979adb08744d0a61886122e083db47bd4a99f7e",
+        "normalized": "3c1389a63e12bd1fcc1a9a4bf1c0ba6f41de983638579fd59a8b243867f7c6cb"
+      },
+      "docker-compose.isolated.yml": {
+        "raw": "a41bdf45a2b49d863fc1dbb822f41d13f16d522cf395dc3104dec63bc20d0a63",
+        "normalized": "0bb9fb3a3ebd23cf60b4023c486ecf0afb6b13d444fbacdb03e68676d2baf095"
+      },
+      ".gitignore": {
+        "raw": "6b67b235a54b476238eb9152d64e2d277e3e86bd994f1aa400b55cf7abb0999a",
+        "normalized": "6fb784a098591c33fcd54177683360293b7f36502d5bac3f7c0427763b79abbe"
+      },
+      "README.md": {
+        "raw": "93265a12cd130b3f0dce8d8953dd6eabc0c47c59721a7671d79efbc9a70c12ed",
+        "normalized": "0bb26f8d0fc07ac33aea9c5e9e1357ccf74e83117e5726b41462da913f8ce36b"
+      },
+      "docs/DEPLOYMENT_20261007.md": {
+        "raw": "06d9d882fb2a3f7bdb7819ad5855113c07cf7172fc81e9f5e838906bf4fdac16",
+        "normalized": "e7bdc6657a00165341fa3fa2d6ff679fa03c7490ee80f1eb4be50fcafe8ccf1e"
+      },
+      "docs/UPDATE_20261011.md": {
+        "raw": "baa12d9ef411fa4a52d95fd8ccaf964ae4c276d34f68e7b80b6691dbaf59e129",
+        "normalized": "1024d08622bcb62aee8d970e5e5b1443d6ef784e889e13d5215755f17cedaa4f"
+      },
+      "docs/SERVER_MIGRATION_20260930.md": {
+        "raw": "349f48d7aeb3c684f7efccd227f1c2623b2a357bfb692eb937345241681e03fb",
+        "normalized": "b99b15531d23dba6006951bd6c83def248fdb9567fef159cdf948403af6afe9f"
+      },
+      "docs/ACCESS_FEATURE.md": {
+        "raw": "2d0225ace5c4c2d726103413c1ced3eb33a697c6d66ea5f2f68f6a86736a14d8",
+        "normalized": "6d2188a1c488af8b25eae49c0466dc8db6db369a542bb5ba6c2834fd2f832257"
+      },
+      "docs/GARYHUB_V1_3_4_1.md": {
+        "raw": "56cea48da892653b8d6972fb6c5e6683479e52eb88c5155cd6587392edbf7e12",
+        "normalized": "5dee5db0d178487ec21b7ab59383e81a85025db1b3f2e23ce89cfe39e3809002"
+      },
+      "docs/STAGE3_ISOLATED.md": {
+        "raw": "61519fc01dddb53eb3d1746ff9f021bc343e0e853b837e21aa953918da288ee1",
+        "normalized": "271f238ba9398262cc49d09110bff5200c0b12ba886ec52a8d29406305716de8"
+      },
+      "docs/ACADEMIC_UPGRADE_20261014.md": {
+        "raw": "178dea268fa56cdc60198f7c7bfa81d4de5874b9b182ee4a99b02e19da24ddd5",
+        "normalized": "f5755528b78cc6d337b1fdff73f4fe8fcb0043d17cdaf53a5fb04a30e043cf12"
+      },
+      "docs/ACCESS_SERVER_INVENTORY.md": {
+        "raw": "13dc6baa9f8fad7760d18ce10526864c82d38d4f2de9c17832e1d51e8501fe5c",
+        "normalized": "73a60050bde4df379ebfbe6c8787d2055b479ab41946b4fb332d09a95e304834"
+      },
+      "docs/OUTLOOK_MAIL.md": {
+        "raw": "eb7921d227a85ac9a47d4c6047fca23b00c228286abdfbd428f9794751a92751",
+        "normalized": "af47f775e6c52bf03a3e518d47212a2ab01b1bd5e54a3581643efa99555ca1e1"
+      },
+      "docs/CALENDAR_UPGRADE_20261013.md": {
+        "raw": "2e757d9c8b105b536654a0ec3cff0ccee7536457e6e7efa527d22f53ab64a5dc",
+        "normalized": "4318f398ad0375d9766f6e919450539a977258e87577e47191c6501b8d03e2e2"
+      },
+      "docs/ACCESS_MIGRATION.md": {
+        "raw": "6b812eed3eeb72c8bec5a18ec8123b7775431a552e05815974de3cb194d6accb",
+        "normalized": "aa5af9427da5d506904ed9f7689e5b3fd63657962044b25052149cc253a40638"
+      },
+      "docs/PRIVACY_LEDGER_20261016.md": {
+        "raw": "e94fed5ec54a86786afd39124794f0a6cf11e3ef28d0430d3ba11f51640dcc81",
+        "normalized": "1c47b28746d4f5863327bd4cb017634df5822515f5c467463a628044f5fad4c0"
+      },
+      "docs/GARYHUB_V1.3.3.2_UPGRADE.md": {
+        "raw": "f9ab1d83dd83d92ed991ef979384e800c454671a8a3ec85f0a45dcf8d6b6035b",
+        "normalized": "14f7e432451488b9407534580abb6842724956fdcfca24d65dbdfed744a5f7d8"
+      },
+      "docs/RELEASE_POLICY.md": {
+        "raw": "46ca5a1693da3b69cb4a0982890b8c14457307081942a469ab099a9aa56da62e",
+        "normalized": "b4f62306450aa0707539631199f3dd191bb94664232c6f6137661019f03ab918"
+      },
+      "docs/GARYHUB_V1_3_4_1_TESTS.md": {
+        "raw": "f5dd583fd9c6e2b452cea609795f85f2abf4ee53bda9f3d2ff3a90645531f4e3",
+        "normalized": "3bab5e52ebeb11b0fb0fc327a9a5887f6e658f55ec711167f416d42d74e3ab10"
+      },
+      "docs/DATA_AND_BACKUP.md": {
+        "raw": "6fc3dba07bbcb31d11c96ae7104ef8cf5447fe9ca13a41ae48253503f2bcd9eb",
+        "normalized": "e31cbc292808164d55215c1410c3df8f855f57cb8e645a9fc28157b050357704"
+      },
+      "docs/ISOLATED_DEVELOPMENT.md": {
+        "raw": "9ae8524f46c59a0595bcb0cc4ae27e55cb40f6798300b8f8db97694c1c0a01c2",
+        "normalized": "4f446400c257f354470e665c03fb49f0b90c5af86438db8c4b80b5761a2eb052"
+      },
+      "docs/UPDATE_GUIDE.md": {
+        "raw": "8db9f228738cf3e55cf9bbf86f55d14c5d1e8ffe7ace68f867946bc69ab8b96d",
+        "normalized": "b32265ca26e30885c59ae72a221646ce9f8dc6a15551579ab935df078c635fa4"
+      },
+      "docs/ARCHITECTURE.md": {
+        "raw": "00f81119e80a5278c9d861b057a747f89bc32156603f62cb9a64cc2163af23b9",
+        "normalized": "4dafd6b795fb7ad39d368594ef1e457a179609202486a8a03ecc9c7b1655c303"
+      },
+      "docs/PRIVACY_LEDGER_TESTS_20261016.md": {
+        "raw": "1533e5987fbaee69d20fdba808d5b64c7f1a3f57b260120c45a9ab400f1ad761",
+        "normalized": "d8a25807bb557adffac1d821062e3aff33237690f364270cc700132fb3929df6"
+      },
+      "docs/BACKUP_VERIFICATION_20261007.md": {
+        "raw": "43e7af5e79d45bae1984cf531338e458b81acdd0013e0d80a961d853ea175ebe",
+        "normalized": "de3cc5d158ce860c8b417ec2373335b826ee01f8bdafb41136382d6d8d7935c6"
+      },
+      "lab-service/VALIDATION.md": {
+        "raw": "9d200c170a59a613ad73d004dd97f82165a81f76ce78893bb578e44362bd0d92",
+        "normalized": "5b6ccb2e4154395f983aacf1aea2b0e00b9fb709383bc97039b50ddc2b213bd1"
+      },
+      "lab-service/access-connection.cjs": {
+        "raw": "a6ad5b40988bfd49881f7474f59e3316c45e1e07acd39684a21089de6d61724b",
+        "normalized": "f4520cfbcaac3ff55689f897b41bfa8cb64e37f4b240a608cda86c4fbd5676f1"
+      },
+      "lab-service/compose.yml": {
+        "raw": "2d9899800bace97c9ab94704c407f139da99686f487f0c9312d468f354b1c15f",
+        "normalized": "39874914e78e27e72a45032422c78191a6524d8d1fe5885e972ab143774d8742"
+      },
+      "lab-service/server.cjs": {
+        "raw": "46fed99cfd36199cdd433a230c1f25f35bb29ffc345cd5c3c1d55b4f577a0281",
+        "normalized": "0c3f3c1664de920205180b81db8bf7ac6fccdd4ef4f84a002c2c04c1af172c4b"
+      },
+      "lab-service/homepage-privacy.cjs": {
+        "raw": "c80ae0d1d4e7991eeadc568f75b0a16356a640551cbcd92e1e449c2cd83505d8",
+        "normalized": "386895f0d2257bb0cc48a8b7e97bc77ed1ecc7642cc32d61bca60af3813f81aa"
+      },
+      "lab-service/user-cleanup.cjs": {
+        "raw": "0972b28d3a57b177837d8761aa2cbdbf5dba165ca4ccb2297857befc9b04b0fd",
+        "normalized": "e619519421ce962e1e3d7365d4249ecd753ef9e3a6b6de64f9825f4efb6466e1"
+      },
+      "lab-service/.dockerignore": {
+        "raw": "5628cb51cb6e83401b42a72d557245ed87b6ce7e66c6417a914328b0594419e3",
+        "normalized": "07fe4ae9dce798b19019ef9b922ee2c4701a20e099f3a5f9cf3c0c5b3ba5e0c2"
+      },
+      "lab-service/access-store.cjs": {
+        "raw": "c488eafcce7b175e58b180e926d9fcd82d6600f2ab6a031c29c100d73f091409",
+        "normalized": "50736288fa277a9898dcb5c34beced9135a2a951adc111d0a2f0e8420d3c89a3"
+      },
+      "lab-service/README.md": {
+        "raw": "046f569ff84a01618d63d77a30d2a83027d323fab6c3c75c8826fb7db0d3c1be",
+        "normalized": "bf7e42f5cc105f9e7a30d28d6f884cd43bbab2a529281241b21e806c5f191aa5"
+      },
+      "lab-service/Dockerfile": {
+        "raw": "18a53e19ff4ad6c7a36e8898eaecf79eb279b92f7f50d8899720434616057097",
+        "normalized": "3f207607e394304226cffbb280813b9ce347e231f501124c6065f4456102672b"
+      },
+      "lab-service/academic.cjs": {
+        "raw": "7ff28edf81f93791d14adfa86c6890f0846f50d4824875b6c0b7208d322f6572",
+        "normalized": "ac67fcfc044d6096ddc51a2692653bd891c4b0842b4593fd6ad91ddbd4697f2c"
+      },
+      "site/index.html": {
+        "raw": "1ad7a7d82daf4b87dc5332de5ad8fba5b1c1a69585713bea7b0be4f936e789c8",
+        "normalized": "dfbaa942492755bb0ad25d70a8b3a8be588d8ebc338f7d05394f08ccd57d0162"
+      },
+      "access-host/run-install.sh": {
+        "raw": "4749c5e904bf3dd13fa2970a9ae00dc37b5223c8205dca30f471de98eed916d5",
+        "normalized": "358a3f76b77b06e175a782d108f5b4f42e603fc455b554d73dbc0ebbff412673"
+      },
+      "access-host/reconcile.py": {
+        "raw": "45aa3ff0deed7e9f81e91008b05867c7ad1526ff1d4a938b1a9e2a926ec31b64",
+        "normalized": "9cec96e423fc15297f7d8e634b4eb419ad51973f301e7b58fd373b9ae776a199"
+      },
+      "access-host/install.py": {
+        "raw": "580e69c5d881716c83b61a2a609021086929fe5c2a1e0af4183a5c06603f1a1e",
+        "normalized": "9fdd59e6242cb02323de9655a162b51c587f363d51cb00edb852d75f7d913262"
+      },
+      "access-host/finish-migration.py": {
+        "raw": "31e5856baa6f5071b81618e90e95a059c6956d8e41cb6ddc0723ad27265cd381",
+        "normalized": "5a272dab2e2ce8bb933b0e58d4af1d7eca2055fcddd5c0e8d8e4d7f7ca99098b"
+      },
+      "access-host/baseline.json": {
+        "raw": "0e614fadaa4bcb823512a02896bbf3a4ce1139777f8bfea401ed38805a8bfc8f",
+        "normalized": "0e614fadaa4bcb823512a02896bbf3a4ce1139777f8bfea401ed38805a8bfc8f"
+      },
+      "access-host/test_reconcile.py": {
+        "raw": "727633347088e6304ec72054d2ffe9b7ea0b7632dae6a290a662a838da0c0d9f",
+        "normalized": "98276de39329db66bd186e63588f2bd6d6612cd3c3141c91af019b4d28b18baa"
+      },
+      "access-host/finish-migration.sh": {
+        "raw": "00bab54fdfccbea89da4b804ed7cb7ac39302b73e4afd827c446b3e880ee8bc9",
+        "normalized": "93add912a6b952d304cf0125eb687dc60a3e9a573147ccb83eff11eac3755ad6"
+      },
+      "calendar-app/personal-api.js": {
+        "raw": "3101c99bf088c47145ac916a8e5080c2e95feaeac55cb5147ef44610cbed2f90",
+        "normalized": "2a835004d86a678e7389ba766c5485f0965895cd78448e0e29c82f1e4b91dfda"
+      },
+      "calendar-app/.env.example": {
+        "raw": "b8ba9c8c8ca08d5e27aec1e7c3633187431c69e0405ad39e8fd463556780f0e6",
+        "normalized": "b4b1347ee53d4e0948d337f75647c22192bd0f565246ccef9d42a382cc1a5975"
+      },
+      "calendar-app/hub-api.js": {
+        "raw": "449ec7d8d9f148dc262ff3413c36f4d79ef2fab8bb8e4572b93f61b7e60f6ea7",
+        "normalized": "c830f1a5180b6cb4f0aa12b54caba10b0519ad264f601da1e4398ec757995e69"
+      },
+      "calendar-app/mailer.js": {
+        "raw": "37eb0152ced633a8548fb6aa87557194d47cfc241040ca264e53c30dc23960b5",
+        "normalized": "b1f57f35f411a89cfa85af5e65e8834aba7884f461ae2365b6f6514d0d0a6cc6"
+      },
+      "calendar-app/graph-mailer.js": {
+        "raw": "d97c47c8fff0010c8fc8c763dffc6f418f9c377a7f2dfd2a23842166029c8a02",
+        "normalized": "3e0ac42ff8e44b77b0624709909574481dd44f3bec95fab961c893f740f36a96"
+      },
+      "calendar-app/email-api.js": {
+        "raw": "6e4739c81c606922201985d74f559c5a32c2dd94243158f76494e8f80ffff28b",
+        "normalized": "a6283843df00bdc361d96a03b259643626ffd868515d91cb5b129717790a77cc"
+      },
+      "calendar-app/profile-access.js": {
+        "raw": "06b78c23d6dd0929ca8a3ab2450f71425d4862098459998b98b212178de82b05",
+        "normalized": "390d3d3a39563ee0b5588857e64860bdb16b9ef94dc126d8507d0bf44a4f0287"
+      },
+      "calendar-app/auth-utils.js": {
+        "raw": "db494963bc563edc591509abe6855e05343722b10b39bfc6fab13d078aa881b3",
+        "normalized": "0e87d7cd7536ce5ad2d99fcc5734f9722795897deea8ca1f1f7570373e3c5809"
+      },
+      "calendar-app/db.js": {
+        "raw": "188acc1b3904d70cfbbaae1516f1d3e85fcc3ab24a571d8c2019c65436c0f94c",
+        "normalized": "2408230beb55ae005aa5ccdc52243ac926ceeb98555712fc836681a7397cbb77"
+      },
+      "calendar-app/reminder-utils.js": {
+        "raw": "75362366b6f23b28e23cfb6ec5bd2421667e30d995f3789ab0982e9b6e7f17bc",
+        "normalized": "a14e1f6e64c4b6a15b10a467f88b7f29a2ee4449e4d052597bea8daadd3e4ecf"
+      },
+      "calendar-app/app.js": {
+        "raw": "300337a59297e33bda4535cd5cf294919d3d21290af0e682f152dae9e989a908",
+        "normalized": "10e9e2a7e9105c0fdb95d4ae9633e2d3b623c6201daf265cd36d818d1b278a64"
+      },
+      "calendar-app/rate-limit.js": {
+        "raw": "e3dfd286d9d0018e1c4bdd29dc07a2b1dd02c2ab79dcaa504ed1d82f031ce571",
+        "normalized": "ea7a8a4af7436b201d93f3e33bd1d3c2bfde5227b06dd9eecb2bc3546b5983f7"
+      },
+      "calendar-app/reminder-worker.js": {
+        "raw": "b6badff4332d7653c2e8a4978d4387f74d6a8411651d134b9318b46c10f73113",
+        "normalized": "585c130d151122542aeaab9373a25407ec0507f6bdd9ce033916835cdec66b2e"
+      },
+      "calendar-app/package.json": {
+        "raw": "02d92e881450099f39b60b19bf89669664edff694719e2afa1520e3724c5c90c",
+        "normalized": "1a60432fcf70636cbe483e14c39fc5e0d78238d15476f420dbfc69f2de48f2e9"
+      },
+      "calendar-app/package-lock.json": {
+        "raw": "4be030e4593ebb7276e45226fdcd58b81e2835dc271a806e18d56d3f95116ec0",
+        "normalized": "339911068c9c3bfa46617fa0ca23562783b53e991c3cc7b4ab532c5334f095e1"
+      },
+      "calendar-app/tasks-api.js": {
+        "raw": "ef15e4f0b954eaa676b283b7c3bd1ff379bb78b27ca8c344aee96ab8b03c32bd",
+        "normalized": "3dcf67164881b96164364d4a4df35e616d39608c05501db7ebc6501ece265f06"
+      },
+      "calendar-app/account-admin.js": {
+        "raw": "f7d0902f8fdf6c5538caa043ff9370684a41ab8c17cb355e3e2330dcce84f8f7",
+        "normalized": "79dcf78aff880d46afa2f0161f716ec1e2739b03622e5a4ce275753cec70a445"
+      },
+      "calendar-app/ledger-api.js": {
+        "raw": "321e1d8dec7c0795a52bdbc6d64159b358c2bd80a4fbb76c0e8e9680621ebed7",
+        "normalized": "837f2f3bec5e40047358d9e1a5927cd37e56464946942122641c42c249a54e68"
+      },
+      "calendar-app/fx-rates.js": {
+        "raw": "a1a0eca7d9b11e89c717a385d77fee48068180a5ea57ad795c7268885790a4da",
+        "normalized": "f111a323a15023d9d171a72a0cf055bc32313c644921c10ccc703a3104b52806"
+      },
+      "calendar-app/Dockerfile": {
+        "raw": "c948e57667b0586ca2afc6c4d2e5b0cea2a0b80d5607abaee2d5a2dd2834f333",
+        "normalized": "f04b70caabb9972b9221fa87f506467d1d4aef5a327e13b430e42e5f43da7d4a"
+      },
+      "calendar-app/session-store.js": {
+        "raw": "e882583f3f3cdc792d413152357cd9d38c1e3b2e47eb78a75a767588350ae9de",
+        "normalized": "976a2d0ea1461cc58a6df195c495195ef6edbec5e87fd5c734e9d8ce5a65f8eb"
+      },
+      "scripts/prepare-access-wss.py": {
+        "raw": "a3aa22d14f94debeca9613a2590065f4a1fc81985131d40f29f2364cc28ac294",
+        "normalized": "5d7a11a21a9f695cf732d0066d7bb75e65e996fc7edb67b7b1fd16fdbfc2bd91"
+      },
+      "scripts/garyhub-wss-batch.sh": {
+        "raw": "ecafd0605bf2d4e9946daa5633e7c5d38c938f373944a902ace53946c91d22c3",
+        "normalized": "3ebc3508f467c32cfcb5fe5c8e5774b15c7dff3af7c62fc9ad2df288b145703f"
+      },
+      "scripts/prepare-isolated-stage3.sh": {
+        "raw": "af92890a0d11e02b9ba9f645f94ef1d45be70a96328034397f49ed17937ba68f",
+        "normalized": "8efcc4ea3d355f255d0544822dd7b9e47024355762971fa99f5450ed24a95616"
+      },
+      "lab-service/public/profile-privacy.js": {
+        "raw": "62811629412e4e8a4ba78016b8d7341628a55967db3f400d8f94d1743fa86658",
+        "normalized": "83279e1160ce805b6ae64f3538188104753957ae7d0d571200788935e0c9c3a3"
+      },
+      "lab-service/public/hub-account.css": {
+        "raw": "50c69706f7066ef035c6d0e74ada24f21076645f3aca9ae188a02c09280ed6e7",
+        "normalized": "a482cf67d42c68a05f986ee2a59acf45c29a3007cdec7c0d2e5127555852b464"
+      },
+      "lab-service/public/hub-account.js": {
+        "raw": "faa3bad3cc66165f5abc4fa07578e69743867e02dfad280d89344ef26c596120",
+        "normalized": "4258eb9681d076cfa19769b37f1f47087dc8db26289deedec35a20c09d4ff2b2"
+      },
+      "lab-service/public/hub.js": {
+        "raw": "7f619107f0f6f742a693d9304836d759b51f0d05bfcd34bcaf7d39c7c183611e",
+        "normalized": "dc26b5eb4fc6dd10415b1b70690a9c0f80421ead519b5c750a635e34c131fdc7"
+      },
+      "lab-service/public/profile-privacy.css": {
+        "raw": "827addfd70503c0990f1322aedb08cc6744df95320daa58b8ca357b0e9cd4835",
+        "normalized": "96a38ea3dd8256b1b34a82bb13321b9886e263ccbbe92505841d799e8c4411ff"
+      },
+      "lab-service/public/homepage.html": {
+        "raw": "608e32cf64ce26bbe47798984dc25645e06518223b9b5e80c36b5c011532653e",
+        "normalized": "522a6c825042897469f7e4b4239433bb27f104d24b33e899e2785457e08ce78b"
+      },
+      "lab-service/public/login.html": {
+        "raw": "587ed6e65dfdd6d40c5ebf2fe9150c0a43b3b2f66e2e843d07dc5e82b17039fe",
+        "normalized": "a697389ec27fb3cea0b08115aa0dcaaae4e30c2765284ee70f0e8eac71f265c5"
+      },
+      "lab-service/public/admin.js": {
+        "raw": "bf51541dc09d34be0b613327d8184632da0d7a7622195adeaa1a95c65cf1ee33",
+        "normalized": "6b607cc09f7b1162d11cf0a470e852e4e4e8c4c54296be5df9349e5156303f54"
+      },
+      "lab-service/public/privacy-ledger-release.json": {
+        "raw": "457c5bf6fd38858490862e7e1846138d9d739598fa1244ff8124b1b542dee83d",
+        "normalized": "38fd60362b891e69bc8aa0ccc0dc86ae9cef388228ca050baf2db8bde0b202aa"
+      },
+      "lab-service/public/hub-watch.js": {
+        "raw": "0639533a4835018348f4c4c8a5e5eb931c02fb18c9093fb8d5f46282176aff5f",
+        "normalized": "4e318a1bc7689e899062abef8895359550a7b6015b23e33c2072e221d8e7b368"
+      },
+      "lab-service/public/login.js": {
+        "raw": "51c46dff40d9dd9f44e93d3abb0bf52885934605d7d325283d801c6f2c377d62",
+        "normalized": "7da308ee5529443a19e9ede0d4aafac299a91b9db78accc074a41cb6340e7dc9"
+      },
+      "lab-service/public/admin.html": {
+        "raw": "6fda938fd0d81947b5c2e961a0bc732997790af057ec241bb816b8084e33ad6b",
+        "normalized": "c8b1c412465fc86859ccf64d45f94bb1983b2ac20dda940ed658908198f4e182"
+      },
+      "lab-service/public/hub.css": {
+        "raw": "2c9787769ef7500dee996a3da579e9b6352d5d5e6cd39c104e8d81973b9b9656",
+        "normalized": "47f097d515705353db7859e092ecbc68ec5aaca56be0ec7f1831cee17ef0c891"
+      },
+      "lab-service/public/index.html": {
+        "raw": "1b5f696446928c745205bb158e6be373668d69875618d33b18d8282ba7d23be4",
+        "normalized": "8bb36d60b3d321159734576061d198b0c97de4d4e5fcd27655a26d25dee1b855"
+      },
+      "lab-service/public/profile-admin.js": {
+        "raw": "3cd907d1e1e4c88669c6093ecfff9a772d7e362e438d3caa87d10351aec9311c",
+        "normalized": "cd35b2f3b3585c5bae83096232098ed6a5cf6e421a0d64feca25b97f1f2499e8"
+      },
+      "lab-service/test/access-server.test.cjs": {
+        "raw": "396f73379cb59ca85baaf24d9facda9aa6f2ad1f78603b243b97ac5fd58c16cd",
+        "normalized": "949014a83d67f2668a176f267f80df9ecd5a73f1ccc8c7651b82db0cd521d268"
+      },
+      "lab-service/test/server.test.cjs": {
+        "raw": "dbea8dd522320dce2e760f1f4a27ab69a13b2ef7d87998acf50696f8504c42ee",
+        "normalized": "7e7441eec9503cdcefe00b317765ca4c395d3538235fa97308601ce4f9fbcc49"
+      },
+      "lab-service/test/access-connection.test.cjs": {
+        "raw": "c4df024231a1346a33bceefc1b2014429f3eefa8fd8a51b18c3ea10fe11c669a",
+        "normalized": "927c89decfd3f4f7b45c8c671159110208cc63989837f72825f60cca2558d770"
+      },
+      "lab-service/test/access-store.test.cjs": {
+        "raw": "6f64806ac15588eefe38281428bc8413dd28f6d27b29ac901bb333fd00d03018",
+        "normalized": "20c088eb8bb2f7955526bd97f83e698f9166b22d7ab3fccaebb33f402502d6de"
+      },
+      "lab-service/public/academic/release.json": {
+        "raw": "84388d6a50c3d426fcbfaa48290818b161f5df504ce62c45838844d60ebf5660",
+        "normalized": "3641bcf818e874eaae206dc7c082b61db6ca39ee47bef5c74f689f326f65d1fa"
+      },
+      "lab-service/public/academic/app.js": {
+        "raw": "fcd90e62b956b8a0f901cf396bf6786300f9db9f1ce5b122b2ebf59f1fca88c4",
+        "normalized": "d27df0a453aac03c95b28ccfdb58e8c5ea6d6f632d4af8450b1fe74ffa57161c"
+      },
+      "lab-service/public/academic/reader.js": {
+        "raw": "1922d9699a8bcbc17ecf21e54e52167c62e87a37a63d036962f88ce9b012b7a7",
+        "normalized": "fb473860c793fb7182d8156cd342d921dfbc42617b6f8a372ee655d666dd7937"
+      },
+      "lab-service/public/academic/style.css": {
+        "raw": "ff89db8773c04b458f1d70733801b1f3a9a853bdbb2f93ad1495ca74aad47079",
+        "normalized": "c83269c372113a32cb39e78a804962970803c7f609e96b5f243cd7019e623635"
+      },
+      "lab-service/public/academic/THIRD-PARTY.txt": {
+        "raw": "c3d6bd822d5acd9fe77949fe17902445a84e4baa4bfc0278baf385c4761ac25c",
+        "normalized": "9be5f1e5100c12fbe21a3facb775ca1910831df062650645daa3b9f3ee6fd0b3"
+      },
+      "lab-service/public/academic/core.js": {
+        "raw": "3cfc5ac0360affda87c2a18008b0b2c5bcc62dd67bc739a18e18cb5e79eb61d8",
+        "normalized": "7d50d6236380d86efead9a9f5ec69f2a7dd9c023f99f1d1403c3de5d243e0333"
+      },
+      "lab-service/public/academic/index.html": {
+        "raw": "8b74a29ff78f5187d09c85d6077ef913ce6b555fce2e4bb50139c54c863b8eea",
+        "normalized": "854411654b1308e2638af75d7ccc395affa967dc0e98f125ecf362ffdd5a6909"
+      },
+      "lab-service/public/access/access.css": {
+        "raw": "1ee4d78b1cdf7adb6ee9913308c60e042d57a2b44513237246c281e941ecb66b",
+        "normalized": "7fcd9ff698d00cf6d5feb6103a78252e4d96110e4197e5548140a4ef66fd9b98"
+      },
+      "lab-service/public/access/access.js": {
+        "raw": "12e50aba024e138b112ec710159a6f7279c7a26d82a61327112ce54188ceee75",
+        "normalized": "5e5ebcff61192b6e0f6693958b4253e637ac59ee4de47ea2c1f5dce3e86432a5"
+      },
+      "lab-service/public/access/index.html": {
+        "raw": "ba41201b0b30c867f380c69a57041f3e2b8a67c341f66e491330c0bdce888942",
+        "normalized": "e696cd8d09c8e0b9421ea69d5b98779b337fff4777ed9139557009a15192f122"
+      },
+      "calendar-app/public/theme.js": {
+        "raw": "5ba5eecafc436c6db7a02b1b88218b2aa3e028e7c0262983f6b845f82c714f2e",
+        "normalized": "f5ac2c2a48ab657f6541d327a60a60282e71e4c532e699482c88450eab667b1d"
+      },
+      "calendar-app/public/journal-page.js": {
+        "raw": "d3420831a116797aa1c8c2afef39b322361bca648cc17f634fd8462ea8279a1d",
+        "normalized": "63eb3886dada0f789df03e01c56fda90435f5993f70ad8e34acb1d406d259279"
+      },
+      "calendar-app/public/calendar-ui.css": {
+        "raw": "44cbf1577559a23421d1e15e4ec6d0dc271cf425196610e2fa5ec1c06cf894a5",
+        "normalized": "3e7637a92241cf0e81e4c1fd7bf35901d97a302c2c5d38d59e1084559d4e17e2"
+      },
+      "calendar-app/public/health-page.js": {
+        "raw": "079f33320e7ac6f7a35768bba7ac6adb3fabfceba8fad3c18f8d8c466c45511c",
+        "normalized": "f85753d166d7faab9ff34c3091a81dfe68a9c15cd526ef682d297c47a5464e21"
+      },
+      "calendar-app/public/workspace.js": {
+        "raw": "f0a59e6440741554c111503138382ad440be87c46549a7e2ea00f6e1bc12d36c",
+        "normalized": "1815d49fe19481eb75a1eb254f0fe2983ce95e2049e58999e95c75bc2e1a06ca"
+      },
+      "calendar-app/public/ambient.js": {
+        "raw": "942eecebb33ee41c98320a241bd7bc5c43d0bdd6352efc5b30f4a83ee3ed0b3d",
+        "normalized": "9262de0fee48c01de5e84969e2586fb37e8b2110d4e8785633b006532b18b8b2"
+      },
+      "calendar-app/public/task-filter.js": {
+        "raw": "b1c9166484a0d42d53ec57e8d567ccfc4c674991d3aba21f19124a7fe3238941",
+        "normalized": "d3ea809b6f2fbf29235a6cf16987e052acac0cf4d63438f3d1d32b0db5cf0f24"
+      },
+      "calendar-app/public/calendar-page.js": {
+        "raw": "70da22257b0b8867f9450f0b0a550be4b09b7fe0aa68502cda2d2469ffc68d06",
+        "normalized": "43e9010198c7cf71c2a013042474a3b68ac3e032e5ba9527ac28c253726ecb28"
+      },
+      "calendar-app/public/ui-release.json": {
+        "raw": "6eed33a9efe856672e89360fa5316ea9b79240e1d9f1dd07a5a7a0cdc06412bb",
+        "normalized": "6eed33a9efe856672e89360fa5316ea9b79240e1d9f1dd07a5a7a0cdc06412bb"
+      },
+      "calendar-app/public/privacy-ledger-release.json": {
+        "raw": "457c5bf6fd38858490862e7e1846138d9d739598fa1244ff8124b1b542dee83d",
+        "normalized": "38fd60362b891e69bc8aa0ccc0dc86ae9cef388228ca050baf2db8bde0b202aa"
+      },
+      "calendar-app/public/hub-watch.js": {
+        "raw": "ba740ff5175f3134d6d36fabe450a9a14ee4170ceaa232b14c00b01f6ad545a6",
+        "normalized": "273ea141b36627f1b3ffad5e03947e51dd45f6bb53c736ae28ea456b8ff3baac"
+      },
+      "calendar-app/public/auth-hub.css": {
+        "raw": "8c41e078609fcd66067f1cbc8ba9a60a8de3e3c668ab70f34189cbcc0c7989a0",
+        "normalized": "8c41e078609fcd66067f1cbc8ba9a60a8de3e3c668ab70f34189cbcc0c7989a0"
+      },
+      "calendar-app/public/auth-page.js": {
+        "raw": "c72e85db284d56d9dad81dc414ace12d0a41c3b546dbcbb771a1fd286dd3082d",
+        "normalized": "df4c79bba6e612ca35b9208e88bd12ce4a458fea96ce9f095aec56393ce1ce5f"
+      },
+      "calendar-app/public/index.html": {
+        "raw": "ff784617a62a9b1403d19fa99ecc09bfa17edcf831b215acf01150c990435499",
+        "normalized": "2300af20325457e6c8ecc5f60de14b4b31f680d358395974460e7cc127864e45"
+      },
+      "calendar-app/public/personal.js": {
+        "raw": "7d8feb1d8807ae09732861c87ec79a83759a1ef5fd99148d355b84e656b43074",
+        "normalized": "9ddfd82e76779c00f5892f7ca0addc680fa261080b45a5f34d50bef27efb0d76"
+      },
+      "calendar-app/public/unified.js": {
+        "raw": "c5db8b6ef61bb3038db641209570ac011e8102ce59cd9e8d0b38f239811624da",
+        "normalized": "77d5e48a23f98ad40e4841f9a2572a9d66232f3accb8df00684c10c693ad0e5d"
+      },
+      "calendar-app/test/hub-api.test.js": {
+        "raw": "7f172a41761ecc6e2db6d09f4ffa0a547918375fd7c944d2740b3f6840ea99f0",
+        "normalized": "f0d900a0c0be1394123d14525e0d55e9cdbe1d842c90bd14caca8466216d3913"
+      },
+      "calendar-app/test/email-api.test.js": {
+        "raw": "2d9a73a25af87b37ed0c2909a617f1a880ff754d2ed1f435f6c2186746f55bc0",
+        "normalized": "82ee75d370a5d9ab47d6b3601addd13ca5de1f4db7273a23634896c37a56513d"
+      },
+      "calendar-app/test/ledger-core.test.js": {
+        "raw": "8a530e71d19e009b7cec31e40c23a0fcb89300c641731e861a77c283c139e53e",
+        "normalized": "466a5bed345f83ad3b3c11b1f80893611d30797ea223674a35d3f965ddd3061c"
+      },
+      "calendar-app/test/session-store.test.js": {
+        "raw": "a3aaeaa7ab98121a0b161389739d89a59c7c69bd490d0c8a0f1a41c1c220b150",
+        "normalized": "eb1cb7aa1c832b0b5b6137d950563bfb87149eff847d80ade1b65f9ea834594b"
+      },
+      "calendar-app/test/reminder-worker.test.js": {
+        "raw": "35674d1905a494f0f5e115010df92d0a0f029259a659c959afd243c026a33d90",
+        "normalized": "17ecc0a930ab4bf4b28c9608ee402c4f55b0293ef5fd6c43187eaac4662230d0"
+      },
+      "calendar-app/test/migration.test.js": {
+        "raw": "04b9d558948ea08a5e170b176f95bdb343f99cf9c9a9658f34c18e718ef316d3",
+        "normalized": "9126a6359904178bbb0695125bb2f14c63ad106cb61613147633e91d732caa89"
+      },
+      "calendar-app/test/fx-rates.test.js": {
+        "raw": "174e58678d22e78df8a5c2aeef18f853336afafed916d6d6cb2ae885764cfc4e",
+        "normalized": "4360d7206be271d606f1149744ebf5f4fc2c1ee5451d62a5e48251efd74ee2eb"
+      },
+      "calendar-app/test/tasks-api.test.js": {
+        "raw": "28daf2469f6d4094397f8a877e6d310b3b6e2e6ba150ea7994db73857f8a6688",
+        "normalized": "c4096cae187255be18a8cf039b95e9fe6fe71e4b8d90a1ce0466243269aac490"
+      },
+      "calendar-app/test/personal-records.test.js": {
+        "raw": "ac55d376d81a70d421b6ea4429bf268acdef6e46135b0366a7380c10800ef68b",
+        "normalized": "d3376c654680da6799ccb1144e854605ec9af12f725c2280c2b8f8983ee0fc01"
+      },
+      "calendar-app/test/task-filter.test.js": {
+        "raw": "949536c4db7c036df77ba6a82fbc9c366457c243bc5ca65682e86dbc65dbf567",
+        "normalized": "69a7a74072664b6eecc4387587bd74105b6cca78a1d179d06c1ec26df96009f1"
+      },
+      "calendar-app/test/graph-mailer.test.js": {
+        "raw": "d5c07fccab942da82f3f1a97037194b502b87c3f4e45e4e261aa7b95d512cedf",
+        "normalized": "760caa1533ad8e2ba4a8f4ace5beb67d04233d47f284ca9853c6a5e3e675feca"
+      },
+      "calendar-app/test/ledger-summary.test.js": {
+        "raw": "d14f411df8fdb6ac6576a8e7b45b6eb4a45a44f334d392700015eae11c4f1478",
+        "normalized": "4ef5e8487877a7a627ac3b31f1b71494c51753289757fa3a4438dac16635d8ec"
+      },
+      "calendar-app/test/reminder-utils.test.js": {
+        "raw": "2bc049c5346781b410f8024f28c1f734a0c69fab60b2701902942cc2214b4ba0",
+        "normalized": "b27e7d37b1c610d9dcfdecb12ae8890b7894562e3172dffe2e1038c17a8b724d"
+      },
+      "calendar-app/test/auth-utils.test.js": {
+        "raw": "412ddc82018c290e63a0bd5b2c1bea0b3f48fba5a26995d93f39a5509ac565ea",
+        "normalized": "48b76de0e88114dfc31e3dae225ef7f8cb4152111f525323ef058d5a0e6ea9df"
+      },
+      "calendar-app/test/ui-release.test.js": {
+        "raw": "d5f1fcdadca79f4f1111723ee0708ee03ee67eeef86a0d9cc125d6fe100174a2",
+        "normalized": "750eac2e29696b7d28bce786f356da27dc929e584e75794cf0d19f8446a90410"
+      },
+      "calendar-app/releases/garyhub-1.3.4.1.json": {
+        "raw": "bd8c6acc8deac24ec3c7aea3b342501ae1a7f5a052cbfd6e50166909f8f0a47e",
+        "normalized": "e25d6f92905e5cda7e9348d04328bf9f11cb2364995c41ff90d2330bdc59445a"
+      },
+      "calendar-app/releases/garyhub-1.3.4.0.json": {
+        "raw": "feb866edc4e6a115d3bff71f97e71f684374c458ea1d5343f4fbd5a7483d53d7",
+        "normalized": "4a0924f501a6826a0d21a9fcdd5731191ca55ed967ceec870ae164e697c217ad"
+      },
+      "calendar-app/releases/garyhub-20261011-v1.json": {
+        "raw": "2d9dbe5bd4e5c6e869f00744cb607693bc38f097ccbfc209e05f75055f781995",
+        "normalized": "c6328b0635ab424d3a3920a28fc85ce9ecc307f6b06c35820ed1f0db8ebe231b"
+      },
+      "calendar-app/migrations/unified-schema.js": {
+        "raw": "50b6095369613751aaba250f031f3d2f956bf4e92d58eadf3762a9abc1e6e6d3",
+        "normalized": "dd5d0b0fca29e7364ee33b38f194ae516bc8247e55218101bcb8a6c9879323ce"
+      },
+      "calendar-app/migrations/personal-records.js": {
+        "raw": "6f6ba582e031758178e8bbfee744b145ccb1e2d500c0b19781dce4966af178c3",
+        "normalized": "8ad0903ac2b2996833c49efdf5f3e60d17182788b998ce8d9b428d7fd1b9f594"
+      },
+      "calendar-app/scripts/publish-calendar-ui-release.cjs": {
+        "raw": "c7632d01f9b84e209a667482e660960c1ddfc34a3d8d0567bf9f9ee56f8bc009",
+        "normalized": "3809cedb67e5bf227b70260b8571efa921e557ad95fafbc0ac3ee4c657c5e977"
+      },
+      "calendar-app/scripts/migrate-unified-calendar.js": {
+        "raw": "3721397de2e6b29c42e3e6746e2bf89b174749d4ca1126921e6b61e9e730dfc0",
+        "normalized": "ab8f0571413b489b401c9815a972aa31dd2781cbc50846bc9c784f4b63337d12"
+      },
+      "calendar-app/scripts/connect-outlook.js": {
+        "raw": "f65990802153c6b014a621039704d0a4e78ac9657cac10407f10bc5355b5e7aa",
+        "normalized": "6def761f48179eeaebd1fc31d6e94af9046788e1f40b1ea1687fe13c636df8da"
+      },
+      "calendar-app/scripts/publish-hub-release.js": {
+        "raw": "bc262b79af287817351e5279d8718b4a24a81f46174207d760fc069b05405966",
+        "normalized": "5043f52e04c9eb9e1661662d856b81ba6484e27b219011fcfeac1581f84d35e6"
+      },
+      "calendar-app/public/change-password/password.js": {
+        "raw": "53119c5ff31ac75dd0d24ea74e9f544640f510458c4901cbe0289e1c3ad86ae3",
+        "normalized": "53119c5ff31ac75dd0d24ea74e9f544640f510458c4901cbe0289e1c3ad86ae3"
+      },
+      "calendar-app/public/change-password/index.html": {
+        "raw": "8c7bbdac5fae9fcfcc6474b00668cc1fbbf01a4f74a42a14eba7dd2b091859c9",
+        "normalized": "8c7bbdac5fae9fcfcc6474b00668cc1fbbf01a4f74a42a14eba7dd2b091859c9"
+      },
+      "calendar-app/public/login/index.html": {
+        "raw": "742e3d3a4dd78d925e8720dc773093938efc360a5950074a9db97e3fb9844f69",
+        "normalized": "742e3d3a4dd78d925e8720dc773093938efc360a5950074a9db97e3fb9844f69"
+      },
+      "calendar-app/public/ledger/ledger.js": {
+        "raw": "a2bc3cb36249f474246f8d6b2444b4a36a51f4d6f2b1868b349c84a0573cf609",
+        "normalized": "b5a0244c6212c077b03e759d4829b91bc02f487c267983b286fe5390b9f33aab"
+      },
+      "calendar-app/public/ledger/ledger.css": {
+        "raw": "5062ca527d5585dd0e0168ffd94e196e6436ca3d8538259ff36e8b3f3a72ebe3",
+        "normalized": "fab810d6174fe73cb2d85f944963e6aa2543aeb7eedb2319b806cd49ec5bab09"
+      },
+      "calendar-app/public/ledger/index.html": {
+        "raw": "050e5698d20f14c43d837191f7819e041beb1ea307de57369b9d0ed0eb6596a4",
+        "normalized": "8fbc5294d56bcf0f81feaa0c71d5d0103e9ed648fb8c149cc4cce1973b6f1374"
+      },
+      "calendar-app/public/health-records/index.html": {
+        "raw": "7387554106acdfc5a6b8889f4b3fe8d764b196b2148464b119a88280e64df61b",
+        "normalized": "7387554106acdfc5a6b8889f4b3fe8d764b196b2148464b119a88280e64df61b"
+      },
+      "calendar-app/public/register/index.html": {
+        "raw": "2caa5ec5083ae290fa6f5bb10ea89b5a9d31f83d4bc05d486d35503ae9685235",
+        "normalized": "2caa5ec5083ae290fa6f5bb10ea89b5a9d31f83d4bc05d486d35503ae9685235"
+      },
+      "calendar-app/public/journal/index.html": {
+        "raw": "31f273d6c106226bee9764d1592138fb1f87a525f44d98c596a9d32a6f89365c",
+        "normalized": "31f273d6c106226bee9764d1592138fb1f87a525f44d98c596a9d32a6f89365c"
+      },
+      "calendar-app/test/helpers/sqlite-adapter.js": {
+        "raw": "0a0c70238e090f06836a7adc297ea9231dce09e072cabebb894af7484d2c2f9a",
+        "normalized": "1e7f5ac0ce71c2d3cd7b805c935a54a0a1ab3718393a7393c602c5487f61d6c6"
+      }
+    },
+    "1.3.4.2": {
+      ".gitattributes": {
+        "raw": "7b4fd97b54f023beb518ef85e49dafd0e96e5a26d9058fab10cd742f06fada4b",
+        "normalized": "cb13bb8486e0ab7f2ebc2bb0716410bb2e8edffaca31d0bd71e9e6a0ad07f390"
+      },
+      "README-ACCESS-INSTALL.md": {
+        "raw": "17e47712085d82ffe6070030724a8418dd9855fe7da01a364113d44102d03879",
+        "normalized": "af70e007e5fb020e3823357c33162e337ea4bf94acc2a7113f4c1e23a83c9d79"
+      },
+      "AGENTS.md": {
+        "raw": "8b83ae04a01101326825fed56306d0416dde1301ec121f17b463c91a9e967249",
+        "normalized": "0a62b42414281d65066b7d91809bffe7b789cf5abc4911b6b2033b9e0c0b9ff4"
+      },
+      "SECURITY.md": {
+        "raw": "163b710ac31a8af9d54b9041c979adb08744d0a61886122e083db47bd4a99f7e",
+        "normalized": "3c1389a63e12bd1fcc1a9a4bf1c0ba6f41de983638579fd59a8b243867f7c6cb"
+      },
+      "docker-compose.isolated.yml": {
+        "raw": "a41bdf45a2b49d863fc1dbb822f41d13f16d522cf395dc3104dec63bc20d0a63",
+        "normalized": "0bb9fb3a3ebd23cf60b4023c486ecf0afb6b13d444fbacdb03e68676d2baf095"
+      },
+      ".gitignore": {
+        "raw": "6b67b235a54b476238eb9152d64e2d277e3e86bd994f1aa400b55cf7abb0999a",
+        "normalized": "6fb784a098591c33fcd54177683360293b7f36502d5bac3f7c0427763b79abbe"
+      },
+      "README.md": {
+        "raw": "e4298692381d9ef2a626261370990533cab9dda527210df5ba7fe8a7068fa6ae",
+        "normalized": "9a2b175cf7f0f39a9e55805194103bbf554427a98b5b69926174216e2f57f5b1"
+      },
+      "docs/DEPLOYMENT_20261007.md": {
+        "raw": "06d9d882fb2a3f7bdb7819ad5855113c07cf7172fc81e9f5e838906bf4fdac16",
+        "normalized": "e7bdc6657a00165341fa3fa2d6ff679fa03c7490ee80f1eb4be50fcafe8ccf1e"
+      },
+      "docs/UPDATE_20261011.md": {
+        "raw": "baa12d9ef411fa4a52d95fd8ccaf964ae4c276d34f68e7b80b6691dbaf59e129",
+        "normalized": "1024d08622bcb62aee8d970e5e5b1443d6ef784e889e13d5215755f17cedaa4f"
+      },
+      "docs/SERVER_MIGRATION_20260930.md": {
+        "raw": "349f48d7aeb3c684f7efccd227f1c2623b2a357bfb692eb937345241681e03fb",
+        "normalized": "b99b15531d23dba6006951bd6c83def248fdb9567fef159cdf948403af6afe9f"
+      },
+      "docs/ACCESS_FEATURE.md": {
+        "raw": "2d0225ace5c4c2d726103413c1ced3eb33a697c6d66ea5f2f68f6a86736a14d8",
+        "normalized": "6d2188a1c488af8b25eae49c0466dc8db6db369a542bb5ba6c2834fd2f832257"
+      },
+      "docs/GARYHUB_V1_3_4_1.md": {
+        "raw": "56cea48da892653b8d6972fb6c5e6683479e52eb88c5155cd6587392edbf7e12",
+        "normalized": "5dee5db0d178487ec21b7ab59383e81a85025db1b3f2e23ce89cfe39e3809002"
+      },
+      "docs/STAGE3_ISOLATED.md": {
+        "raw": "61519fc01dddb53eb3d1746ff9f021bc343e0e853b837e21aa953918da288ee1",
+        "normalized": "271f238ba9398262cc49d09110bff5200c0b12ba886ec52a8d29406305716de8"
+      },
+      "docs/ACADEMIC_UPGRADE_20261014.md": {
+        "raw": "178dea268fa56cdc60198f7c7bfa81d4de5874b9b182ee4a99b02e19da24ddd5",
+        "normalized": "f5755528b78cc6d337b1fdff73f4fe8fcb0043d17cdaf53a5fb04a30e043cf12"
+      },
+      "docs/ACCESS_SERVER_INVENTORY.md": {
+        "raw": "13dc6baa9f8fad7760d18ce10526864c82d38d4f2de9c17832e1d51e8501fe5c",
+        "normalized": "73a60050bde4df379ebfbe6c8787d2055b479ab41946b4fb332d09a95e304834"
+      },
+      "docs/OUTLOOK_MAIL.md": {
+        "raw": "eb7921d227a85ac9a47d4c6047fca23b00c228286abdfbd428f9794751a92751",
+        "normalized": "af47f775e6c52bf03a3e518d47212a2ab01b1bd5e54a3581643efa99555ca1e1"
+      },
+      "docs/CALENDAR_UPGRADE_20261013.md": {
+        "raw": "2e757d9c8b105b536654a0ec3cff0ccee7536457e6e7efa527d22f53ab64a5dc",
+        "normalized": "4318f398ad0375d9766f6e919450539a977258e87577e47191c6501b8d03e2e2"
+      },
+      "docs/ACCESS_MIGRATION.md": {
+        "raw": "6b812eed3eeb72c8bec5a18ec8123b7775431a552e05815974de3cb194d6accb",
+        "normalized": "aa5af9427da5d506904ed9f7689e5b3fd63657962044b25052149cc253a40638"
+      },
+      "docs/PRIVACY_LEDGER_20261016.md": {
+        "raw": "e94fed5ec54a86786afd39124794f0a6cf11e3ef28d0430d3ba11f51640dcc81",
+        "normalized": "1c47b28746d4f5863327bd4cb017634df5822515f5c467463a628044f5fad4c0"
+      },
+      "docs/GARYHUB_V1.3.3.2_UPGRADE.md": {
+        "raw": "f9ab1d83dd83d92ed991ef979384e800c454671a8a3ec85f0a45dcf8d6b6035b",
+        "normalized": "14f7e432451488b9407534580abb6842724956fdcfca24d65dbdfed744a5f7d8"
+      },
+      "docs/RELEASE_POLICY.md": {
+        "raw": "46ca5a1693da3b69cb4a0982890b8c14457307081942a469ab099a9aa56da62e",
+        "normalized": "b4f62306450aa0707539631199f3dd191bb94664232c6f6137661019f03ab918"
+      },
+      "docs/GARYHUB_V1_3_4_1_TESTS.md": {
+        "raw": "f5dd583fd9c6e2b452cea609795f85f2abf4ee53bda9f3d2ff3a90645531f4e3",
+        "normalized": "3bab5e52ebeb11b0fb0fc327a9a5887f6e658f55ec711167f416d42d74e3ab10"
+      },
+      "docs/DATA_AND_BACKUP.md": {
+        "raw": "6fc3dba07bbcb31d11c96ae7104ef8cf5447fe9ca13a41ae48253503f2bcd9eb",
+        "normalized": "e31cbc292808164d55215c1410c3df8f855f57cb8e645a9fc28157b050357704"
+      },
+      "docs/ISOLATED_DEVELOPMENT.md": {
+        "raw": "9ae8524f46c59a0595bcb0cc4ae27e55cb40f6798300b8f8db97694c1c0a01c2",
+        "normalized": "4f446400c257f354470e665c03fb49f0b90c5af86438db8c4b80b5761a2eb052"
+      },
+      "docs/GARYHUB_V1_3_4_2_TESTS.md": {
+        "raw": "272f65f1402f90593c2dcb71502dbe73fbe74ccdc630bbf8a5d54b6978b3bbbe",
+        "normalized": "dc95bd69a78e05a6e84c7017c0b618ff07b8f1683dd64bee1c43ea4bf0c01556"
+      },
+      "docs/UPDATE_GUIDE.md": {
+        "raw": "8db9f228738cf3e55cf9bbf86f55d14c5d1e8ffe7ace68f867946bc69ab8b96d",
+        "normalized": "b32265ca26e30885c59ae72a221646ce9f8dc6a15551579ab935df078c635fa4"
+      },
+      "docs/ARCHITECTURE.md": {
+        "raw": "00f81119e80a5278c9d861b057a747f89bc32156603f62cb9a64cc2163af23b9",
+        "normalized": "4dafd6b795fb7ad39d368594ef1e457a179609202486a8a03ecc9c7b1655c303"
+      },
+      "docs/PRIVACY_LEDGER_TESTS_20261016.md": {
+        "raw": "1533e5987fbaee69d20fdba808d5b64c7f1a3f57b260120c45a9ab400f1ad761",
+        "normalized": "d8a25807bb557adffac1d821062e3aff33237690f364270cc700132fb3929df6"
+      },
+      "docs/GARYHUB_V1_3_4_2.md": {
+        "raw": "0961c68a550279e46f8219a8dbd0a857a8bdd83c8142bc163e183303c146b06e",
+        "normalized": "faa86499dc5abcc4e42afde978bf6bbbedeecd120e7c8515d227afc7dd36f14c"
+      },
+      "docs/BACKUP_VERIFICATION_20261007.md": {
+        "raw": "43e7af5e79d45bae1984cf531338e458b81acdd0013e0d80a961d853ea175ebe",
+        "normalized": "de3cc5d158ce860c8b417ec2373335b826ee01f8bdafb41136382d6d8d7935c6"
+      },
+      "lab-service/VALIDATION.md": {
+        "raw": "9d200c170a59a613ad73d004dd97f82165a81f76ce78893bb578e44362bd0d92",
+        "normalized": "5b6ccb2e4154395f983aacf1aea2b0e00b9fb709383bc97039b50ddc2b213bd1"
+      },
+      "lab-service/access-connection.cjs": {
+        "raw": "a6ad5b40988bfd49881f7474f59e3316c45e1e07acd39684a21089de6d61724b",
+        "normalized": "f4520cfbcaac3ff55689f897b41bfa8cb64e37f4b240a608cda86c4fbd5676f1"
+      },
+      "lab-service/compose.yml": {
+        "raw": "2d9899800bace97c9ab94704c407f139da99686f487f0c9312d468f354b1c15f",
+        "normalized": "39874914e78e27e72a45032422c78191a6524d8d1fe5885e972ab143774d8742"
+      },
+      "lab-service/server.cjs": {
+        "raw": "9f4b66144cd84c01cb524760888c0484dcac81338e3fb832877e6acaae2a6186",
+        "normalized": "3fafde8b0022dd5cdb6ebd0e6f4f8ac9169485a6b52829ca15b0514956c59a23"
+      },
+      "lab-service/homepage-privacy.cjs": {
+        "raw": "8d6cd959f18be5cf940a0ec5606490e1a3b089c27729a34100a3cf712cd8e3f0",
+        "normalized": "9a6a4936f659f0d61995f535f6da66d5875f9482f5f6c9c98c9ac2a6134b608c"
+      },
+      "lab-service/user-cleanup.cjs": {
+        "raw": "0972b28d3a57b177837d8761aa2cbdbf5dba165ca4ccb2297857befc9b04b0fd",
+        "normalized": "e619519421ce962e1e3d7365d4249ecd753ef9e3a6b6de64f9825f4efb6466e1"
+      },
+      "lab-service/.dockerignore": {
+        "raw": "5628cb51cb6e83401b42a72d557245ed87b6ce7e66c6417a914328b0594419e3",
+        "normalized": "07fe4ae9dce798b19019ef9b922ee2c4701a20e099f3a5f9cf3c0c5b3ba5e0c2"
+      },
+      "lab-service/access-store.cjs": {
+        "raw": "c488eafcce7b175e58b180e926d9fcd82d6600f2ab6a031c29c100d73f091409",
+        "normalized": "50736288fa277a9898dcb5c34beced9135a2a951adc111d0a2f0e8420d3c89a3"
+      },
+      "lab-service/README.md": {
+        "raw": "046f569ff84a01618d63d77a30d2a83027d323fab6c3c75c8826fb7db0d3c1be",
+        "normalized": "bf7e42f5cc105f9e7a30d28d6f884cd43bbab2a529281241b21e806c5f191aa5"
+      },
+      "lab-service/Dockerfile": {
+        "raw": "18a53e19ff4ad6c7a36e8898eaecf79eb279b92f7f50d8899720434616057097",
+        "normalized": "3f207607e394304226cffbb280813b9ce347e231f501124c6065f4456102672b"
+      },
+      "lab-service/academic.cjs": {
+        "raw": "7ff28edf81f93791d14adfa86c6890f0846f50d4824875b6c0b7208d322f6572",
+        "normalized": "ac67fcfc044d6096ddc51a2692653bd891c4b0842b4593fd6ad91ddbd4697f2c"
+      },
+      "site/index.html": {
+        "raw": "1ad7a7d82daf4b87dc5332de5ad8fba5b1c1a69585713bea7b0be4f936e789c8",
+        "normalized": "dfbaa942492755bb0ad25d70a8b3a8be588d8ebc338f7d05394f08ccd57d0162"
+      },
+      "access-host/run-install.sh": {
+        "raw": "4749c5e904bf3dd13fa2970a9ae00dc37b5223c8205dca30f471de98eed916d5",
+        "normalized": "358a3f76b77b06e175a782d108f5b4f42e603fc455b554d73dbc0ebbff412673"
+      },
+      "access-host/reconcile.py": {
+        "raw": "45aa3ff0deed7e9f81e91008b05867c7ad1526ff1d4a938b1a9e2a926ec31b64",
+        "normalized": "9cec96e423fc15297f7d8e634b4eb419ad51973f301e7b58fd373b9ae776a199"
+      },
+      "access-host/install.py": {
+        "raw": "580e69c5d881716c83b61a2a609021086929fe5c2a1e0af4183a5c06603f1a1e",
+        "normalized": "9fdd59e6242cb02323de9655a162b51c587f363d51cb00edb852d75f7d913262"
+      },
+      "access-host/finish-migration.py": {
+        "raw": "31e5856baa6f5071b81618e90e95a059c6956d8e41cb6ddc0723ad27265cd381",
+        "normalized": "5a272dab2e2ce8bb933b0e58d4af1d7eca2055fcddd5c0e8d8e4d7f7ca99098b"
+      },
+      "access-host/baseline.json": {
+        "raw": "0e614fadaa4bcb823512a02896bbf3a4ce1139777f8bfea401ed38805a8bfc8f",
+        "normalized": "0e614fadaa4bcb823512a02896bbf3a4ce1139777f8bfea401ed38805a8bfc8f"
+      },
+      "access-host/test_reconcile.py": {
+        "raw": "727633347088e6304ec72054d2ffe9b7ea0b7632dae6a290a662a838da0c0d9f",
+        "normalized": "98276de39329db66bd186e63588f2bd6d6612cd3c3141c91af019b4d28b18baa"
+      },
+      "access-host/finish-migration.sh": {
+        "raw": "00bab54fdfccbea89da4b804ed7cb7ac39302b73e4afd827c446b3e880ee8bc9",
+        "normalized": "93add912a6b952d304cf0125eb687dc60a3e9a573147ccb83eff11eac3755ad6"
+      },
+      "calendar-app/personal-api.js": {
+        "raw": "3101c99bf088c47145ac916a8e5080c2e95feaeac55cb5147ef44610cbed2f90",
+        "normalized": "2a835004d86a678e7389ba766c5485f0965895cd78448e0e29c82f1e4b91dfda"
+      },
+      "calendar-app/totp-crypto.js": {
+        "raw": "89aa21c14d6840dd850664bfd2e49731f2516eeaf75570693d0320fc03354469",
+        "normalized": "977889a85b7970a87ed2c0e15797146172474bfae467bcdfc001b9573d864471"
+      },
+      "calendar-app/.env.example": {
+        "raw": "cb0daf0020a5d1ba4cca209089ee894c3694a92af8fca84f0096497c63287b90",
+        "normalized": "db077c282daef6dba71e4f7c176c15a5aa35e551ffce790a625fa6f89ea0ea8f"
+      },
+      "calendar-app/hub-api.js": {
+        "raw": "65cebf3f540809c5b6cc94456cc365fd01b18adaa71c410bfeaac42b0a64b78d",
+        "normalized": "a34b96edcd7c6a5e720a622ec054aa8df05e343b5583c11e7e39596051d5ed66"
+      },
+      "calendar-app/totp-api.js": {
+        "raw": "c2f23c2a5866a5e3bb78be832b3c4b5775584007daed5858f99fd5f309969df4",
+        "normalized": "ba89ac1dda551a26e821fc06345cd6d4735a2675f9ad400523a917de7e3b27cb"
+      },
+      "calendar-app/mailer.js": {
+        "raw": "37eb0152ced633a8548fb6aa87557194d47cfc241040ca264e53c30dc23960b5",
+        "normalized": "b1f57f35f411a89cfa85af5e65e8834aba7884f461ae2365b6f6514d0d0a6cc6"
+      },
+      "calendar-app/graph-mailer.js": {
+        "raw": "d97c47c8fff0010c8fc8c763dffc6f418f9c377a7f2dfd2a23842166029c8a02",
+        "normalized": "3e0ac42ff8e44b77b0624709909574481dd44f3bec95fab961c893f740f36a96"
+      },
+      "calendar-app/membership.js": {
+        "raw": "e0c73fcdc74dc6e1c9295ab4db0930a84605cdbfaad66a6364d873f2ed4756b6",
+        "normalized": "7cee46681fe2c346944f754eb7e587cf6beb6ede655af6ef95b3bc7d17157cfd"
+      },
+      "calendar-app/email-api.js": {
+        "raw": "6e4739c81c606922201985d74f559c5a32c2dd94243158f76494e8f80ffff28b",
+        "normalized": "a6283843df00bdc361d96a03b259643626ffd868515d91cb5b129717790a77cc"
+      },
+      "calendar-app/profile-access.js": {
+        "raw": "85679061f11871bfe0e02853441ca3c71e09fdc152818eb7bcb3ee351bad614b",
+        "normalized": "6f0e8f8362f1d4e6f00a236199be8a78cad17167da1e371182f83cb9cbf42a0c"
+      },
+      "calendar-app/sqlite-connection.js": {
+        "raw": "9c6b6c639d4995d02b30cfc1913e16170be289668fea3e3e68c5cd69c4977695",
+        "normalized": "c1c4a37581a5492f304a2befd1d0fb4e4ef348fb41d96a6965af6c3b2be243ee"
+      },
+      "calendar-app/auth-utils.js": {
+        "raw": "db494963bc563edc591509abe6855e05343722b10b39bfc6fab13d078aa881b3",
+        "normalized": "0e87d7cd7536ce5ad2d99fcc5734f9722795897deea8ca1f1f7570373e3c5809"
+      },
+      "calendar-app/db.js": {
+        "raw": "188acc1b3904d70cfbbaae1516f1d3e85fcc3ab24a571d8c2019c65436c0f94c",
+        "normalized": "2408230beb55ae005aa5ccdc52243ac926ceeb98555712fc836681a7397cbb77"
+      },
+      "calendar-app/reminder-utils.js": {
+        "raw": "75362366b6f23b28e23cfb6ec5bd2421667e30d995f3789ab0982e9b6e7f17bc",
+        "normalized": "a14e1f6e64c4b6a15b10a467f88b7f29a2ee4449e4d052597bea8daadd3e4ecf"
+      },
+      "calendar-app/app.js": {
+        "raw": "0713127b1ee4964c07a8f37c728196769ec4c17baab37b36ae46a1190b8457f2",
+        "normalized": "8fc84e4b7fbdf6b70cdcafcf41357550ae9f50d600a1f0c3b9ef7008a31e6816"
+      },
+      "calendar-app/rate-limit.js": {
+        "raw": "e3dfd286d9d0018e1c4bdd29dc07a2b1dd02c2ab79dcaa504ed1d82f031ce571",
+        "normalized": "ea7a8a4af7436b201d93f3e33bd1d3c2bfde5227b06dd9eecb2bc3546b5983f7"
+      },
+      "calendar-app/reminder-worker.js": {
+        "raw": "b6badff4332d7653c2e8a4978d4387f74d6a8411651d134b9318b46c10f73113",
+        "normalized": "585c130d151122542aeaab9373a25407ec0507f6bdd9ce033916835cdec66b2e"
+      },
+      "calendar-app/package.json": {
+        "raw": "4baef7cd4e510ad21f3afebceb34d2a777ef8a7e1c67e1f21c9ee1dfa0f610b0",
+        "normalized": "fa7292f16cc9aeee542fd9a29b31f895ef0a37d07211b568bcc2eb44e5bebc59"
+      },
+      "calendar-app/package-lock.json": {
+        "raw": "4be030e4593ebb7276e45226fdcd58b81e2835dc271a806e18d56d3f95116ec0",
+        "normalized": "339911068c9c3bfa46617fa0ca23562783b53e991c3cc7b4ab532c5334f095e1"
+      },
+      "calendar-app/tasks-api.js": {
+        "raw": "ef15e4f0b954eaa676b283b7c3bd1ff379bb78b27ca8c344aee96ab8b03c32bd",
+        "normalized": "3dcf67164881b96164364d4a4df35e616d39608c05501db7ebc6501ece265f06"
+      },
+      "calendar-app/account-admin.js": {
+        "raw": "671d96fa43feb181052496dc1c22acdc5011c803d4f42afb9ec05bfdb44ab09c",
+        "normalized": "923d956ef9ca6c9448758a25f6c1307cd5bc388a1220ae111b22e49175719e43"
+      },
+      "calendar-app/ledger-api.js": {
+        "raw": "321e1d8dec7c0795a52bdbc6d64159b358c2bd80a4fbb76c0e8e9680621ebed7",
+        "normalized": "837f2f3bec5e40047358d9e1a5927cd37e56464946942122641c42c249a54e68"
+      },
+      "calendar-app/fx-rates.js": {
+        "raw": "a1a0eca7d9b11e89c717a385d77fee48068180a5ea57ad795c7268885790a4da",
+        "normalized": "f111a323a15023d9d171a72a0cf055bc32313c644921c10ccc703a3104b52806"
+      },
+      "calendar-app/Dockerfile": {
+        "raw": "c948e57667b0586ca2afc6c4d2e5b0cea2a0b80d5607abaee2d5a2dd2834f333",
+        "normalized": "f04b70caabb9972b9221fa87f506467d1d4aef5a327e13b430e42e5f43da7d4a"
+      },
+      "calendar-app/session-store.js": {
+        "raw": "e882583f3f3cdc792d413152357cd9d38c1e3b2e47eb78a75a767588350ae9de",
+        "normalized": "976a2d0ea1461cc58a6df195c495195ef6edbec5e87fd5c734e9d8ce5a65f8eb"
+      },
+      "scripts/prepare-access-wss.py": {
+        "raw": "a3aa22d14f94debeca9613a2590065f4a1fc81985131d40f29f2364cc28ac294",
+        "normalized": "5d7a11a21a9f695cf732d0066d7bb75e65e996fc7edb67b7b1fd16fdbfc2bd91"
+      },
+      "scripts/garyhub-wss-batch.sh": {
+        "raw": "ecafd0605bf2d4e9946daa5633e7c5d38c938f373944a902ace53946c91d22c3",
+        "normalized": "3ebc3508f467c32cfcb5fe5c8e5774b15c7dff3af7c62fc9ad2df288b145703f"
+      },
+      "scripts/prepare-isolated-stage3.sh": {
+        "raw": "af92890a0d11e02b9ba9f645f94ef1d45be70a96328034397f49ed17937ba68f",
+        "normalized": "8efcc4ea3d355f255d0544822dd7b9e47024355762971fa99f5450ed24a95616"
+      },
+      "lab-service/public/profile-privacy.js": {
+        "raw": "ae7b444492542eeaf6a485771f002a935b407b726aa1620e04b7065edbdf10fd",
+        "normalized": "8f46f83d3b45c57440797b5d481da810bb1283881ba82286b10856f7b501b4e2"
+      },
+      "lab-service/public/hub-account.css": {
+        "raw": "50c69706f7066ef035c6d0e74ada24f21076645f3aca9ae188a02c09280ed6e7",
+        "normalized": "a482cf67d42c68a05f986ee2a59acf45c29a3007cdec7c0d2e5127555852b464"
+      },
+      "lab-service/public/hub-account.js": {
+        "raw": "faa3bad3cc66165f5abc4fa07578e69743867e02dfad280d89344ef26c596120",
+        "normalized": "4258eb9681d076cfa19769b37f1f47087dc8db26289deedec35a20c09d4ff2b2"
+      },
+      "lab-service/public/hub.js": {
+        "raw": "7f619107f0f6f742a693d9304836d759b51f0d05bfcd34bcaf7d39c7c183611e",
+        "normalized": "dc26b5eb4fc6dd10415b1b70690a9c0f80421ead519b5c750a635e34c131fdc7"
+      },
+      "lab-service/public/profile-privacy.css": {
+        "raw": "5c8a9bb056d9280ccf428286b83eb2ffa1682a6ede543654b7b36183c8a76cfa",
+        "normalized": "99c35c0e6a26cb7b585e1b4d7085fc0a39215321a42e40440a054d894e412baa"
+      },
+      "lab-service/public/homepage.html": {
+        "raw": "608e32cf64ce26bbe47798984dc25645e06518223b9b5e80c36b5c011532653e",
+        "normalized": "522a6c825042897469f7e4b4239433bb27f104d24b33e899e2785457e08ce78b"
+      },
+      "lab-service/public/login.html": {
+        "raw": "587ed6e65dfdd6d40c5ebf2fe9150c0a43b3b2f66e2e843d07dc5e82b17039fe",
+        "normalized": "a697389ec27fb3cea0b08115aa0dcaaae4e30c2765284ee70f0e8eac71f265c5"
+      },
+      "lab-service/public/admin.js": {
+        "raw": "80cf2dbfd46e5fb41495d0c9f8a6a157dd6e70131e2e131010252d8d4ce5d1d6",
+        "normalized": "428a80c3e5ff63f846d0bf2c87ca2aa14e87829849fb438a4fd9ea6a18164b42"
+      },
+      "lab-service/public/privacy-ledger-release.json": {
+        "raw": "261feb66073c6796ca942a88359bf03921cdded0890d95a1d5c823814336ec64",
+        "normalized": "eb1c9d39712767453a33345a87d9d0fd5f8bda4760deb54536c6fc1fc1afc5b5"
+      },
+      "lab-service/public/hub-watch.js": {
+        "raw": "0639533a4835018348f4c4c8a5e5eb931c02fb18c9093fb8d5f46282176aff5f",
+        "normalized": "4e318a1bc7689e899062abef8895359550a7b6015b23e33c2072e221d8e7b368"
+      },
+      "lab-service/public/login.js": {
+        "raw": "656c894a899caafcb5e7f33cdf85e3bad2330603850ff829a0a51ccb88c2bce0",
+        "normalized": "21e8f386eca1c49ce12c65d404345247034369bde31ce7ba139c4918294fda0f"
+      },
+      "lab-service/public/admin.html": {
+        "raw": "f476983d0467bdfe6678a25808b9a7e6d277b20808976d129b01989b0f1a736f",
+        "normalized": "c97778b9c1188d85eca22cfb9e3be1621f19e2f7bc057b316e6a8b067860101d"
+      },
+      "lab-service/public/hub.css": {
+        "raw": "2c9787769ef7500dee996a3da579e9b6352d5d5e6cd39c104e8d81973b9b9656",
+        "normalized": "47f097d515705353db7859e092ecbc68ec5aaca56be0ec7f1831cee17ef0c891"
+      },
+      "lab-service/public/index.html": {
+        "raw": "6c8c6445fdcfac70c43f2991067f2d02683bd9b14c7f862853ddc427129b24a7",
+        "normalized": "cc9b0d47a5402ec79c3e3a35e0a031ef304b4afdcd7575b69bd8f542b2e14900"
+      },
+      "lab-service/public/profile-admin.js": {
+        "raw": "10ddc8308bc44bd53698383df427c45e9f871ccb903ec9d6dbe298cedcc83cbe",
+        "normalized": "b2106b2faab435e496f3c37882026cea177650f1200514fb56287c587ec99fcb"
+      },
+      "lab-service/test/access-server.test.cjs": {
+        "raw": "396f73379cb59ca85baaf24d9facda9aa6f2ad1f78603b243b97ac5fd58c16cd",
+        "normalized": "949014a83d67f2668a176f267f80df9ecd5a73f1ccc8c7651b82db0cd521d268"
+      },
+      "lab-service/test/server.test.cjs": {
+        "raw": "18ce995296a4b6e958cc58c816428cecf22f6066a3fce5f11235a50ed409da33",
+        "normalized": "7d74cbbc5986a2a55d919082629f56ba3066ffdd21383d4ccbd13099912a4bfc"
+      },
+      "lab-service/test/access-connection.test.cjs": {
+        "raw": "c4df024231a1346a33bceefc1b2014429f3eefa8fd8a51b18c3ea10fe11c669a",
+        "normalized": "927c89decfd3f4f7b45c8c671159110208cc63989837f72825f60cca2558d770"
+      },
+      "lab-service/test/access-store.test.cjs": {
+        "raw": "6f64806ac15588eefe38281428bc8413dd28f6d27b29ac901bb333fd00d03018",
+        "normalized": "20c088eb8bb2f7955526bd97f83e698f9166b22d7ab3fccaebb33f402502d6de"
+      },
+      "lab-service/public/academic/release.json": {
+        "raw": "84388d6a50c3d426fcbfaa48290818b161f5df504ce62c45838844d60ebf5660",
+        "normalized": "3641bcf818e874eaae206dc7c082b61db6ca39ee47bef5c74f689f326f65d1fa"
+      },
+      "lab-service/public/academic/app.js": {
+        "raw": "fcd90e62b956b8a0f901cf396bf6786300f9db9f1ce5b122b2ebf59f1fca88c4",
+        "normalized": "d27df0a453aac03c95b28ccfdb58e8c5ea6d6f632d4af8450b1fe74ffa57161c"
+      },
+      "lab-service/public/academic/reader.js": {
+        "raw": "1922d9699a8bcbc17ecf21e54e52167c62e87a37a63d036962f88ce9b012b7a7",
+        "normalized": "fb473860c793fb7182d8156cd342d921dfbc42617b6f8a372ee655d666dd7937"
+      },
+      "lab-service/public/academic/style.css": {
+        "raw": "ff89db8773c04b458f1d70733801b1f3a9a853bdbb2f93ad1495ca74aad47079",
+        "normalized": "c83269c372113a32cb39e78a804962970803c7f609e96b5f243cd7019e623635"
+      },
+      "lab-service/public/academic/THIRD-PARTY.txt": {
+        "raw": "c3d6bd822d5acd9fe77949fe17902445a84e4baa4bfc0278baf385c4761ac25c",
+        "normalized": "9be5f1e5100c12fbe21a3facb775ca1910831df062650645daa3b9f3ee6fd0b3"
+      },
+      "lab-service/public/academic/core.js": {
+        "raw": "3cfc5ac0360affda87c2a18008b0b2c5bcc62dd67bc739a18e18cb5e79eb61d8",
+        "normalized": "7d50d6236380d86efead9a9f5ec69f2a7dd9c023f99f1d1403c3de5d243e0333"
+      },
+      "lab-service/public/academic/index.html": {
+        "raw": "8b74a29ff78f5187d09c85d6077ef913ce6b555fce2e4bb50139c54c863b8eea",
+        "normalized": "854411654b1308e2638af75d7ccc395affa967dc0e98f125ecf362ffdd5a6909"
+      },
+      "lab-service/public/access/access.css": {
+        "raw": "1ee4d78b1cdf7adb6ee9913308c60e042d57a2b44513237246c281e941ecb66b",
+        "normalized": "7fcd9ff698d00cf6d5feb6103a78252e4d96110e4197e5548140a4ef66fd9b98"
+      },
+      "lab-service/public/access/access.js": {
+        "raw": "12e50aba024e138b112ec710159a6f7279c7a26d82a61327112ce54188ceee75",
+        "normalized": "5e5ebcff61192b6e0f6693958b4253e637ac59ee4de47ea2c1f5dce3e86432a5"
+      },
+      "lab-service/public/access/index.html": {
+        "raw": "ba41201b0b30c867f380c69a57041f3e2b8a67c341f66e491330c0bdce888942",
+        "normalized": "e696cd8d09c8e0b9421ea69d5b98779b337fff4777ed9139557009a15192f122"
+      },
+      "lab-service/public/totp/totp.css": {
+        "raw": "4054e8f0ef83bcdf6715c243d253360be6aba0c0a4429db5ad37482e7d26a2c5",
+        "normalized": "2bc3346c4cfaec0eddb52d4941bb97b413611338f43241160b6a3a341367e3ca"
+      },
+      "lab-service/public/totp/totp.js": {
+        "raw": "6fe3601879d5b088459d1ab68d361f4ce6f99888ab085212f034a661d9693602",
+        "normalized": "68ae3d034986c596507a18d75e4bb6ccd8b7bcdfb7fda122c44b1576a51f5792"
+      },
+      "lab-service/public/totp/index.html": {
+        "raw": "9255b82c8374a65dea83ab4330d9b62db110b28a161d92375a3819c37fad5262",
+        "normalized": "3b7050a813bf27f6c5833cc6d53622e7d02b6c49bad7abe545f93af01de75dcb"
+      },
+      "calendar-app/public/theme.js": {
+        "raw": "5ba5eecafc436c6db7a02b1b88218b2aa3e028e7c0262983f6b845f82c714f2e",
+        "normalized": "f5ac2c2a48ab657f6541d327a60a60282e71e4c532e699482c88450eab667b1d"
+      },
+      "calendar-app/public/journal-page.js": {
+        "raw": "d3420831a116797aa1c8c2afef39b322361bca648cc17f634fd8462ea8279a1d",
+        "normalized": "63eb3886dada0f789df03e01c56fda90435f5993f70ad8e34acb1d406d259279"
+      },
+      "calendar-app/public/calendar-ui.css": {
+        "raw": "44cbf1577559a23421d1e15e4ec6d0dc271cf425196610e2fa5ec1c06cf894a5",
+        "normalized": "3e7637a92241cf0e81e4c1fd7bf35901d97a302c2c5d38d59e1084559d4e17e2"
+      },
+      "calendar-app/public/health-page.js": {
+        "raw": "079f33320e7ac6f7a35768bba7ac6adb3fabfceba8fad3c18f8d8c466c45511c",
+        "normalized": "f85753d166d7faab9ff34c3091a81dfe68a9c15cd526ef682d297c47a5464e21"
+      },
+      "calendar-app/public/workspace.js": {
+        "raw": "f0a59e6440741554c111503138382ad440be87c46549a7e2ea00f6e1bc12d36c",
+        "normalized": "1815d49fe19481eb75a1eb254f0fe2983ce95e2049e58999e95c75bc2e1a06ca"
+      },
+      "calendar-app/public/ambient.js": {
+        "raw": "942eecebb33ee41c98320a241bd7bc5c43d0bdd6352efc5b30f4a83ee3ed0b3d",
+        "normalized": "9262de0fee48c01de5e84969e2586fb37e8b2110d4e8785633b006532b18b8b2"
+      },
+      "calendar-app/public/task-filter.js": {
+        "raw": "b1c9166484a0d42d53ec57e8d567ccfc4c674991d3aba21f19124a7fe3238941",
+        "normalized": "d3ea809b6f2fbf29235a6cf16987e052acac0cf4d63438f3d1d32b0db5cf0f24"
+      },
+      "calendar-app/public/calendar-page.js": {
+        "raw": "70da22257b0b8867f9450f0b0a550be4b09b7fe0aa68502cda2d2469ffc68d06",
+        "normalized": "43e9010198c7cf71c2a013042474a3b68ac3e032e5ba9527ac28c253726ecb28"
+      },
+      "calendar-app/public/ui-release.json": {
+        "raw": "6eed33a9efe856672e89360fa5316ea9b79240e1d9f1dd07a5a7a0cdc06412bb",
+        "normalized": "6eed33a9efe856672e89360fa5316ea9b79240e1d9f1dd07a5a7a0cdc06412bb"
+      },
+      "calendar-app/public/privacy-ledger-release.json": {
+        "raw": "261feb66073c6796ca942a88359bf03921cdded0890d95a1d5c823814336ec64",
+        "normalized": "eb1c9d39712767453a33345a87d9d0fd5f8bda4760deb54536c6fc1fc1afc5b5"
+      },
+      "calendar-app/public/hub-watch.js": {
+        "raw": "ba740ff5175f3134d6d36fabe450a9a14ee4170ceaa232b14c00b01f6ad545a6",
+        "normalized": "273ea141b36627f1b3ffad5e03947e51dd45f6bb53c736ae28ea456b8ff3baac"
+      },
+      "calendar-app/public/auth-hub.css": {
+        "raw": "8c41e078609fcd66067f1cbc8ba9a60a8de3e3c668ab70f34189cbcc0c7989a0",
+        "normalized": "8c41e078609fcd66067f1cbc8ba9a60a8de3e3c668ab70f34189cbcc0c7989a0"
+      },
+      "calendar-app/public/auth-page.js": {
+        "raw": "c72e85db284d56d9dad81dc414ace12d0a41c3b546dbcbb771a1fd286dd3082d",
+        "normalized": "df4c79bba6e612ca35b9208e88bd12ce4a458fea96ce9f095aec56393ce1ce5f"
+      },
+      "calendar-app/public/index.html": {
+        "raw": "ff784617a62a9b1403d19fa99ecc09bfa17edcf831b215acf01150c990435499",
+        "normalized": "2300af20325457e6c8ecc5f60de14b4b31f680d358395974460e7cc127864e45"
+      },
+      "calendar-app/public/personal.js": {
+        "raw": "7d8feb1d8807ae09732861c87ec79a83759a1ef5fd99148d355b84e656b43074",
+        "normalized": "9ddfd82e76779c00f5892f7ca0addc680fa261080b45a5f34d50bef27efb0d76"
+      },
+      "calendar-app/public/unified.js": {
+        "raw": "c5db8b6ef61bb3038db641209570ac011e8102ce59cd9e8d0b38f239811624da",
+        "normalized": "77d5e48a23f98ad40e4841f9a2572a9d66232f3accb8df00684c10c693ad0e5d"
+      },
+      "calendar-app/test/hub-api.test.js": {
+        "raw": "7f172a41761ecc6e2db6d09f4ffa0a547918375fd7c944d2740b3f6840ea99f0",
+        "normalized": "f0d900a0c0be1394123d14525e0d55e9cdbe1d842c90bd14caca8466216d3913"
+      },
+      "calendar-app/test/email-api.test.js": {
+        "raw": "2d9a73a25af87b37ed0c2909a617f1a880ff754d2ed1f435f6c2186746f55bc0",
+        "normalized": "82ee75d370a5d9ab47d6b3601addd13ca5de1f4db7273a23634896c37a56513d"
+      },
+      "calendar-app/test/ledger-core.test.js": {
+        "raw": "8a530e71d19e009b7cec31e40c23a0fcb89300c641731e861a77c283c139e53e",
+        "normalized": "466a5bed345f83ad3b3c11b1f80893611d30797ea223674a35d3f965ddd3061c"
+      },
+      "calendar-app/test/session-store.test.js": {
+        "raw": "a3aaeaa7ab98121a0b161389739d89a59c7c69bd490d0c8a0f1a41c1c220b150",
+        "normalized": "eb1cb7aa1c832b0b5b6137d950563bfb87149eff847d80ade1b65f9ea834594b"
+      },
+      "calendar-app/test/reminder-worker.test.js": {
+        "raw": "35674d1905a494f0f5e115010df92d0a0f029259a659c959afd243c026a33d90",
+        "normalized": "17ecc0a930ab4bf4b28c9608ee402c4f55b0293ef5fd6c43187eaac4662230d0"
+      },
+      "calendar-app/test/totp.test.js": {
+        "raw": "d1282f912be200fe202eb795d1991257856cae06e77a26552e4b048e9a936982",
+        "normalized": "773f7a9fc33469931dd7e3817d6e4fd3029a710572d1529c323a98546b6c4743"
+      },
+      "calendar-app/test/migration.test.js": {
+        "raw": "04b9d558948ea08a5e170b176f95bdb343f99cf9c9a9658f34c18e718ef316d3",
+        "normalized": "9126a6359904178bbb0695125bb2f14c63ad106cb61613147633e91d732caa89"
+      },
+      "calendar-app/test/fx-rates.test.js": {
+        "raw": "174e58678d22e78df8a5c2aeef18f853336afafed916d6d6cb2ae885764cfc4e",
+        "normalized": "4360d7206be271d606f1149744ebf5f4fc2c1ee5451d62a5e48251efd74ee2eb"
+      },
+      "calendar-app/test/tasks-api.test.js": {
+        "raw": "28daf2469f6d4094397f8a877e6d310b3b6e2e6ba150ea7994db73857f8a6688",
+        "normalized": "c4096cae187255be18a8cf039b95e9fe6fe71e4b8d90a1ce0466243269aac490"
+      },
+      "calendar-app/test/personal-records.test.js": {
+        "raw": "ac55d376d81a70d421b6ea4429bf268acdef6e46135b0366a7380c10800ef68b",
+        "normalized": "d3376c654680da6799ccb1144e854605ec9af12f725c2280c2b8f8983ee0fc01"
+      },
+      "calendar-app/test/task-filter.test.js": {
+        "raw": "949536c4db7c036df77ba6a82fbc9c366457c243bc5ca65682e86dbc65dbf567",
+        "normalized": "69a7a74072664b6eecc4387587bd74105b6cca78a1d179d06c1ec26df96009f1"
+      },
+      "calendar-app/test/graph-mailer.test.js": {
+        "raw": "d5c07fccab942da82f3f1a97037194b502b87c3f4e45e4e261aa7b95d512cedf",
+        "normalized": "760caa1533ad8e2ba4a8f4ace5beb67d04233d47f284ca9853c6a5e3e675feca"
+      },
+      "calendar-app/test/ledger-summary.test.js": {
+        "raw": "d14f411df8fdb6ac6576a8e7b45b6eb4a45a44f334d392700015eae11c4f1478",
+        "normalized": "4ef5e8487877a7a627ac3b31f1b71494c51753289757fa3a4438dac16635d8ec"
+      },
+      "calendar-app/test/reminder-utils.test.js": {
+        "raw": "2bc049c5346781b410f8024f28c1f734a0c69fab60b2701902942cc2214b4ba0",
+        "normalized": "b27e7d37b1c610d9dcfdecb12ae8890b7894562e3172dffe2e1038c17a8b724d"
+      },
+      "calendar-app/test/auth-utils.test.js": {
+        "raw": "412ddc82018c290e63a0bd5b2c1bea0b3f48fba5a26995d93f39a5509ac565ea",
+        "normalized": "48b76de0e88114dfc31e3dae225ef7f8cb4152111f525323ef058d5a0e6ea9df"
+      },
+      "calendar-app/test/ui-release.test.js": {
+        "raw": "d5f1fcdadca79f4f1111723ee0708ee03ee67eeef86a0d9cc125d6fe100174a2",
+        "normalized": "750eac2e29696b7d28bce786f356da27dc929e584e75794cf0d19f8446a90410"
+      },
+      "calendar-app/releases/garyhub-1.3.4.2.json": {
+        "raw": "2dc03a6d7d09a68b7eb6d5af69f92a2fac5843651d47013440b0ee743dd39e48",
+        "normalized": "1bc2002f43b3392776fd6dc712ad2171706a1bd1f16cc463843237eeecf10e86"
+      },
+      "calendar-app/releases/garyhub-1.3.4.1.json": {
+        "raw": "bd8c6acc8deac24ec3c7aea3b342501ae1a7f5a052cbfd6e50166909f8f0a47e",
+        "normalized": "e25d6f92905e5cda7e9348d04328bf9f11cb2364995c41ff90d2330bdc59445a"
+      },
+      "calendar-app/releases/garyhub-1.3.4.0.json": {
+        "raw": "feb866edc4e6a115d3bff71f97e71f684374c458ea1d5343f4fbd5a7483d53d7",
+        "normalized": "4a0924f501a6826a0d21a9fcdd5731191ca55ed967ceec870ae164e697c217ad"
+      },
+      "calendar-app/releases/garyhub-20261011-v1.json": {
+        "raw": "2d9dbe5bd4e5c6e869f00744cb607693bc38f097ccbfc209e05f75055f781995",
+        "normalized": "c6328b0635ab424d3a3920a28fc85ce9ecc307f6b06c35820ed1f0db8ebe231b"
+      },
+      "calendar-app/migrations/unified-schema.js": {
+        "raw": "50b6095369613751aaba250f031f3d2f956bf4e92d58eadf3762a9abc1e6e6d3",
+        "normalized": "dd5d0b0fca29e7364ee33b38f194ae516bc8247e55218101bcb8a6c9879323ce"
+      },
+      "calendar-app/migrations/personal-records.js": {
+        "raw": "6f6ba582e031758178e8bbfee744b145ccb1e2d500c0b19781dce4966af178c3",
+        "normalized": "8ad0903ac2b2996833c49efdf5f3e60d17182788b998ce8d9b428d7fd1b9f594"
+      },
+      "calendar-app/scripts/publish-calendar-ui-release.cjs": {
+        "raw": "c7632d01f9b84e209a667482e660960c1ddfc34a3d8d0567bf9f9ee56f8bc009",
+        "normalized": "3809cedb67e5bf227b70260b8571efa921e557ad95fafbc0ac3ee4c657c5e977"
+      },
+      "calendar-app/scripts/migrate-unified-calendar.js": {
+        "raw": "3721397de2e6b29c42e3e6746e2bf89b174749d4ca1126921e6b61e9e730dfc0",
+        "normalized": "ab8f0571413b489b401c9815a972aa31dd2781cbc50846bc9c784f4b63337d12"
+      },
+      "calendar-app/scripts/connect-outlook.js": {
+        "raw": "f65990802153c6b014a621039704d0a4e78ac9657cac10407f10bc5355b5e7aa",
+        "normalized": "6def761f48179eeaebd1fc31d6e94af9046788e1f40b1ea1687fe13c636df8da"
+      },
+      "calendar-app/scripts/publish-hub-release.js": {
+        "raw": "bc262b79af287817351e5279d8718b4a24a81f46174207d760fc069b05405966",
+        "normalized": "5043f52e04c9eb9e1661662d856b81ba6484e27b219011fcfeac1581f84d35e6"
+      },
+      "calendar-app/public/change-password/password.js": {
+        "raw": "53119c5ff31ac75dd0d24ea74e9f544640f510458c4901cbe0289e1c3ad86ae3",
+        "normalized": "53119c5ff31ac75dd0d24ea74e9f544640f510458c4901cbe0289e1c3ad86ae3"
+      },
+      "calendar-app/public/change-password/index.html": {
+        "raw": "8c7bbdac5fae9fcfcc6474b00668cc1fbbf01a4f74a42a14eba7dd2b091859c9",
+        "normalized": "8c7bbdac5fae9fcfcc6474b00668cc1fbbf01a4f74a42a14eba7dd2b091859c9"
+      },
+      "calendar-app/public/login/index.html": {
+        "raw": "742e3d3a4dd78d925e8720dc773093938efc360a5950074a9db97e3fb9844f69",
+        "normalized": "742e3d3a4dd78d925e8720dc773093938efc360a5950074a9db97e3fb9844f69"
+      },
+      "calendar-app/public/ledger/ledger.js": {
+        "raw": "a2bc3cb36249f474246f8d6b2444b4a36a51f4d6f2b1868b349c84a0573cf609",
+        "normalized": "b5a0244c6212c077b03e759d4829b91bc02f487c267983b286fe5390b9f33aab"
+      },
+      "calendar-app/public/ledger/ledger.css": {
+        "raw": "5062ca527d5585dd0e0168ffd94e196e6436ca3d8538259ff36e8b3f3a72ebe3",
+        "normalized": "fab810d6174fe73cb2d85f944963e6aa2543aeb7eedb2319b806cd49ec5bab09"
+      },
+      "calendar-app/public/ledger/index.html": {
+        "raw": "050e5698d20f14c43d837191f7819e041beb1ea307de57369b9d0ed0eb6596a4",
+        "normalized": "8fbc5294d56bcf0f81feaa0c71d5d0103e9ed648fb8c149cc4cce1973b6f1374"
+      },
+      "calendar-app/public/health-records/index.html": {
+        "raw": "7387554106acdfc5a6b8889f4b3fe8d764b196b2148464b119a88280e64df61b",
+        "normalized": "7387554106acdfc5a6b8889f4b3fe8d764b196b2148464b119a88280e64df61b"
+      },
+      "calendar-app/public/register/index.html": {
+        "raw": "2caa5ec5083ae290fa6f5bb10ea89b5a9d31f83d4bc05d486d35503ae9685235",
+        "normalized": "2caa5ec5083ae290fa6f5bb10ea89b5a9d31f83d4bc05d486d35503ae9685235"
+      },
+      "calendar-app/public/journal/index.html": {
+        "raw": "31f273d6c106226bee9764d1592138fb1f87a525f44d98c596a9d32a6f89365c",
+        "normalized": "31f273d6c106226bee9764d1592138fb1f87a525f44d98c596a9d32a6f89365c"
+      },
+      "calendar-app/test/helpers/sqlite-compatible.js": {
+        "raw": "bcd8d3b29d2af702bda4ac62dab56cd29bb058fd3c962c41cea7c645909c1906",
+        "normalized": "209e4098d9bf98575ac5cab3c250aa9cfd55bce41a3fd47d82bb9fbd12f430ec"
+      },
+      "calendar-app/test/helpers/sqlite-adapter.js": {
+        "raw": "0a0c70238e090f06836a7adc297ea9231dce09e072cabebb894af7484d2c2f9a",
+        "normalized": "1e7f5ac0ce71c2d3cd7b805c935a54a0a1ab3718393a7393c602c5487f61d6c6"
+      },
+      "scripts/releases/v1.3.4.2/Install-GaryHub.template.ps1": {
+        "raw": "91b4219be45cd182b0580dfa4e332ce17d600319de4563037fe98346089b7530",
+        "normalized": "47b3d0485c0353687970d73ad1835d5dd6054f5533ced9cb5e04d383069aa2bf"
+      },
+      "scripts/releases/v1.3.4.2/reviewed-runtime-baselines.json": {
+        "raw": "2a8985d824b74a7cd55b52a623e099cd106b1fe18f03cfcd38d710d04ddc2a17",
+        "normalized": "3546c353b0ccdea5278f161215a426a6124d9424800fc137ccb23e7d0681f831"
+      },
+      "scripts/releases/v1.3.4.2/RUN-UPDATE.cmd": {
+        "raw": "6f86b4b8b7f80eebdfcead660547d88c36ec6607eb9b9a6c661cb709a086db57",
+        "normalized": "7b5f0fa971ff5bbc042d8916d1af7e6337c429b502eb2bf528ada3c7e9aa2b88"
+      },
+      "scripts/releases/v1.3.4.2/deploy.py": {
+        "raw": "29e98f2b1da9a73a8ef34e05f9c10dcdd0720725529f3f663f9e38f2dc62f68e",
+        "normalized": "f5ff442ec0f927c2c67229021fa9b54237160a65795f85258ab248e4bc0c6f35"
+      },
+      "scripts/releases/v1.3.4.2/ROLLBACK.cmd": {
+        "raw": "f8c151bab8f16dea30bc4af368782c7181ec598721ba0b69f46f61c49dd58299",
+        "normalized": "016a55b4b7ab66f9c1b18b2086e08e6b4f87f133b35a040c038d1a6cd1bdb243"
+      },
+      "scripts/releases/v1.3.4.2/PUSH-TO-GITHUB.cmd": {
+        "raw": "8dd43a2b67f7096447509103e031c41476a28acc1e42c6d1b3c42658217a6dd6",
+        "normalized": "d781f6374da5f7920a213b76b6444c9d36213c6bcd4ed0aebba5a20de97504fd"
+      },
+      "scripts/releases/v1.3.4.2/build-package.py": {
+        "raw": "d9ca5673f2957e1a74496ade95ff850cb9edbaa136800a3c5b7d7f8b866d588c",
+        "normalized": "0759263a7924ba1dacf1c51e2bf8d0d5d61bd063c43bdbda4b9406f1c208f36f"
+      },
+      "scripts/releases/v1.3.4.2/sync-source.ps1": {
+        "raw": "a365d97acd48cdcc10347893ed1367cf52a83df547e9f7426dd4ad311e3297de",
+        "normalized": "c369730f53ee9726266001d2bd3cea2a8af116930e7c622de43c2bcc8b26d8f1"
+      },
+      "scripts/releases/v1.3.4.2/Push-GitHub.ps1": {
+        "raw": "2787326d0070a4c0f2f8241e2b4b080432a49a37e55b5eeac62e62b49a58e5c0",
+        "normalized": "e2e92e187decc230cead9e8ce4af7a4d96664a14ed345e2489e8e3514774528c"
+      },
+      "scripts/releases/v1.3.4.2/tests/ledger-extra.cjs": {
+        "raw": "59e887b2d1ee4c15738b77401b9c83b18d12c4dc06f40d4d21177ea11e1a86aa",
+        "normalized": "285882e5df445755bc7c038a38292f9017412875cad1d059fb4a721791010f23"
+      },
+      "scripts/releases/v1.3.4.2/tests/seed.cjs": {
+        "raw": "ccc3ea4250c34ad508b8164a401ab53c8daf284ecdd324efa515e93bd91277be",
+        "normalized": "e5c26bcde21e366729c3b444cbffa307b6291a4cd395b3ece37f764f1fb90fb2"
+      },
+      "scripts/releases/v1.3.4.2/tests/browser.cjs": {
+        "raw": "e23f3abe428f03e0202500a915d72d305cf0d552a59b4c86a43757344efc979f",
+        "normalized": "4cb1b5fb2019a228b64816df205b460a3b589c79d02874b8a4e1ab6e0fb9a6dd"
+      },
+      "scripts/releases/v1.3.4.2/tests/features.cjs": {
+        "raw": "19da7e6f4df4d1163e9c4a44635d46cc0099a031152b959ea2e540b20f342c29",
+        "normalized": "514f7fcc4a290f81143af401f7a7f6c1ca89db5404c19b5c3510940da626a943"
+      },
+      "scripts/releases/v1.3.4.2/tests/smoke.cjs": {
+        "raw": "75cbf9cc052ed6a883428f26ea8ae3ba91fec5d08b915ac4ea20c2f403e5a373",
+        "normalized": "09620ac6bbbbaf49320db132a6bbba13a541a8d241b4678bafd680057c790d8c"
+      },
+      "scripts/releases/v1.3.4.2/tests/package.test.py": {
+        "raw": "7a23fa38ade916820ab04844e8ee1b41efb095f76915316a6d5533aa072bb12a",
+        "normalized": "9e03091af276cb016466347110e42d359ce55b9601e3571ac8c9824d3dccb1c3"
+      },
+      "scripts/releases/v1.3.4.2/tests/run-local.py": {
+        "raw": "ab0f0028c3982ee5f7cc96102dd52e138ee24940a74f533c60b915b674a213c2",
+        "normalized": "781ed8d113bf8d7cb46745fff801dbbf1df53703d30ad1c331ef8b41ec5cc978"
+      },
+      "scripts/releases/v1.3.4.2/tests/fx-server.cjs": {
+        "raw": "da621d91d58d65a85f924062de218e46dcc9c875841611209d1ff2d962492bb7",
+        "normalized": "686f955da9d577e7d2cf9f45037995d528a953585a08a7161669c3698243b909"
+      },
+      "scripts/releases/v1.3.4.2/tests/accounts.cjs": {
+        "raw": "1703896343455fff9ef8651fb4ab52c2bc25b26b97d25bacb7dfcb86d1c7c9d0",
+        "normalized": "d552ec14392fe20aeff4360c138b65e013b3788d45b3a7e24e1e74fa57b7c80d"
+      },
+      "scripts/releases/v1.3.4.2/tests/deploy.test.py": {
+        "raw": "962398baa36ce11079a0a4be6d5e0c1968043e0c3b5c15dedefaa7efb78bd000",
+        "normalized": "d4cb1bffd3b5160aa040fd9f122155bc6965224016595bf015e7b96e752d1245"
+      },
+      "scripts/releases/v1.3.4.2/tests/fixtures/tools-index-v1.3.3.2-legacy-navigation.html": {
+        "raw": "c58721f3eb2fa12b99df2d3581bf0da0f9abb6d7a2fb323873a98bb593ad25a1",
+        "normalized": "04f9bc7aeb8a539de7cf52698202c8c1cd6bcc6fcf755abdbd2afc0e8c838c7a"
+      },
+      "scripts/releases/v1.3.4.2/tests/fixtures/tools-index-v1.3.3.2-shared-account.html": {
+        "raw": "fb0020c2112dc34c978dab4c046d1d62f9837f888bcad149cecc4abb6f7fed06",
+        "normalized": "311922b46f47ef435ac06ef32f05d3b0716a54c735c99498d6f01d45dc2ea01e"
+      }
+    }
+  },
+  "runtime_paths": {
+    "1.3.4.1": [
+      "lab-service/server.cjs",
+      "lab-service/homepage-privacy.cjs",
+      "calendar-app/sqlite-connection.js",
+      "calendar-app/app.js",
+      "calendar-app/account-admin.js",
+      "calendar-app/todos-api.js",
+      "lab-service/public/profile-privacy.js",
+      "lab-service/public/hub-account.js",
+      "lab-service/public/homepage.html",
+      "lab-service/public/login.html",
+      "lab-service/public/admin.js",
+      "lab-service/public/privacy-ledger-release.json",
+      "lab-service/public/admin.html",
+      "lab-service/public/index.html",
+      "lab-service/public/academic/app.js",
+      "lab-service/public/academic/index.html",
+      "lab-service/public/access/access.js",
+      "lab-service/public/access/index.html",
+      "lab-service/public/i18n/dictionary.js",
+      "lab-service/public/i18n/i18n.css",
+      "lab-service/public/i18n/i18n.js",
+      "calendar-app/public/journal-page.js",
+      "calendar-app/public/health-page.js",
+      "calendar-app/public/calendar-page.js",
+      "calendar-app/public/privacy-ledger-release.json",
+      "calendar-app/public/index.html",
+      "calendar-app/public/unified.js",
+      "calendar-app/releases/garyhub-1.3.5.0.json",
+      "calendar-app/public/change-password/index.html",
+      "calendar-app/public/login/index.html",
+      "calendar-app/public/i18n/dictionary.js",
+      "calendar-app/public/i18n/i18n.css",
+      "calendar-app/public/i18n/i18n.js",
+      "calendar-app/public/ledger/ledger.js",
+      "calendar-app/public/ledger/index.html",
+      "calendar-app/public/health-records/index.html",
+      "calendar-app/public/register/index.html",
+      "calendar-app/public/journal/index.html",
+      "calendar-app/public/todos/todos.js",
+      "calendar-app/public/todos/todos.css",
+      "calendar-app/public/todos/index.html"
+    ],
+    "1.3.4.2": [
+      "lab-service/server.cjs",
+      "lab-service/homepage-privacy.cjs",
+      "calendar-app/app.js",
+      "calendar-app/account-admin.js",
+      "calendar-app/todos-api.js",
+      "lab-service/public/profile-privacy.js",
+      "lab-service/public/hub-account.js",
+      "lab-service/public/homepage.html",
+      "lab-service/public/login.html",
+      "lab-service/public/admin.js",
+      "lab-service/public/privacy-ledger-release.json",
+      "lab-service/public/admin.html",
+      "lab-service/public/index.html",
+      "lab-service/public/academic/app.js",
+      "lab-service/public/academic/index.html",
+      "lab-service/public/access/access.js",
+      "lab-service/public/access/index.html",
+      "lab-service/public/i18n/dictionary.js",
+      "lab-service/public/i18n/i18n.css",
+      "lab-service/public/i18n/i18n.js",
+      "lab-service/public/totp/totp.js",
+      "lab-service/public/totp/index.html",
+      "calendar-app/public/journal-page.js",
+      "calendar-app/public/health-page.js",
+      "calendar-app/public/calendar-page.js",
+      "calendar-app/public/privacy-ledger-release.json",
+      "calendar-app/public/index.html",
+      "calendar-app/public/unified.js",
+      "calendar-app/releases/garyhub-1.3.5.0.json",
+      "calendar-app/public/change-password/index.html",
+      "calendar-app/public/login/index.html",
+      "calendar-app/public/i18n/dictionary.js",
+      "calendar-app/public/i18n/i18n.css",
+      "calendar-app/public/i18n/i18n.js",
+      "calendar-app/public/ledger/ledger.js",
+      "calendar-app/public/ledger/index.html",
+      "calendar-app/public/health-records/index.html",
+      "calendar-app/public/register/index.html",
+      "calendar-app/public/journal/index.html",
+      "calendar-app/public/todos/todos.js",
+      "calendar-app/public/todos/todos.css",
+      "calendar-app/public/todos/index.html"
+    ]
+  },
+  "source_paths": {
+    "1.3.4.1": [
+      "README.md",
+      "docs/GARYHUB_V1_3_5_0_TESTS.md",
+      "docs/GARYHUB_V1_3_5_0.md",
+      "lab-service/server.cjs",
+      "lab-service/homepage-privacy.cjs",
+      "calendar-app/sqlite-connection.js",
+      "calendar-app/app.js",
+      "calendar-app/account-admin.js",
+      "calendar-app/todos-api.js",
+      "lab-service/public/profile-privacy.js",
+      "lab-service/public/hub-account.js",
+      "lab-service/public/homepage.html",
+      "lab-service/public/login.html",
+      "lab-service/public/admin.js",
+      "lab-service/public/privacy-ledger-release.json",
+      "lab-service/public/admin.html",
+      "lab-service/public/index.html",
+      "lab-service/public/academic/app.js",
+      "lab-service/public/academic/index.html",
+      "lab-service/public/access/access.js",
+      "lab-service/public/access/index.html",
+      "lab-service/public/i18n/dictionary.js",
+      "lab-service/public/i18n/i18n.css",
+      "lab-service/public/i18n/i18n.js",
+      "calendar-app/public/journal-page.js",
+      "calendar-app/public/health-page.js",
+      "calendar-app/public/calendar-page.js",
+      "calendar-app/public/privacy-ledger-release.json",
+      "calendar-app/public/index.html",
+      "calendar-app/public/unified.js",
+      "calendar-app/releases/garyhub-1.3.5.0.json",
+      "calendar-app/public/change-password/index.html",
+      "calendar-app/public/login/index.html",
+      "calendar-app/public/i18n/dictionary.js",
+      "calendar-app/public/i18n/i18n.css",
+      "calendar-app/public/i18n/i18n.js",
+      "calendar-app/public/ledger/ledger.js",
+      "calendar-app/public/ledger/index.html",
+      "calendar-app/public/health-records/index.html",
+      "calendar-app/public/register/index.html",
+      "calendar-app/public/journal/index.html",
+      "calendar-app/public/todos/todos.js",
+      "calendar-app/public/todos/todos.css",
+      "calendar-app/public/todos/index.html"
+    ],
+    "1.3.4.2": [
+      "README.md",
+      "docs/GARYHUB_V1_3_5_0_TESTS.md",
+      "docs/GARYHUB_V1_3_5_0.md",
+      "docs/GARYHUB_V1_3_4_2_TESTS.md",
+      "docs/GARYHUB_V1_3_4_2.md",
+      "lab-service/server.cjs",
+      "lab-service/homepage-privacy.cjs",
+      "calendar-app/totp-crypto.js",
+      "calendar-app/.env.example",
+      "calendar-app/hub-api.js",
+      "calendar-app/totp-api.js",
+      "calendar-app/membership.js",
+      "calendar-app/profile-access.js",
+      "calendar-app/sqlite-connection.js",
+      "calendar-app/app.js",
+      "calendar-app/package.json",
+      "calendar-app/account-admin.js",
+      "calendar-app/todos-api.js",
+      "lab-service/public/profile-privacy.js",
+      "lab-service/public/hub-account.js",
+      "lab-service/public/profile-privacy.css",
+      "lab-service/public/homepage.html",
+      "lab-service/public/login.html",
+      "lab-service/public/admin.js",
+      "lab-service/public/privacy-ledger-release.json",
+      "lab-service/public/login.js",
+      "lab-service/public/admin.html",
+      "lab-service/public/index.html",
+      "lab-service/public/profile-admin.js",
+      "lab-service/test/server.test.cjs",
+      "lab-service/public/academic/app.js",
+      "lab-service/public/academic/index.html",
+      "lab-service/public/access/access.js",
+      "lab-service/public/access/index.html",
+      "lab-service/public/i18n/dictionary.js",
+      "lab-service/public/i18n/i18n.css",
+      "lab-service/public/i18n/i18n.js",
+      "lab-service/public/totp/totp.css",
+      "lab-service/public/totp/totp.js",
+      "lab-service/public/totp/index.html",
+      "calendar-app/public/journal-page.js",
+      "calendar-app/public/health-page.js",
+      "calendar-app/public/calendar-page.js",
+      "calendar-app/public/privacy-ledger-release.json",
+      "calendar-app/public/index.html",
+      "calendar-app/public/unified.js",
+      "calendar-app/test/totp.test.js",
+      "calendar-app/releases/garyhub-1.3.5.0.json",
+      "calendar-app/releases/garyhub-1.3.4.2.json",
+      "calendar-app/public/change-password/index.html",
+      "calendar-app/public/login/index.html",
+      "calendar-app/public/i18n/dictionary.js",
+      "calendar-app/public/i18n/i18n.css",
+      "calendar-app/public/i18n/i18n.js",
+      "calendar-app/public/ledger/ledger.js",
+      "calendar-app/public/ledger/index.html",
+      "calendar-app/public/health-records/index.html",
+      "calendar-app/public/register/index.html",
+      "calendar-app/public/journal/index.html",
+      "calendar-app/public/todos/todos.js",
+      "calendar-app/public/todos/todos.css",
+      "calendar-app/public/todos/index.html",
+      "calendar-app/test/helpers/sqlite-compatible.js",
+      "scripts/releases/v1.3.4.2/Install-GaryHub.template.ps1",
+      "scripts/releases/v1.3.4.2/reviewed-runtime-baselines.json",
+      "scripts/releases/v1.3.4.2/RUN-UPDATE.cmd",
+      "scripts/releases/v1.3.4.2/deploy.py",
+      "scripts/releases/v1.3.4.2/ROLLBACK.cmd",
+      "scripts/releases/v1.3.4.2/PUSH-TO-GITHUB.cmd",
+      "scripts/releases/v1.3.4.2/build-package.py",
+      "scripts/releases/v1.3.4.2/sync-source.ps1",
+      "scripts/releases/v1.3.4.2/Push-GitHub.ps1",
+      "scripts/releases/v1.3.4.2/tests/ledger-extra.cjs",
+      "scripts/releases/v1.3.4.2/tests/seed.cjs",
+      "scripts/releases/v1.3.4.2/tests/browser.cjs",
+      "scripts/releases/v1.3.4.2/tests/features.cjs",
+      "scripts/releases/v1.3.4.2/tests/smoke.cjs",
+      "scripts/releases/v1.3.4.2/tests/package.test.py",
+      "scripts/releases/v1.3.4.2/tests/run-local.py",
+      "scripts/releases/v1.3.4.2/tests/fx-server.cjs",
+      "scripts/releases/v1.3.4.2/tests/accounts.cjs",
+      "scripts/releases/v1.3.4.2/tests/deploy.test.py",
+      "scripts/releases/v1.3.4.2/tests/fixtures/tools-index-v1.3.3.2-legacy-navigation.html",
+      "scripts/releases/v1.3.4.2/tests/fixtures/tools-index-v1.3.3.2-shared-account.html"
+    ]
+  },
+  "final_hashes": {
+    "1.3.4.1": {
+      "README.md": "1e5195294ba9d0342d35e70887194c1a78fd6d01b11ace75f76f7af3630045d6",
+      "docs/GARYHUB_V1_3_5_0_TESTS.md": "9e80622d6d014543519920b1a5c8d67ad272a904c5fd0a1f7326152cb472ff29",
+      "docs/GARYHUB_V1_3_5_0.md": "da608c47bf752888b28f51cbb90cdf2c2e0a9860668bd766ca1773805e7f83a3",
+      "lab-service/server.cjs": "852fc5dd3dc523ac6d6440c021449f5f876adb60457d99576203d523b31e15b7",
+      "lab-service/homepage-privacy.cjs": "37443ee9526863d5e6429bcf9e960a86f50bcea07bff38c57e37409bf5d5af3a",
+      "calendar-app/sqlite-connection.js": "9c6b6c639d4995d02b30cfc1913e16170be289668fea3e3e68c5cd69c4977695",
+      "calendar-app/app.js": "672c856ffe83195bbc5d91abb6e3c645d45ffa95496c198b011e2c0fb2b2ab2c",
+      "calendar-app/account-admin.js": "36b21955128240284be429f613e095db504c33deaaa800bce25306d9d7bcf5f1",
+      "calendar-app/todos-api.js": "c7125ab909e96772fc51af99a3cbd9be28bbe46278a310f2a4e6c23c33c5251e",
+      "lab-service/public/profile-privacy.js": "71714ab0e8e24f86e8249933f380ada77fbfb5e8e1edc0f8022410e3f84af29f",
+      "lab-service/public/hub-account.js": "9084b657f17393e9627c71de966f034bfc72318e3fe86fa12bdb8bd1aa1562a2",
+      "lab-service/public/homepage.html": "c663616823fa1e27da5003f36f4c0a9a7184d19000388987f33ee61c27f3e034",
+      "lab-service/public/login.html": "7bf1de87cc7c6d7886b673c92ad566004eb01abfa77d5e03561ddf4a99ba0fd1",
+      "lab-service/public/admin.js": "45107442cb04c77ebe095d2fb60ccf63874e5d8820044677be6035017918d83b",
+      "lab-service/public/privacy-ledger-release.json": "f9a113e28dbfab560e7c8f0bea91f326cc19c01e208e54a7fde4b1553d4c4b70",
+      "lab-service/public/admin.html": "a5ed964f0fee660de8f7e64fcb3ef18cd8261b14f663001d4f8836e31bf9a45e",
+      "lab-service/public/index.html": "9c95522f07d8a07c484d89f2106d029cd676b988994ed4800b616af2547ad278",
+      "lab-service/public/academic/app.js": "3bbaf38ac50139de88442a3b704f4d87be1e5ae6d44827669f632791279e0155",
+      "lab-service/public/academic/index.html": "92c68a065878ab3cbb3e44c94b164a687c102cb54e4c09074f84ef3041e3fa28",
+      "lab-service/public/access/access.js": "ad759ab4c72d5108446a702529f91ca6ece05f98eecbe1877f69a9be8ae12859",
+      "lab-service/public/access/index.html": "fe81b04ebf066b68a74b152cf27539f4161068804db476a04ea8d81b36a8906a",
+      "lab-service/public/i18n/dictionary.js": "bdee5d658ce7dcbb3611d551e3517af0d723ba684d1a2150e428b46a989e138b",
+      "lab-service/public/i18n/i18n.css": "e6cd38a4b9ae67022c79e310bfce285814aa2eecdbe0a0f521f902657a342d02",
+      "lab-service/public/i18n/i18n.js": "0f33a30b2ad79b87d35e06e948b275d898978b4c53a9e9ea17a9b1c7e80ef5da",
+      "calendar-app/public/journal-page.js": "c256c8ce4bdeca5f72ffdf2b1545b21a4f28e5169873880ae5586a9ec8b28d66",
+      "calendar-app/public/health-page.js": "bb8d5f3a4353f29a7e48dd09534a3e8575500f01c00e2ee41baedfbd3ef5232e",
+      "calendar-app/public/calendar-page.js": "89d4a2527158a43f8acd1d7dd004cc5061e49cd3047c45b6f4fd377a850fc819",
+      "calendar-app/public/privacy-ledger-release.json": "f9a113e28dbfab560e7c8f0bea91f326cc19c01e208e54a7fde4b1553d4c4b70",
+      "calendar-app/public/index.html": "acc45905a3b20ef90b659930b60ce25ecdca18351cc5d111ae3b82c3f4f8fe90",
+      "calendar-app/public/unified.js": "dfdbb9082902c72f3e9ff9900315b826800760242bbea84f4576c63e6af77cf4",
+      "calendar-app/releases/garyhub-1.3.5.0.json": "660b123d28369c7d3ca061e436a115a2242d3f66c4423465210ce8d95a3d9958",
+      "calendar-app/public/change-password/index.html": "cd87ebb499d8b033daba3c44d803568bc76834191cdc4496fad3371ea4e4abe7",
+      "calendar-app/public/login/index.html": "6cb402b976ee23d47b2be40a7b0ee1d36858403d027ab0e930b558f01d167e70",
+      "calendar-app/public/i18n/dictionary.js": "bdee5d658ce7dcbb3611d551e3517af0d723ba684d1a2150e428b46a989e138b",
+      "calendar-app/public/i18n/i18n.css": "e6cd38a4b9ae67022c79e310bfce285814aa2eecdbe0a0f521f902657a342d02",
+      "calendar-app/public/i18n/i18n.js": "0f33a30b2ad79b87d35e06e948b275d898978b4c53a9e9ea17a9b1c7e80ef5da",
+      "calendar-app/public/ledger/ledger.js": "e8d6119730e735fd8c0d8310f600b1e87311a4dcf84858b64d611ce6c9524af7",
+      "calendar-app/public/ledger/index.html": "778b56af77d0e4f5913d375a2b3310edf5e408a4baf79bd0ca6706d8f0c057a5",
+      "calendar-app/public/health-records/index.html": "82c2e403c4cea2f0b5f1112cc535abe7b380858e5c210f0c47278c637023d5b6",
+      "calendar-app/public/register/index.html": "771ab0168deb3a8e6d4db92fa7f07e3e86e72d24ac06534853a34e293097036b",
+      "calendar-app/public/journal/index.html": "eab19b6f0c499c71dc590703381d74318416cd9be2886a29ceb4f2d70e02dfa8",
+      "calendar-app/public/todos/todos.js": "551b647bb8fdeba4784a69fc6a80981750917c2fa9c35e686984c5f8f8c4d92b",
+      "calendar-app/public/todos/todos.css": "32e5aa92db78e59c192853c54b4c432a71793f9ef968eaf9677db8f2b86e448f",
+      "calendar-app/public/todos/index.html": "77af0918100a5af5dbe1317eb440e6f772fe5c4fc356a5745c204452fe20632d"
+    },
+    "1.3.4.2": {
+      "README.md": "69c9f550edcee876b60689e3500222335be1ec908c7f592385a8056249d0f352",
+      "docs/GARYHUB_V1_3_5_0_TESTS.md": "9e80622d6d014543519920b1a5c8d67ad272a904c5fd0a1f7326152cb472ff29",
+      "docs/GARYHUB_V1_3_5_0.md": "da608c47bf752888b28f51cbb90cdf2c2e0a9860668bd766ca1773805e7f83a3",
+      "docs/GARYHUB_V1_3_4_2_TESTS.md": "272f65f1402f90593c2dcb71502dbe73fbe74ccdc630bbf8a5d54b6978b3bbbe",
+      "docs/GARYHUB_V1_3_4_2.md": "0961c68a550279e46f8219a8dbd0a857a8bdd83c8142bc163e183303c146b06e",
+      "lab-service/server.cjs": "ca5f1bbe746886e5df53c88e9f0f4fba6f6f35dac8c60ea5dd20e363f59efe1b",
+      "lab-service/homepage-privacy.cjs": "3211ae0ac1b3a02f25b93792ee2c8a8a445714c19b27e482f17f297f393cabda",
+      "calendar-app/totp-crypto.js": "89aa21c14d6840dd850664bfd2e49731f2516eeaf75570693d0320fc03354469",
+      "calendar-app/.env.example": "cb0daf0020a5d1ba4cca209089ee894c3694a92af8fca84f0096497c63287b90",
+      "calendar-app/hub-api.js": "65cebf3f540809c5b6cc94456cc365fd01b18adaa71c410bfeaac42b0a64b78d",
+      "calendar-app/totp-api.js": "c2f23c2a5866a5e3bb78be832b3c4b5775584007daed5858f99fd5f309969df4",
+      "calendar-app/membership.js": "e0c73fcdc74dc6e1c9295ab4db0930a84605cdbfaad66a6364d873f2ed4756b6",
+      "calendar-app/profile-access.js": "85679061f11871bfe0e02853441ca3c71e09fdc152818eb7bcb3ee351bad614b",
+      "calendar-app/sqlite-connection.js": "9c6b6c639d4995d02b30cfc1913e16170be289668fea3e3e68c5cd69c4977695",
+      "calendar-app/app.js": "bfb0849d623901b35654638fe6de1b33ea38d28eecffb1304bbd19139654d39e",
+      "calendar-app/package.json": "4baef7cd4e510ad21f3afebceb34d2a777ef8a7e1c67e1f21c9ee1dfa0f610b0",
+      "calendar-app/account-admin.js": "cc32e36a22a1ee7470678bf2208c866765106ba08e5ae1a93aafb0bab6718df1",
+      "calendar-app/todos-api.js": "c7125ab909e96772fc51af99a3cbd9be28bbe46278a310f2a4e6c23c33c5251e",
+      "lab-service/public/profile-privacy.js": "59de28bec5ef67a265323cfdc6caf113f002da763871c65c526a3725c6b26e3b",
+      "lab-service/public/hub-account.js": "9084b657f17393e9627c71de966f034bfc72318e3fe86fa12bdb8bd1aa1562a2",
+      "lab-service/public/profile-privacy.css": "5c8a9bb056d9280ccf428286b83eb2ffa1682a6ede543654b7b36183c8a76cfa",
+      "lab-service/public/homepage.html": "c663616823fa1e27da5003f36f4c0a9a7184d19000388987f33ee61c27f3e034",
+      "lab-service/public/login.html": "7bf1de87cc7c6d7886b673c92ad566004eb01abfa77d5e03561ddf4a99ba0fd1",
+      "lab-service/public/admin.js": "2daafbdac64ef16182a1effb0448c6875c57d9460532e4898c68d8b89fe55899",
+      "lab-service/public/privacy-ledger-release.json": "f9a113e28dbfab560e7c8f0bea91f326cc19c01e208e54a7fde4b1553d4c4b70",
+      "lab-service/public/login.js": "656c894a899caafcb5e7f33cdf85e3bad2330603850ff829a0a51ccb88c2bce0",
+      "lab-service/public/admin.html": "743ee479b58ae6688e7d00b471f6f83690c3dca760d8f677d6e3848203b24ccf",
+      "lab-service/public/index.html": "9d84169b86b09485419ba612850ad470d2e4f67fff907ebe317f6922bfa245d2",
+      "lab-service/public/profile-admin.js": "10ddc8308bc44bd53698383df427c45e9f871ccb903ec9d6dbe298cedcc83cbe",
+      "lab-service/test/server.test.cjs": "18ce995296a4b6e958cc58c816428cecf22f6066a3fce5f11235a50ed409da33",
+      "lab-service/public/academic/app.js": "3bbaf38ac50139de88442a3b704f4d87be1e5ae6d44827669f632791279e0155",
+      "lab-service/public/academic/index.html": "92c68a065878ab3cbb3e44c94b164a687c102cb54e4c09074f84ef3041e3fa28",
+      "lab-service/public/access/access.js": "ad759ab4c72d5108446a702529f91ca6ece05f98eecbe1877f69a9be8ae12859",
+      "lab-service/public/access/index.html": "fe81b04ebf066b68a74b152cf27539f4161068804db476a04ea8d81b36a8906a",
+      "lab-service/public/i18n/dictionary.js": "bdee5d658ce7dcbb3611d551e3517af0d723ba684d1a2150e428b46a989e138b",
+      "lab-service/public/i18n/i18n.css": "e6cd38a4b9ae67022c79e310bfce285814aa2eecdbe0a0f521f902657a342d02",
+      "lab-service/public/i18n/i18n.js": "0f33a30b2ad79b87d35e06e948b275d898978b4c53a9e9ea17a9b1c7e80ef5da",
+      "lab-service/public/totp/totp.css": "4054e8f0ef83bcdf6715c243d253360be6aba0c0a4429db5ad37482e7d26a2c5",
+      "lab-service/public/totp/totp.js": "567b2df3318b0ca287f6f40eb784d6f19f6f7615c499cce5c9e3aaf059536fa5",
+      "lab-service/public/totp/index.html": "5ca6183984feeee8fc2c1a6b881d5868941bb844c1242eaca366427f8ed94bd9",
+      "calendar-app/public/journal-page.js": "c256c8ce4bdeca5f72ffdf2b1545b21a4f28e5169873880ae5586a9ec8b28d66",
+      "calendar-app/public/health-page.js": "bb8d5f3a4353f29a7e48dd09534a3e8575500f01c00e2ee41baedfbd3ef5232e",
+      "calendar-app/public/calendar-page.js": "89d4a2527158a43f8acd1d7dd004cc5061e49cd3047c45b6f4fd377a850fc819",
+      "calendar-app/public/privacy-ledger-release.json": "f9a113e28dbfab560e7c8f0bea91f326cc19c01e208e54a7fde4b1553d4c4b70",
+      "calendar-app/public/index.html": "acc45905a3b20ef90b659930b60ce25ecdca18351cc5d111ae3b82c3f4f8fe90",
+      "calendar-app/public/unified.js": "dfdbb9082902c72f3e9ff9900315b826800760242bbea84f4576c63e6af77cf4",
+      "calendar-app/test/totp.test.js": "d1282f912be200fe202eb795d1991257856cae06e77a26552e4b048e9a936982",
+      "calendar-app/releases/garyhub-1.3.5.0.json": "660b123d28369c7d3ca061e436a115a2242d3f66c4423465210ce8d95a3d9958",
+      "calendar-app/releases/garyhub-1.3.4.2.json": "2dc03a6d7d09a68b7eb6d5af69f92a2fac5843651d47013440b0ee743dd39e48",
+      "calendar-app/public/change-password/index.html": "cd87ebb499d8b033daba3c44d803568bc76834191cdc4496fad3371ea4e4abe7",
+      "calendar-app/public/login/index.html": "6cb402b976ee23d47b2be40a7b0ee1d36858403d027ab0e930b558f01d167e70",
+      "calendar-app/public/i18n/dictionary.js": "bdee5d658ce7dcbb3611d551e3517af0d723ba684d1a2150e428b46a989e138b",
+      "calendar-app/public/i18n/i18n.css": "e6cd38a4b9ae67022c79e310bfce285814aa2eecdbe0a0f521f902657a342d02",
+      "calendar-app/public/i18n/i18n.js": "0f33a30b2ad79b87d35e06e948b275d898978b4c53a9e9ea17a9b1c7e80ef5da",
+      "calendar-app/public/ledger/ledger.js": "e8d6119730e735fd8c0d8310f600b1e87311a4dcf84858b64d611ce6c9524af7",
+      "calendar-app/public/ledger/index.html": "778b56af77d0e4f5913d375a2b3310edf5e408a4baf79bd0ca6706d8f0c057a5",
+      "calendar-app/public/health-records/index.html": "82c2e403c4cea2f0b5f1112cc535abe7b380858e5c210f0c47278c637023d5b6",
+      "calendar-app/public/register/index.html": "771ab0168deb3a8e6d4db92fa7f07e3e86e72d24ac06534853a34e293097036b",
+      "calendar-app/public/journal/index.html": "eab19b6f0c499c71dc590703381d74318416cd9be2886a29ceb4f2d70e02dfa8",
+      "calendar-app/public/todos/todos.js": "551b647bb8fdeba4784a69fc6a80981750917c2fa9c35e686984c5f8f8c4d92b",
+      "calendar-app/public/todos/todos.css": "32e5aa92db78e59c192853c54b4c432a71793f9ef968eaf9677db8f2b86e448f",
+      "calendar-app/public/todos/index.html": "77af0918100a5af5dbe1317eb440e6f772fe5c4fc356a5745c204452fe20632d",
+      "calendar-app/test/helpers/sqlite-compatible.js": "bcd8d3b29d2af702bda4ac62dab56cd29bb058fd3c962c41cea7c645909c1906",
+      "scripts/releases/v1.3.4.2/Install-GaryHub.template.ps1": "91b4219be45cd182b0580dfa4e332ce17d600319de4563037fe98346089b7530",
+      "scripts/releases/v1.3.4.2/reviewed-runtime-baselines.json": "2a8985d824b74a7cd55b52a623e099cd106b1fe18f03cfcd38d710d04ddc2a17",
+      "scripts/releases/v1.3.4.2/RUN-UPDATE.cmd": "6f86b4b8b7f80eebdfcead660547d88c36ec6607eb9b9a6c661cb709a086db57",
+      "scripts/releases/v1.3.4.2/deploy.py": "29e98f2b1da9a73a8ef34e05f9c10dcdd0720725529f3f663f9e38f2dc62f68e",
+      "scripts/releases/v1.3.4.2/ROLLBACK.cmd": "f8c151bab8f16dea30bc4af368782c7181ec598721ba0b69f46f61c49dd58299",
+      "scripts/releases/v1.3.4.2/PUSH-TO-GITHUB.cmd": "8dd43a2b67f7096447509103e031c41476a28acc1e42c6d1b3c42658217a6dd6",
+      "scripts/releases/v1.3.4.2/build-package.py": "d9ca5673f2957e1a74496ade95ff850cb9edbaa136800a3c5b7d7f8b866d588c",
+      "scripts/releases/v1.3.4.2/sync-source.ps1": "a365d97acd48cdcc10347893ed1367cf52a83df547e9f7426dd4ad311e3297de",
+      "scripts/releases/v1.3.4.2/Push-GitHub.ps1": "2787326d0070a4c0f2f8241e2b4b080432a49a37e55b5eeac62e62b49a58e5c0",
+      "scripts/releases/v1.3.4.2/tests/ledger-extra.cjs": "59e887b2d1ee4c15738b77401b9c83b18d12c4dc06f40d4d21177ea11e1a86aa",
+      "scripts/releases/v1.3.4.2/tests/seed.cjs": "ccc3ea4250c34ad508b8164a401ab53c8daf284ecdd324efa515e93bd91277be",
+      "scripts/releases/v1.3.4.2/tests/browser.cjs": "e23f3abe428f03e0202500a915d72d305cf0d552a59b4c86a43757344efc979f",
+      "scripts/releases/v1.3.4.2/tests/features.cjs": "19da7e6f4df4d1163e9c4a44635d46cc0099a031152b959ea2e540b20f342c29",
+      "scripts/releases/v1.3.4.2/tests/smoke.cjs": "75cbf9cc052ed6a883428f26ea8ae3ba91fec5d08b915ac4ea20c2f403e5a373",
+      "scripts/releases/v1.3.4.2/tests/package.test.py": "7a23fa38ade916820ab04844e8ee1b41efb095f76915316a6d5533aa072bb12a",
+      "scripts/releases/v1.3.4.2/tests/run-local.py": "ab0f0028c3982ee5f7cc96102dd52e138ee24940a74f533c60b915b674a213c2",
+      "scripts/releases/v1.3.4.2/tests/fx-server.cjs": "da621d91d58d65a85f924062de218e46dcc9c875841611209d1ff2d962492bb7",
+      "scripts/releases/v1.3.4.2/tests/accounts.cjs": "1703896343455fff9ef8651fb4ab52c2bc25b26b97d25bacb7dfcb86d1c7c9d0",
+      "scripts/releases/v1.3.4.2/tests/deploy.test.py": "962398baa36ce11079a0a4be6d5e0c1968043e0c3b5c15dedefaa7efb78bd000",
+      "scripts/releases/v1.3.4.2/tests/fixtures/tools-index-v1.3.3.2-legacy-navigation.html": "c58721f3eb2fa12b99df2d3581bf0da0f9abb6d7a2fb323873a98bb593ad25a1",
+      "scripts/releases/v1.3.4.2/tests/fixtures/tools-index-v1.3.3.2-shared-account.html": "fb0020c2112dc34c978dab4c046d1d62f9837f888bcad149cecc4abb6f7fed06"
+    }
+  },
+  "runtime_aliases": {
+    "1.3.4.1": {
+      "calendar-app": {
+        "account-admin.js": [
+          "79dcf78aff880d46afa2f0161f716ec1e2739b03622e5a4ce275753cec70a445"
+        ],
+        "app.js": [
+          "10e9e2a7e9105c0fdb95d4ae9633e2d3b623c6201daf265cd36d818d1b278a64"
+        ],
+        "hub-api.js": [
+          "c830f1a5180b6cb4f0aa12b54caba10b0519ad264f601da1e4398ec757995e69"
+        ],
+        "package.json": [
+          "1a60432fcf70636cbe483e14c39fc5e0d78238d15476f420dbfc69f2de48f2e9"
+        ],
+        "profile-access.js": [
+          "390d3d3a39563ee0b5588857e64860bdb16b9ef94dc126d8507d0bf44a4f0287"
+        ],
+        "public/privacy-ledger-release.json": [
+          "38fd60362b891e69bc8aa0ccc0dc86ae9cef388228ca050baf2db8bde0b202aa"
+        ],
+        "db.js": [
+          "2408230beb55ae005aa5ccdc52243ac926ceeb98555712fc836681a7397cbb77"
+        ],
+        "auth-utils.js": [
+          "0e87d7cd7536ce5ad2d99fcc5734f9722795897deea8ca1f1f7570373e3c5809"
+        ],
+        "session-store.js": [
+          "976a2d0ea1461cc58a6df195c495195ef6edbec5e87fd5c734e9d8ce5a65f8eb"
+        ]
+      },
+      "garyhub-lab": {
+        "homepage-privacy.cjs": [
+          "386895f0d2257bb0cc48a8b7e97bc77ed1ecc7642cc32d61bca60af3813f81aa"
+        ],
+        "public/admin.html": [
+          "c8b1c412465fc86859ccf64d45f94bb1983b2ac20dda940ed658908198f4e182"
+        ],
+        "public/admin.js": [
+          "6b607cc09f7b1162d11cf0a470e852e4e4e8c4c54296be5df9349e5156303f54"
+        ],
+        "public/index.html": [
+          "8bb36d60b3d321159734576061d198b0c97de4d4e5fcd27655a26d25dee1b855",
+          "311922b46f47ef435ac06ef32f05d3b0716a54c735c99498d6f01d45dc2ea01e",
+          "04f9bc7aeb8a539de7cf52698202c8c1cd6bcc6fcf755abdbd2afc0e8c838c7a"
+        ],
+        "public/login.js": [
+          "7da308ee5529443a19e9ede0d4aafac299a91b9db78accc074a41cb6340e7dc9"
+        ],
+        "public/privacy-ledger-release.json": [
+          "38fd60362b891e69bc8aa0ccc0dc86ae9cef388228ca050baf2db8bde0b202aa"
+        ],
+        "public/profile-admin.js": [
+          "cd35b2f3b3585c5bae83096232098ed6a5cf6e421a0d64feca25b97f1f2499e8"
+        ],
+        "public/profile-privacy.css": [
+          "96a38ea3dd8256b1b34a82bb13321b9886e263ccbbe92505841d799e8c4411ff"
+        ],
+        "public/profile-privacy.js": [
+          "83279e1160ce805b6ae64f3538188104753957ae7d0d571200788935e0c9c3a3"
+        ],
+        "server.cjs": [
+          "0c3f3c1664de920205180b81db8bf7ac6fccdd4ef4f84a002c2c04c1af172c4b"
+        ],
+        "access-store.cjs": [
+          "50736288fa277a9898dcb5c34beced9135a2a951adc111d0a2f0e8420d3c89a3"
+        ],
+        "access-connection.cjs": [
+          "f4520cfbcaac3ff55689f897b41bfa8cb64e37f4b240a608cda86c4fbd5676f1"
+        ],
+        "user-cleanup.cjs": [
+          "e619519421ce962e1e3d7365d4249ecd753ef9e3a6b6de64f9825f4efb6466e1"
+        ]
+      }
+    }
+  }
+}

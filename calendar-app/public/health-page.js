@@ -62,12 +62,12 @@ function renderPersonal(kind) {
   rows.forEach(row => {
     const box = document.createElement("article"); box.className = "personal-item";
     const title = document.createElement("strong");
-    title.textContent = kind === "diary" ? `${row.entry_date} · ${row.title || "无标题"}` :
-      kind === "weight" ? `${row.entry_date} · ${shownWeight(row.weight_g)} ${personalUnit()}` :
-        `${row.entry_date} · ${row.activity_type} · ${row.duration_minutes} 分钟`;
+    title.textContent=row.entry_date+' · ';
+    if(kind==='weight')title.append(shownWeight(row.weight_g)+' '+personalUnit());
+    else {const name=document.createElement('span');name.dataset.i18nIgnore='';name.textContent=kind==='diary'?(row.title||'无标题'):row.activity_type;title.append(name);if(kind==='exercise')title.append(' · '+row.duration_minutes+' 分钟');}
     box.append(title);
     const body = kind === "diary" ? row.body : row.note;
-    if (body) { const p = document.createElement("p"); p.textContent = body; box.append(p); }
+    if (body) { const p = document.createElement("p"); p.textContent = body;p.dataset.i18nIgnore=""; box.append(p); }
     for (const [label, action, style] of [["编辑", "edit", "secondary"], ["删除", "delete", "danger"]]) {
       const button = document.createElement("button"); button.type = "button";
       button.className = style; button.textContent = label;

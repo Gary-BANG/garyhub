@@ -1,23 +1,30 @@
 'use strict';
 const crypto=require('node:crypto');
 const KEYS=['identity','education','academics','projects','skills'];
-const audiences=['guest','member'];
+const audiences=['guest','member','subscriber'];
 const empty=()=>({required:true,protected:[...KEYS],revision:1,salt:null,hash:null});
 const wrap=fn=>(req,res,next)=>Promise.resolve(fn(req,res)).catch(next);
 async function migrateProfile(db){
  await db.run('CREATE TABLE IF NOT EXISTS homepage_privacy(id INTEGER PRIMARY KEY CHECK(id=1),settings TEXT NOT NULL)');
  await db.run('INSERT OR IGNORE INTO homepage_privacy(id,settings) VALUES(1,?)',[JSON.stringify({...empty(),schema:2,guest:empty(),member:empty()})]);
  const row=await db.get('SELECT settings FROM homepage_privacy WHERE id=1'),old=JSON.parse(row.settings);
- if(old.schema!==2){const p={...empty(),...old,revision:(old.revision||1)+1};await db.run('UPDATE homepage_privacy SET settings=? WHERE id=1 AND settings=?',[JSON.stringify({...empty(),schema:2,guest:{...p},member:{...p}}),row.settings]);}
+ if(old.schema!==3){const p={...empty(),...old,revision:(old.revision||1)+1},guest=old.schema===2?old.guest:p,member=old.schema===2?old.member:p;await db.run('UPDATE homepage_privacy SET settings=? WHERE id=1 AND settings=?',[JSON.stringify({...empty(),schema:3,guest,member,subscriber:JSON.parse(JSON.stringify(member))}),row.settings]);}
 }
 function registerProfile(app,{db,requireAdmin}){
  const read=async()=>JSON.parse((await db.get('SELECT settings FROM homepage_privacy WHERE id=1')).settings);
  const publicPolicy=(s,audience)=>({audience,required:s.required,protected:s.protected,revision:s.revision,hasCode:!!s.hash,expiresHours:24});
+ async function context(req){
+  if(!req.session.user)return {user:null,audience:'guest',identity:'guest'};
+  const user=await db.get('SELECT id,role,enabled,account_tier,tier_version,deletion_pending FROM users WHERE id=?',[req.session.user.id]);
+  if(!user||user.enabled!==1||user.deletion_pending)throw Object.assign(Error('登录已失效'),{status:401});
+  return {user,audience:user.account_tier==='subscriber'?'subscriber':'member',identity:`${user.id}:${user.tier_version}`};
+ }
  async function access(req,preview){
-  const all=await read(),user=req.session.user,audience=preview||(user?'member':'guest'),s=all[audience];
+  const all=await read(),current=await context(req),user=current.user,audience=preview||current.audience,s=all[audience];
+  if(preview&&user?.role!=='admin')throw Object.assign(Error('需要管理员权限'),{status:403});
   const permission=!preview&&user?await db.get('SELECT view_academics FROM hub_permissions WHERE user_id=?',[user.id]):null;
   const grant=req.session.homepageGrants?.[audience];
-  const unlocked=!preview&&grant?.revision===s.revision&&grant.until>Date.now();
+  const unlocked=!preview&&grant?.identity===current.identity&&grant?.revision===s.revision&&grant.until>Date.now();
   const allowed=KEYS.filter(k=>!s.required||!s.protected.includes(k)||!preview&&user?.role==='admin'||unlocked||k==='academics'&&!preview&&permission?.view_academics===1);
   return {...publicPolicy(s,audience),allowed,unlocked:!!unlocked,expiresAt:unlocked?grant.until:null,preview:preview||null};
  }
@@ -29,7 +36,7 @@ function registerProfile(app,{db,requireAdmin}){
  }));
  const attempts=new Map();let globalTimes=[];
  app.post('/api/hub/profile-unlock',wrap(async(req,res)=>{
-  const audience=req.session.user?'member':'guest';if(req.body.audience&&req.body.audience!==audience)return res.status(409).json({message:'登录身份已变化，请刷新后输入对应访问码'});
+  const current=await context(req),audience=current.audience;if(req.body.audience&&req.body.audience!==audience)return res.status(409).json({message:'登录身份已变化，请刷新后输入对应访问码'});
   const now=Date.now(),key=(req.ip||'unknown')+':'+audience;
   for(const [k,x]of attempts)if(x.until<=now)attempts.delete(k);
   globalTimes=globalTimes.filter(t=>now-t<60000);const a=attempts.get(key)||{n:0,until:now+600000};
@@ -37,12 +44,12 @@ function registerProfile(app,{db,requireAdmin}){
   a.n++;attempts.set(key,a);globalTimes.push(now);const s=(await read())[audience],code=req.body.code;
   if(typeof code!=='string'||code.length>128||!s.hash)return res.status(400).json({message:'对应身份的访问码不正确或尚未设置'});
   if(!crypto.timingSafeEqual(crypto.scryptSync(code,Buffer.from(s.salt,'hex'),32),Buffer.from(s.hash,'hex')))return res.status(400).json({message:'对应身份的访问码不正确或尚未设置'});
-  attempts.delete(key);req.session.homepageGrants={...req.session.homepageGrants,[audience]:{revision:s.revision,until:now+86400000}};res.json(await access(req));
+  attempts.delete(key);req.session.homepageGrants={...req.session.homepageGrants,[audience]:{identity:current.identity,revision:s.revision,until:now+86400000}};res.json(await access(req));
  }));
- app.post('/api/hub/profile-lock',wrap(async(req,res)=>{const audience=req.session.user?'member':'guest';if(req.session.homepageGrants)delete req.session.homepageGrants[audience];delete req.session.homepageGrant;res.json({ok:true});}));
- app.get('/api/hub/admin/profile-privacy',requireAdmin,wrap(async(req,res)=>{const s=await read();res.json({guest:publicPolicy(s.guest,'guest'),member:publicPolicy(s.member,'member')});}));
+ app.post('/api/hub/profile-lock',wrap(async(req,res)=>{const audience=(await context(req)).audience;if(req.session.homepageGrants)delete req.session.homepageGrants[audience];delete req.session.homepageGrant;res.json({ok:true});}));
+ app.get('/api/hub/admin/profile-privacy',requireAdmin,wrap(async(req,res)=>{const s=await read();res.json(Object.fromEntries(audiences.map(a=>[a,publicPolicy(s[a],a)])));}));
  app.put('/api/hub/admin/profile-privacy',requireAdmin,wrap(async(req,res)=>{
-  const all=await read(),v=req.body;if(!audiences.includes(v.audience))return res.status(400).json({message:'请选择路人或普通登录用户'});const s=all[v.audience];
+  const all=await read(),v=req.body;if(!audiences.includes(v.audience))return res.status(400).json({message:'请选择路人、普通用户或订阅用户'});const s=all[v.audience];
   if(v.revision!==s.revision)return res.status(409).json({message:'这套规则已被另一页面修改，请刷新后重试'});
   if(typeof v.required!=='boolean'||!Array.isArray(v.protected)||new Set(v.protected).size!==v.protected.length||v.protected.some(k=>!KEYS.includes(k)))return res.status(400).json({message:'保护设置无效'});
   if(v.code!==undefined&&v.code!==''&&(typeof v.code!=='string'||v.code.length<8||v.code.length>128||!v.code.trim()))return res.status(400).json({message:'访问码长度应为 8–128 个字符'});
