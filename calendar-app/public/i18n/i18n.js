@@ -1,0 +1,28 @@
+/* GaryHub local UI translations. Personal content is deliberately excluded. */
+(()=>{'use strict';
+ if(window.GaryHubI18n)return;
+ const D=window.GARYHUB_TRANSLATIONS||{}, Z=window.GARYHUB_CHINESE||{}, KEY='garyhub.language',COOKIE='garyhub_language';
+ const originals=new WeakMap(),attrs=new WeakMap(),excluded='[data-i18n-ignore],[data-user-content],[data-profile-fragment^="identity-"]:not(.profile-placeholder),script,style,textarea,pre,code,.katex,.markdown-body,#readerContent,#prose,#tocItems,.reader-content,.entry-title,.task-title,.task-note,.fc-event-title,.course-name,.lecture-title,.totp-code,.point-text,.todo-name,#currentUserText,#todo-user,.gh-name';
+ const escape=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+ const keys=Object.keys(D).filter(k=>k.length>1&&/[\u3400-\u9fff]/.test(k)).sort((a,b)=>b.length-a.length);
+ const pattern=keys.length?new RegExp(keys.map(escape).join('|'),'g'):null;
+ function stored(){const c=document.cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith(COOKIE+'='));if(c&&['zh','en'].includes(c.split('=')[1]))return c.split('=')[1];try{const v=localStorage.getItem(KEY);if(v==='en'||v==='zh')return v;}catch{}return 'zh';}
+ let language=stored();
+ function t(value){const s=String(value??'');if(language==='zh')return Z[s]||s;if(D[s]!==undefined)return D[s];let result=s.replace(/共\s*(\d+)\s*笔/g,'$1 transactions').replace(/共\s*(\d+)\s*天/g,'$1 days').replace(/(\d+)\s*门/g,'$1 courses').replace(/(\d+)\s*项/g,'$1 entries').replace(/(\d+)\s*条/g,'$1 records').replace(/(\d+)\s*小时/g,'$1 hours').replace(/(\d+)\s*分钟/g,'$1 minutes').replace(/(\d+)\s*天/g,'$1 days').replace(/(\d{4}-\d\d-\d\d) 至 /g,'$1 to ');return pattern?result.replace(pattern,m=>D[m]):result;}
+ function exempt(node){return !!node.parentElement?.closest(excluded);}
+ function text(node){if(exempt(node)||!node.data.trim())return;const old=originals.get(node);const source=old&&node.data===old.rendered?old.source:node.data;const trim=source.trim(),translated=t(trim),leading=source.slice(0,source.indexOf(trim));const result=leading+translated+source.slice(source.indexOf(trim)+trim.length);originals.set(node,{source,rendered:result});if(node.data!==result)node.data=result;}
+ function attributes(node){if(node.closest(excluded)||node.id==='gh-language-switch')return;let map=attrs.get(node);if(!map){map={};attrs.set(node,map);}for(const key of ['placeholder','title','aria-label','alt']){if(!node.hasAttribute(key))continue;const value=node.getAttribute(key),old=map[key],source=old&&value===old.rendered?old.source:value,rendered=t(source);map[key]={source,rendered};if(value!==rendered)node.setAttribute(key,rendered);}}
+ function scan(root){if(!root)return;if(root.nodeType===3){text(root);return;}if(root.nodeType!==1&&root.nodeType!==9)return;if(root.nodeType===1){if(root.matches(excluded))return;attributes(root);}const walker=document.createTreeWalker(root,NodeFilter.SHOW_ELEMENT|NodeFilter.SHOW_TEXT);let n;while(n=walker.nextNode()){if(n.nodeType===3)text(n);else attributes(n);}}
+ function remember(){try{localStorage.setItem(KEY,language);}catch{}const domain=location.hostname==='garyhub.uk'||location.hostname.endsWith('.garyhub.uk')?'; Domain=.garyhub.uk':'';document.cookie=COOKIE+'='+language+'; Path=/; Max-Age=31536000; SameSite=Lax'+domain+(location.protocol==='https:'?'; Secure':'');}
+ function chrome(){document.documentElement.lang=language==='en'?'en':'zh-CN';document.documentElement.dataset.language=language;const b=document.getElementById('gh-language-switch');if(b){b.textContent=language==='en'?'中文':'English';b.setAttribute('aria-label',language==='en'?'切换到中文':'Switch to English');b.title=b.getAttribute('aria-label');b.dataset.i18nIgnore='';}}
+ function setLanguage(value,{save=true}={}){if(!['zh','en'].includes(value))return;language=value;if(save)remember();chrome();scan(document);document.dispatchEvent(new CustomEvent('garyhub:language',{detail:{language,locale:language==='en'?'en-US':'zh-CN'}}));}
+ function mount(){if(document.getElementById('gh-language-switch'))return;const host=document.querySelector('.header-actions')||document.querySelector('.nav-links,.nav-right')||document.querySelector('header nav')||document.querySelector('body>nav')||document.querySelector('header');if(!host)return;const b=document.createElement('button');b.type='button';b.id='gh-language-switch';b.className='gh-language-switch';b.onclick=()=>setLanguage(language==='zh'?'en':'zh');host.append(b);chrome();}
+ const native={confirm:window.confirm.bind(window),alert:window.alert.bind(window),prompt:window.prompt.bind(window)};
+ window.confirm=s=>native.confirm(t(s));window.alert=s=>native.alert(t(s));window.prompt=(s,v)=>native.prompt(t(s),v);
+ window.GaryHubI18n={t,setLanguage,get language(){return language;},get locale(){return language;},get intlLocale(){return language==='en'?'en-US':'zh-CN';},scan};
+ chrome();
+ function start(){mount();scan(document);const observer=new MutationObserver(records=>{for(const r of records){if(r.type==='characterData')text(r.target);else if(r.type==='attributes')attributes(r.target);else for(const n of r.addedNodes)scan(n);}});observer.observe(document.documentElement,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label','alt']});}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+ function sync(){const value=stored();if(value!==language)setLanguage(value,{save:false});}
+ addEventListener('storage',e=>{if(e.key===KEY&&['zh','en'].includes(e.newValue))setLanguage(e.newValue,{save:false});});addEventListener('focus',sync);document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync();});
+})();

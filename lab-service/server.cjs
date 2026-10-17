@@ -62,7 +62,7 @@ const server = http.createServer(async (req,res)=>{
     if(await academic(req,res,url))return;
     if(['/grades','/grades/','/study','/study/'].includes(url.pathname))url.pathname='/academic/index.html';
     url.pathname=decodeURIComponent(url.pathname);
-    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"1.3.4.2"});
+    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"1.3.5.0"});
     if(url.pathname.startsWith('/sub/')) {
       if(req.method!=='GET') return json(res,405,{message:'Method not allowed'});
       const sub=connections.subscription(url.pathname.slice(5));
@@ -167,7 +167,7 @@ const server = http.createServer(async (req,res)=>{
       if(user.role!=='admin')return json(res,403,{message:'需要管理员权限'});
     }
     const isHome=(req.headers.host||'').split(':')[0]==='garyhub.uk';
-    if(isHome&&!['/','/index.html','/hub-account.js','/hub-account.css','/profile-privacy.js','/profile-privacy.css','/login.html','/login.js','/hub.css'].includes(url.pathname))return json(res,404,{message:'Not found'});
+    if(isHome&&!['/','/index.html','/hub-account.js','/hub-account.css','/profile-privacy.js','/profile-privacy.css','/login.html','/login.js','/hub.css','/i18n/dictionary.js','/i18n/i18n.js','/i18n/i18n.css'].includes(url.pathname))return json(res,404,{message:'Not found'});
     let name=decodeURIComponent(url.pathname); if(name.endsWith('/')) name+='index.html';
     if(isHome&&name==='/index.html')name='/homepage.html';
     if(['/admin','/admin/','/admin/index.html'].includes(name))name='/admin.html';

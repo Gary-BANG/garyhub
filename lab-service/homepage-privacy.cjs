@@ -3,12 +3,12 @@ const fs=require('node:fs'),path=require('node:path');
 // Run only against the reviewed homepage while building the new image. Private fragments stay outside public/.
 function sanitize(html){
  const parts={};let counter=0;
- const extract=(pattern,key)=>{let count=0;html=html.replace(pattern,(full,...args)=>{count++;const id=`${key}-${counter++}`;parts[id]={key,html:full};const variant=full.startsWith('<h1')?'heading':full.startsWith('<p')?(full.includes('class="intro"')?'intro':'line'):full.startsWith('<a')?'link':full.startsWith('<footer')?'footer':'block';const caption={identity:'身份信息已隐藏',education:'教育信息已隐藏',projects:'项目经历已隐藏',skills:'技能与兴趣已隐藏'}[key];return `<div data-profile-fragment="${id}" class="profile-placeholder mask-${variant}"><span>••••</span><small>${caption}</small></div>`;});if(!count)throw Error('Homepage structure differs: '+key);};
+ const extract=(pattern,key)=>{let count=0;html=html.replace(pattern,(full,...args)=>{count++;const id=`${key}-${counter++}`;parts[id]={key,html:full};const variant=full.startsWith('<h1')?'heading':full.startsWith('<p')?(full.includes('class="intro"')?'intro':'line'):full.startsWith('<a')?'link':full.startsWith('<footer')?'footer':'block';const caption='该部分已隐藏';return `<div data-profile-fragment="${id}" class="profile-placeholder mask-${variant}"><span>••••</span><small>${caption}</small></div>`;});if(!count)throw Error('Homepage structure differs: '+key);};
  // Academics have their own permission; keep their slot outside protected education fragments.
  html=html.replace(/<p data-academics[^>]*>[\s\S]*?<\/p>/g,'');
  extract(/<aside class="profile"[\s\S]*?<\/aside>/,'education');
  extract(/<section class="section" id="about">[\s\S]*?<\/section>/,'education');
- html=html.replace(/(<div class="wrap content">)/,'$1<section class="section"><h2><span class="section-number">ACADEMICS</span>GPA &amp; Rank</h2><p data-academics aria-label="GPA 和 Rank 已隐藏">GPA: •••• · Rank: ••••</p></section>');
+ html=html.replace(/(<div class="wrap content">)/,'$1<section class="section profile-placeholder" data-academics-section><p data-academics>该部分已隐藏</p></section>');
  extract(/<section class="section" id="projects">[\s\S]*?<\/section>/,'projects');
  extract(/<section class="section">\s*<h2>\s*<span class="section-number">03 \/ TOOLKIT[\s\S]*?<\/section>/,'skills');
  extract(/<p class="eyebrow">[\s\S]*?<\/p>/,'education');

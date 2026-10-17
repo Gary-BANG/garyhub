@@ -89,3 +89,7 @@ Every user-visible production update must publish unread in-app release notes to
 ## v1.3.4.2 开发与升级包
 
 新增服务端加密的 TOTP 工具、管理员限时授权及订阅用户首页资料规则。详见 [v1.3.4.2 安装与权限说明](docs/GARYHUB_V1_3_4_2.md) 和 [验证记录](docs/GARYHUB_V1_3_4_2_TESTS.md)。安装器及可复现打包脚本保存在 `scripts/releases/v1.3.4.2/`。正式服务器是否已升级，以现场 `deployment-state.json` 与有效部署索引为准。
+
+## v1.3.5.0 update package
+
+Chinese / English UI, generic protected-profile placeholders, and sortable personal Todos. Supports the reviewed deployed v1.3.4.1 and v1.3.4.2 bases; actual installation is verified by the updater. See [update instructions](docs/GARYHUB_V1_3_5_0.md) and [validation](docs/GARYHUB_V1_3_5_0_TESTS.md).

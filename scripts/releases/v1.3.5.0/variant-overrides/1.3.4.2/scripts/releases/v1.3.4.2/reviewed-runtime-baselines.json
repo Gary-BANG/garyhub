@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "required_base_release": "v1.3.4.1",
+  "provenance": {
+    "archives": [
+      {
+        "file": "garyhub-update-20261011.ps1",
+        "sha256": "dba0dfb53aea5c26f372eb9b00036e80ee7edf1475b0fdb18b5825439a9828d3"
+      },
+      {
+        "file": "garyhub-current-20261011-125650.zip",
+        "sha256": "36a1b12baadb9e79df0d9d14617e6e5a29be14e4d67ef6be5a2699db473773fb"
+      },
+      {
+        "file": "GaryHub-Academic-Upgrade-20261014.zip",
+        "sha256": "1f0fcfec93344e2672aa2e32c47fe1d86c987b2ddc83e93e1c12511e3d40e4bc"
+      },
+      {
+        "file": "garyhub_v_1.3.3.2_upgrade.zip",
+        "sha256": "fc713e1926a82bdaa4d6d658b0725f7b0cb5234effe6e6718d9c886447fa8635"
+      },
+      {
+        "file": "GaryHub_v1.3.4.0_Privacy_Ledger_Update_fix1.zip",
+        "sha256": "d30fc6c57dfea5214ce75cb27c9e0e9a05b32879c2da8e377ddfc484f9685590"
+      },
+      {
+        "file": "GaryHub_v1.3.4.1_Update.zip",
+        "sha256": "5665c68b0c74bf2c78d573f32b46a7b8df6e7a2d5c2c424987c575f442a3ce60"
+      }
+    ],
+    "reconstruction": "The 2026-10-14 patch.integrate adds Grade Planner and Study Hub to each reviewed 2026-10-11 index; both resulting raw hashes are explicitly allowed by the v1.3.3.2 manifest. Its patch is an identity function. Neither v1.3.4.0 nor v1.3.4.1 overlays public/index.html. The shared-account fixture differs from Git base only in the displayed tool count (08 versus 06)."
+  },
+  "variants": [
+    {
+      "service": "garyhub-lab",
+      "path": "public/index.html",
+      "fixture": "tests/fixtures/tools-index-v1.3.3.2-shared-account.html",
+      "normalized_sha256": "311922b46f47ef435ac06ef32f05d3b0716a54c735c99498d6f01d45dc2ea01e",
+      "prior_release_raw_sha256": "fb0020c2112dc34c978dab4c046d1d62f9837f888bcad149cecc4abb6f7fed06"
+    },
+    {
+      "service": "garyhub-lab",
+      "path": "public/index.html",
+      "fixture": "tests/fixtures/tools-index-v1.3.3.2-legacy-navigation.html",
+      "normalized_sha256": "04f9bc7aeb8a539de7cf52698202c8c1cd6bcc6fcf755abdbd2afc0e8c838c7a",
+      "prior_release_raw_sha256": "c58721f3eb2fa12b99df2d3581bf0da0f9abb6d7a2fb323873a98bb593ad25a1"
+    }
+  ]
+}

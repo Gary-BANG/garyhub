@@ -19,12 +19,14 @@ const {migrateProfile,registerProfile}=require("./profile-access");
 const {migrateLedger,registerLedger}=require("./ledger-api");
 const {migrateMembership,registerMembership}=require("./membership");
 const {migrateTotp,registerTotp}=require("./totp-api");
+const {migrateTodos,registerTodos}=require("./todos-api");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, "public");
 
 app.set("trust proxy", 1);
 
+app.use("/api/todos",express.json({limit:"2mb"}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -666,6 +668,7 @@ registerMembership(app,{requireAdmin});
 registerTotp(app,{requireLogin,requireAdmin});
 registerProfile(app,{db:require("./db"),requireAdmin});
 registerLedger(app,{requireLogin});
+registerTodos(app,{requireLogin});
 registerHubApi(app,{db:require("./db"),requireLogin,requireAdmin});
 registerTasksApi(app, { requireLogin, resolveTargetUserId });
 registerEmailApi(app, { requireLogin });
@@ -681,6 +684,7 @@ initDb()
   .then(() => migrateProfile(require("./db")))
   .then(() => migrateTotp(require("./db")))
   .then(() => migrateLedger(require("./db")))
+  .then(() => migrateTodos(require("./db")))
   .then(() => {
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Calendar app listening on port ${PORT}`);

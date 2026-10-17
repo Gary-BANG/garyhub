@@ -3,10 +3,10 @@ const say=message=>{$('#notice').textContent=message;};
 let current=null,admin=false,busy=false;
 async function api(route,options){const response=await fetch(route,{cache:'no-store',...options});const data=await response.json();if(!response.ok)throw Error(data.message||'请求失败');return data;}
 async function post(route,value={}){const {token}=await api('/api/csrf');return api(route,{method:'POST',headers:{'content-type':'application/json','x-csrf-token':token},body:JSON.stringify(value)});}
-const date=value=>new Intl.DateTimeFormat('zh-CN',{dateStyle:'medium',timeStyle:'short'}).format(new Date(value));
+const date=value=>new Intl.DateTimeFormat(window.GaryHubI18n?.intlLocale||'zh-CN',{dateStyle:'medium',timeStyle:'short'}).format(new Date(value));
 async function refresh(first=false){
   const result=await api('/api/access/status');
-  $('#account').textContent=`${result.user.username} · 用户编号 ${result.user.id}`;
+  const name=document.createElement('span');name.dataset.i18nIgnore='';name.textContent=result.user.username;$('#account').replaceChildren(name,document.createTextNode(' · 用户编号 '+result.user.id));
   current=result.grant; const g=current;
   $('#grant').textContent=!g?'尚未兑换邀请码。':g.revoked?'授权已由管理员停用。':g.active?(g.permanent?'永久授权（无固定到期日）':`有效期至 ${date(g.expiresAt)}`):`已于 ${date(g.expiresAt)} 到期`;
   $('#connection').textContent=!g?'兑换邀请码即可申请开通。':!g.active?'连接已停用或正在停止，续期请兑换新邀请码。':g.connectionStatus==='ready'?'连接已开通，可以导入。':result.syncHealthy?'正在开通或更新，请稍候…':'连接服务暂时无法确认状态，请联系管理员。';
@@ -42,3 +42,5 @@ $('#copy-node').onclick=()=>act($('#copy-node'),async()=>{await navigator.clipbo
 $('#rotate').onclick=()=>act($('#rotate'),async()=>{if(!confirm('重置后需要重新导入。继续？'))return;await post('/api/access/rotate');say('已重置，等待同步完成后请重新导入。');await refresh();});
 refresh(true).catch(e=>say(e.message));
 setInterval(()=>{if(!document.hidden&&!busy)refresh().catch(e=>say(e.message));},10000);
+
+document.addEventListener('garyhub:language',()=>{if(!busy)refresh().catch(e=>say(e.message));});
