@@ -3,3 +3,5 @@
 .ledger-filters>.field,.ledger-editor .field{min-width:0}.ledger-filters input,.ledger-filters select{min-width:0;width:100%}@media(max-width:1050px){.ledger-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 .fx-widget{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:20px}.fx-widget h2{font-size:24px;margin:10px 0}.fx-widget p{max-width:850px;margin-bottom:0}.fx-widget a{white-space:nowrap}.ledger-row small{display:block;text-align:right;color:var(--muted);margin:6px 0}.ledger-charts[hidden]{display:none}@media(max-width:600px){.fx-widget{display:block}.fx-widget a{display:inline-block;margin-top:14px}.fx-widget h2{font-size:21px}}
+
+.ledger-detail>summary{cursor:pointer;list-style:none;gap:12px}.ledger-detail>summary::-webkit-details-marker{display:none}.ledger-detail>summary:focus-visible{outline:3px solid #6687cf;outline-offset:6px}.detail-state{font-size:.8rem;color:var(--accent,#6687cf);white-space:nowrap}.ledger-detail[open] .when-closed,.ledger-detail:not([open]) .when-open{display:none}.ledger-detail:not([open])>summary{margin-bottom:0}.ledger-detail[open]>summary{margin-bottom:18px}

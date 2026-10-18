@@ -20,6 +20,8 @@ const {migrateLedger,registerLedger}=require("./ledger-api");
 const {migrateMembership,registerMembership}=require("./membership");
 const {migrateTotp,registerTotp}=require("./totp-api");
 const {migrateTodos,registerTodos}=require("./todos-api");
+const { findLoginIdentity } = require("./login-identity");
+const { migratePasswordReset, registerPasswordReset } = require("./password-reset");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -151,7 +153,7 @@ async function resolveTargetUserId(req) {
 }
 
 app.get("/health", (req, res) => {
-  res.json({ ok: true, hubVersion: "1.3.4.2" });
+  res.json({ ok: true, hubVersion: "1.3.5.1" });
 });
 
 // 登录
@@ -161,12 +163,12 @@ app.post("/api/login", rateLimit(12, 15 * 60_000), async (req, res) => {
     const password = String(req.body.password || "");
 
     if (!username || !password) {
-      return res.status(400).json({ message: "用户名和密码不能为空" });
+      return res.status(400).json({ message: "用户名或邮箱和密码不能为空" });
     }
 
-    const user = await findUserByUsername(username);
+    const user = await findLoginIdentity(require("./db"), username);
     if (!user) {
-      return res.status(401).json({ message: "用户名或密码错误" });
+      return res.status(401).json({ message: "用户名、邮箱或密码错误" });
     }
 
     if (user.enabled !== 1 || user.deletion_pending) {
@@ -175,7 +177,7 @@ app.post("/api/login", rateLimit(12, 15 * 60_000), async (req, res) => {
 
     const ok = verifyPassword(password, user.password_hash);
     if (!ok) {
-      return res.status(401).json({ message: "用户名或密码错误" });
+      return res.status(401).json({ message: "用户名、邮箱或密码错误" });
     }
 
     await new Promise((resolve,reject)=>req.session.regenerate(e=>e?reject(e):resolve()));
@@ -207,7 +209,7 @@ app.post("/api/register-request", rateLimit(5, 60 * 60_000), async (req, res) =>
     const requireEmail = process.env.REQUIRE_VERIFIED_EMAIL === "true";
 
     if (!username || !password) {
-      return res.status(400).json({ message: "用户名和密码不能为空" });
+      return res.status(400).json({ message: "用户名或邮箱和密码不能为空" });
     }
 
     if (username.length < 3 || username.length > 32) {
@@ -308,7 +310,7 @@ app.post("/api/admin/users", requireAdmin, async (req, res) => {
     const role = req.body.role === "admin" ? "admin" : "user";
 
     if (!username || !password) {
-      return res.status(400).json({ message: "用户名和密码不能为空" });
+      return res.status(400).json({ message: "用户名或邮箱和密码不能为空" });
     }
 
     const existing = await findUserByUsername(username);
@@ -663,6 +665,7 @@ app.delete("/api/events/:id", requireLogin, async (req, res) => {
   }
 });
 
+registerPasswordReset(app,{sessionStore});
 registerAccounts(app,{requireLogin,requireAdmin,sessionStore});
 registerMembership(app,{requireAdmin});
 registerTotp(app,{requireLogin,requireAdmin});
@@ -685,6 +688,7 @@ initDb()
   .then(() => migrateTotp(require("./db")))
   .then(() => migrateLedger(require("./db")))
   .then(() => migrateTodos(require("./db")))
+  .then(() => migratePasswordReset(require("./db")))
   .then(() => {
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Calendar app listening on port ${PORT}`);
