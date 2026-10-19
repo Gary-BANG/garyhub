@@ -4,7 +4,7 @@
  let user=null,items=[],nextBefore=null,loading=false,started=false,requestId=0;
  const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
  const name=el('span','正在确认登录…','gh-name'),login=el('a','登录','gh-button'),logout=el('button','退出登录','gh-button'),admin=el('a','用户管理 ↗','gh-button');
- login.href='/login.html?next='+encodeURIComponent(location.pathname);admin.href='https://tools.garyhub.uk/admin/';admin.target='_blank';admin.rel='noopener';logout.type='button';
+ login.href='https://calendar.garyhub.uk/login/?next='+encodeURIComponent(location.href);admin.href='https://tools.garyhub.uk/admin/';admin.target='_blank';admin.rel='noopener';logout.type='button';
  const bell=el('button','🔔','gh-button'),panel=el('section',undefined,'gh-notices'),message=el('span','','gh-message');bell.type='button';bell.setAttribute('aria-label','更新通知');bell.setAttribute('aria-expanded','false');panel.id='gh-notices';panel.setAttribute('aria-label','更新通知');bell.setAttribute('aria-controls',panel.id);panel.hidden=true;message.setAttribute('role','status');
  mount.append(name,login,admin,...(scope?[bell]:[]),logout,message,panel);login.hidden=logout.hidden=admin.hidden=bell.hidden=true;
  async function api(path,options={}){const r=await fetch(path,{cache:'no-store',...options});let data;try{data=await r.json();}catch{throw Error('服务暂时不可用');}if(r.status===428){location.replace('https://calendar.garyhub.uk/change-password/');throw Error('请先修改临时密码');}if(!r.ok)throw Error(data.message||'请求失败');return data;}
