@@ -12,6 +12,7 @@ async function migrateLedger(db){
  await require('./ledger-migration').migrateCurrencies(db);
  await db.run('CREATE INDEX IF NOT EXISTS idx_ledger_user_date ON ledger_entries(user_id,currency,date)');
  await db.run('CREATE INDEX IF NOT EXISTS idx_ledger_refund ON ledger_entries(refund_of)');
+ await require('./fixed-expenses').migrateFixedExpenses(db);
 }
 function registerLedger(app,{requireLogin,db=connection(),fx=createFx({dataDir:require('./db').dataDir})}){
  // Dedicated connection + serialized transactions keep refund checks atomic, without sharing transactions with Calendar.
@@ -37,9 +38,10 @@ function registerLedger(app,{requireLogin,db=connection(),fx=createFx({dataDir:r
  }));
  function range(q){const from=date(q.from),to=date(q.to);if(to<from)fail('结束日期不能早于开始日期');if(!CURRENCIES.includes(q.currency))fail('请选择有效的汇总币种');return {from,to,currency:q.currency,days:Math.round((Date.parse(to)-Date.parse(from))/86400000)+1};}
  app.get('/api/ledger/entries',...route(async(req,res)=>{
-  const uid=req.session.user.id,r=range(req.query),category=typeof req.query.category==='string'?req.query.category:'',page=Number(req.query.page||1);if(!Number.isSafeInteger(page)||page<1||page>100000)fail('页码无效');
+  const uid=req.session.user.id,r=range(req.query),category=typeof req.query.category==='string'?req.query.category:'';let page=Number(req.query.page||1);if(!Number.isSafeInteger(page)||page<1||page>100000)fail('页码无效');
   const params=[uid,r.from,r.to,...(category?[category]:[])],where='user_id=? AND date BETWEEN ? AND ?'+(category?' AND category_id=?':'');
   const all=await db.all(`SELECT * FROM ledger_entries WHERE ${where} ORDER BY date DESC,created_at DESC,id DESC`,params);
+  if(typeof req.query.entry==='string'){const index=all.findIndex(x=>x.id===req.query.entry);if(index>=0)page=Math.floor(index/15)+1;}
   const rate=await fx.get(),rawTotals=Object.fromEntries(CURRENCIES.map(c=>[c,{expense:0,income:0,refund:0}]));
   let expense=0,income=0,refund=0;const byCategory={},daily={};
   for(const x of all){rawTotals[x.currency][x.kind]+=x.amount;if(!rate.available)continue;const value=convert(x.amount,x.currency,r.currency,rate.rates||rate.rate);if(x.kind==='income')income+=value;else if(x.kind==='refund')refund+=value;else expense+=value;const delta=x.kind==='expense'?value:x.kind==='refund'?-value:0;if(delta){byCategory[x.category_id]=(byCategory[x.category_id]||0)+delta;daily[x.date]=(daily[x.date]||0)+delta;}}
@@ -69,5 +71,6 @@ function registerLedger(app,{requireLogin,db=connection(),fx=createFx({dataDir:r
  app.delete('/api/ledger/entries/:id',...route(async(req,res)=>{
   const uid=req.session.user.id;await transaction(async()=>{const old=await fetchEntry(uid,req.params.id);if(!old)fail('记录不存在',404);if(req.body.revision!==old.revision)fail('记录已变化，请刷新后重试',409);const children=await db.get('SELECT COUNT(*) AS n FROM ledger_entries WHERE user_id=? AND refund_of=?',[uid,old.id]);if(children.n)fail('请先删除或取消关联此消费的退款');await db.run('DELETE FROM ledger_entries WHERE user_id=? AND id=?',[uid,old.id]);});res.json({ok:true});
  }));
+ require('./fixed-expenses').registerFixedExpenses(app,{db,route,categories,fx,transaction,output,fetchEntry,validate,money,date});
 }
 module.exports={registerLedger,migrateLedger,money,date,BUILTIN};

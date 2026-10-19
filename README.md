@@ -93,3 +93,7 @@ Every user-visible production update must publish unread in-app release notes to
 ## v1.3.5.0 update package
 
 Chinese / English UI, generic protected-profile placeholders, and sortable personal Todos. Supports the reviewed deployed v1.3.4.1 and v1.3.4.2 bases; actual installation is verified by the updater. See [update instructions](docs/GARYHUB_V1_3_5_0.md) and [validation](docs/GARYHUB_V1_3_5_0_TESTS.md).
+
+## v1.3.5.2 update package
+
+Central GaryHub sign-in with safe return links and independent monthly/yearly fixed expense estimates. Manual payment recording preserves actual-ledger history and prevents duplicates. See [instructions](docs/GARYHUB_V1_3_5_2.md) and [validation](docs/GARYHUB_V1_3_5_2_TESTS.md). The effective deployment index remains authoritative.

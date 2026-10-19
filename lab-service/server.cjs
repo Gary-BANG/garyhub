@@ -5,6 +5,7 @@ const crypto = require('node:crypto');
 const { pipeline } = require('node:stream');
 const { createAccessStore } = require('./access-store.cjs');
 const { createConnections } = require('./access-connection.cjs');
+const auth = require('./public/auth-redirect.js');
 const ROOT = path.join(__dirname, 'public');
 const DATA = process.env.LAB_DATA_DIR || '/data';
 const CALENDAR = process.env.CALENDAR_URL || 'http://calendar-app:3000';
@@ -57,12 +58,17 @@ const server = http.createServer(async (req,res)=>{
   res.setHeader('Referrer-Policy','same-origin');
   try {
     const url=new URL(req.url, 'http://localhost');
+    const host=(req.headers.host||'').split(':')[0];
+    const publicOrigin=['garyhub.uk','tools.garyhub.uk','lab.garyhub.uk'].includes(host)?'https://'+host:'https://tools.garyhub.uk';
+    const redirectLogin=target=>{res.writeHead(302,{Location:auth.loginUrl(target,publicOrigin),'Cache-Control':'no-store'});res.end();};
+    if(['/login','/login/','/login.html'].includes(url.pathname))return redirectLogin(url.searchParams.get('next')||(host==='garyhub.uk'?'/':'/lab/'));
+
     if(await profileHandler(req,res,url))return;
     if(await cleanup(req,res,url))return;
     if(await academic(req,res,url))return;
     if(['/grades','/grades/','/study','/study/'].includes(url.pathname))url.pathname='/academic/index.html';
     url.pathname=decodeURIComponent(url.pathname);
-    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"1.3.5.1"});
+    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"1.3.5.2"});
     if(url.pathname.startsWith('/sub/')) {
       if(req.method!=='GET') return json(res,405,{message:'Method not allowed'});
       const sub=connections.subscription(url.pathname.slice(5));
@@ -159,19 +165,19 @@ const server = http.createServer(async (req,res)=>{
       return json(res,200,{revision:next.revision,updatedAt:next.updatedAt});
     }
     if(!['GET','HEAD'].includes(req.method)) return json(res,405,{message:'Method not allowed'});
-    if(['/totp','/totp/','/totp/index.html'].includes(url.pathname)){if(!await identity(req)){res.writeHead(302,{Location:'/login.html?next=%2Ftotp%2F','Cache-Control':'no-store'});return res.end();}if(url.pathname==='/totp'){res.writeHead(302,{Location:'/totp/'});return res.end();}}
+    if(['/totp','/totp/','/totp/index.html'].includes(url.pathname)){if(!await identity(req)){return redirectLogin(url.pathname+url.search);}if(url.pathname==='/totp'){res.writeHead(302,{Location:'/totp/'});return res.end();}}
     if(url.pathname==='/lab' || url.pathname==='/lab/' || url.pathname==='/lab/index.html' || url.pathname==='/access' || url.pathname==='/access/' || url.pathname==='/access/index.html') {
-      if(!await identity(req)) {res.writeHead(302,{Location:url.pathname.startsWith('/access')?'/login.html?next=%2Faccess%2F':'/login.html','Cache-Control':'no-store'});return res.end();}
+      if(!await identity(req)) {return redirectLogin(url.pathname+url.search);}
       if(url.pathname==='/lab') {res.writeHead(302,{Location:'/lab/'});return res.end();}
       if(url.pathname==='/access') {res.writeHead(302,{Location:'/access/'});return res.end();}
     }
     if(url.pathname==='/admin/' || url.pathname==='/admin' || url.pathname==='/admin.html' || url.pathname==='/admin/index.html') {
       const user=await identity(req);
-      if(!user){res.writeHead(302,{Location:'/login.html?next=%2Fadmin%2F','Cache-Control':'no-store'});return res.end();}
+      if(!user){return redirectLogin('/admin/'+url.search);}
       if(user.role!=='admin')return json(res,403,{message:'需要管理员权限'});
     }
     const isHome=(req.headers.host||'').split(':')[0]==='garyhub.uk';
-    if(isHome&&!['/','/index.html','/hub-account.js','/hub-account.css','/profile-privacy.js','/profile-privacy.css','/login.html','/login.js','/password-reset.js','/password-reset.css','/hub.css','/i18n/dictionary.js','/i18n/i18n.js','/i18n/i18n.css'].includes(url.pathname))return json(res,404,{message:'Not found'});
+    if(isHome&&!['/','/index.html','/hub-account.js','/auth-redirect.js','/hub-account.css','/profile-privacy.js','/profile-privacy.css','/login.html','/login.js','/password-reset.js','/password-reset.css','/hub.css','/i18n/dictionary.js','/i18n/i18n.js','/i18n/i18n.css'].includes(url.pathname))return json(res,404,{message:'Not found'});
     let name=decodeURIComponent(url.pathname); if(name.endsWith('/')) name+='index.html';
     if(isHome&&name==='/index.html')name='/homepage.html';
     if(['/admin','/admin/','/admin/index.html'].includes(name))name='/admin.html';

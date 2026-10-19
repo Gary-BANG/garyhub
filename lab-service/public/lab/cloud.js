@@ -1,6 +1,6 @@
 const status = document.createElement('div');
 status.id='cloud-bar';
-status.innerHTML='<a href="https://tools.garyhub.uk">← Tools</a><span id="cloud-user"></span><span id="cloud-status">连接个人空间…</span><button id="cloud-retry">重试同步</button><button id="cloud-export">导出本机备份</button><button id="cloud-reload">加载云端</button><a href="/login.html">重新登录</a><button id="cloud-logout">退出</button>';
+status.innerHTML='<a href="https://tools.garyhub.uk">← Tools</a><span id="cloud-user"></span><span id="cloud-status">连接个人空间…</span><button id="cloud-retry">重试同步</button><button id="cloud-export">导出本机备份</button><button id="cloud-reload">加载云端</button><a id="cloud-login" href="https://calendar.garyhub.uk/login/">重新登录</a><button id="cloud-logout">退出</button>';
 document.body.prepend(status);
 let db, user, revision=0, pending=null, blocked=false, timer, chain=Promise.resolve(), csrf, dirty=false;
 const label=t=>document.querySelector('#cloud-status').textContent=t;
@@ -46,6 +46,7 @@ document.querySelector('#cloud-export').onclick=async()=>{
   const url=URL.createObjectURL(new Blob([JSON.stringify(out)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='ece470-personal-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
 };
 document.querySelector('#cloud-reload').onclick=async()=>{if(!confirm('将丢弃本机未同步的更改并加载云端。请先导出本机备份。继续？'))return;try{blocked=true;clearTimeout(timer);await chain;const r=await api('/api/lab/state');if(r.user.id!==user.id){label('登录账号已变化；旧账号的本机备份已保留，请重新加载页面。');return;}await local(true,{revision:r.revision,state:r.state,dirty:false});dirty=false;location.reload();}catch(e){label(e.message);}};
-document.querySelector('#cloud-logout').onclick=async()=>{if(dirty){label('请先等待同步成功，或导出备份后再退出。');return;}try{const token=(await api('/api/csrf')).token;await api('/api/logout',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':token},body:'{}'});location.href='/login.html';}catch(e){label(e.message);}};
+document.querySelector('#cloud-login').href='https://calendar.garyhub.uk/login/?next='+encodeURIComponent(location.href);
+document.querySelector('#cloud-logout').onclick=async()=>{if(dirty){label('请先等待同步成功，或导出备份后再退出。');return;}try{const token=(await api('/api/csrf')).token;await api('/api/logout',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':token},body:'{}'});location.href=document.querySelector('#cloud-login').href;}catch(e){label(e.message);}};
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
 window.addEventListener('online',()=>{if(!blocked)queue();});
