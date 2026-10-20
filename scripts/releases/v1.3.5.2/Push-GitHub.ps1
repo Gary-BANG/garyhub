@@ -13,7 +13,7 @@ try{
  $current=(& git -C $Repo branch --show-current | Out-String).Trim()
  if($LASTEXITCODE -ne 0 -or $current -ne $branch){throw ('Switch to the prepared '+$branch+' branch before pushing.')}
  $remote=(& git -C $Repo remote get-url origin | Out-String).Trim()
- if($remote -notmatch 'github\.com[:/]Gary-BANG/garyhub(?:\.git)?$'){throw 'Unexpected repository origin.'}
+ if($remote -notmatch '^(?:https://github\.com/|git@github\.com:|ssh://git@github\.com/)Gary-BANG/garyhub(?:\.git)?$'){throw 'Unexpected repository origin.'}
  $status=(& git -C $Repo status --porcelain | Out-String).Trim()
  if($status){throw 'Uncommitted changes exist. Review them before pushing.'}
  & git -C $Repo push -u origin $branch

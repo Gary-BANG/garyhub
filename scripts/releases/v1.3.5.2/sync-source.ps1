@@ -11,7 +11,7 @@ if(-not(Get-Command git -ErrorAction SilentlyContinue)){
 function Git-Run { param([string[]]$GitArgs) & git -C $Repo @GitArgs; if($LASTEXITCODE -ne 0){throw ('Git failed: '+$GitArgs[0])} }
 if(-not(Test-Path -LiteralPath (Join-Path $Repo '.git'))){Write-Host 'Server update is complete. The local repository was not found; source is retained beside the installer.';return}
 $remote=(& git -C $Repo remote get-url origin 2>$null | Out-String).Trim()
-if($remote -notmatch 'github\.com[:/]Gary-BANG/garyhub(?:\.git)?$'){throw 'Repository origin does not match Gary-BANG/garyhub.'}
+if($remote -notmatch '^(?:https://github\.com/|git@github\.com:|ssh://git@github\.com/)Gary-BANG/garyhub(?:\.git)?$'){throw 'Repository origin does not match Gary-BANG/garyhub.'}
 $status=(& git -C $Repo status --porcelain | Out-String)
 if($LASTEXITCODE -ne 0 -or $status.Trim()){throw 'Local changes were found. They were preserved; server update is complete.'}
 $versionFile=Join-Path $Repo 'calendar-app\public\privacy-ledger-release.json'
