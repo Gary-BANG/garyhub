@@ -101,3 +101,7 @@ Central GaryHub sign-in with safe return links and independent monthly/yearly fi
 ## v1.3.5.3 review fixes
 
 Fixes complete GitHub origin validation, excludes private environment files from every packaging path, and preserves approved index.html login destinations. Install on deployed v1.3.5.2. See [instructions](docs/GARYHUB_V1_3_5_3.md) and [validation](docs/GARYHUB_V1_3_5_3_TESTS.md). This follow-up builds on merged PR #11.
+
+## v1.3.5.4 Todo import and AI prompts
+
+Preview and append Todos and points from pasted or uploaded JSON; copy a schema-matched AI prompt. Identical content is skipped by default. Existing drafts, ordering, completion states, per-account ownership and revision checks are preserved. Install on deployed v1.3.5.3. See [instructions](docs/GARYHUB_V1_3_5_4.md) and [validation](docs/GARYHUB_V1_3_5_4_TESTS.md).

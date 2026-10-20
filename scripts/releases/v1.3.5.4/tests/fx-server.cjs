@@ -1,0 +1,1 @@
+require('node:http').createServer((req,res)=>{res.setHeader('Content-Type','application/json');res.end(JSON.stringify(['CNY','CAD','HKD'].map(quote=>({date:new Date().toISOString().slice(0,10),base:'USD',quote,rate:quote==='CNY'?7:quote==='CAD'?1.25:8}))));}).listen(Number(process.env.FX_CHECK_PORT||8090),'0.0.0.0');
