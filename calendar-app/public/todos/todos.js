@@ -1,6 +1,6 @@
 (()=>{'use strict';
  const $=id=>document.getElementById(id),tr=s=>window.GaryHubI18n?.t(s)||s;
- let user=null,todos=[],revision=0,dirty=false,blocked=false,saving=null,csrf=null,timer,editTarget=null,drag=null,epoch=0;
+ let user=null,todos=[],revision=0,dirty=false,blocked=false,saving=null,csrf=null,timer,editTarget=null,drag=null,epoch=0,importer=null;
  const open=new Set(),uuid=()=>crypto.randomUUID();
  const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
  const message=(text,error=false)=>{$('todo-status').textContent=tr(text);$('todo-status').classList.toggle('error',error);};
@@ -11,9 +11,9 @@
   const headers={'X-GaryHub-User':String(user?.id||'')};
   if(method!=='GET'){if(!csrf){const r=await fetch('/api/csrf',{cache:'no-store'});if(!r.ok)throw Error(tr('请先登录'));csrf=(await r.json()).token;}headers['X-CSRF-Token']=csrf;headers['Content-Type']='application/json';}
   const r=await fetch(path,{method,headers,cache:'no-store',body:body===undefined?undefined:JSON.stringify(body)});const d=await r.json();
-  if(!r.ok){if([401,403,428].includes(r.status)){block();}if(r.status===409)blocked=true;throw Error(tr(d.message||'请求失败，请重试。'));}return d;
+  if(!r.ok){if([401,403,428].includes(r.status)){block();}if(r.status===409)blocked=true;throw Object.assign(Error(tr(d.message||'请求失败，请重试。')),{status:r.status,sourceMessage:d.message,code:d.code,path:d.path,details:d.details});}return d;
  }
- function block(){blocked=true;epoch++;$('todo-app').hidden=true;$('todo-dialog').close();$('todo-edit-text').value='';$('todo-title').value='';$('todo-list').replaceChildren();message('登录账号已变化，请重新登录。',true);}
+ function block(){blocked=true;epoch++;importer?.clear();$('todo-app').hidden=true;$('todo-dialog').close();$('todo-edit-text').value='';$('todo-title').value='';$('todo-list').replaceChildren();message('登录账号已变化，请重新登录。',true);}
  function mark(){dirty=true;message('正在等待保存…');clearTimeout(timer);timer=setTimeout(()=>save().catch(e=>message(e.message,true)),500);}
  async function save(){
   clearTimeout(timer);if(saving){await saving;return dirty?save():true;}if(!dirty)return true;if(blocked)throw Error(tr('登录或数据状态已变化，请下载草稿后重新加载。'));
@@ -44,10 +44,11 @@
  $('todo-add').onsubmit=e=>{e.preventDefault();const title=$('todo-title').value.trim();if(!title||blocked)return;if(todos.length>=300)return message('最多保存 300 条待办',true);todos.push({id:uuid(),title,done:false,points:[]});$('todo-title').value='';mark();render();};
  $('todo-edit').onsubmit=e=>{e.preventDefault();const value=$('todo-edit-text').value.trim();if(!value||!editTarget||blocked)return;if(editTarget.point)editTarget.point.text=value;else editTarget.todo.title=value;$('todo-dialog').close();$('todo-edit-text').value='';editTarget=null;mark();render();};$('todo-edit-cancel').onclick=()=>{$('todo-dialog').close();$('todo-edit-text').value='';editTarget=null;};
  $('todo-download').onclick=()=>{const blob=new Blob([JSON.stringify({format:'garyhub-todos-v1',todos},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='garyhub-todos-draft.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
- async function load(){const ticket=++epoch;const r=await fetch('/api/me',{cache:'no-store'});if(!r.ok){location.replace('/login/?next=%2Ftodos%2F');return;}const d=await r.json();if(d.user.mustChangePassword){location.replace('/change-password/');return;}user=d.user;blocked=false;csrf=null;const data=await api('/api/todos');if(ticket!==epoch)return;todos=data.todos;revision=data.revision;dirty=false;open.clear();$('todo-user').textContent=user.username;$('todo-app').hidden=false;render();message('已保存到服务器');}
+ async function load(){const ticket=++epoch;const r=await fetch('/api/me',{cache:'no-store'});if(!r.ok){location.replace('/login/?next=%2Ftodos%2F');return;}const d=await r.json();if(d.user.mustChangePassword){location.replace('/change-password/');return;}if(user&&user.id!==d.user.id)importer?.clear();user=d.user;blocked=false;csrf=null;const data=await api('/api/todos');if(ticket!==epoch)return;todos=data.todos;revision=data.revision;dirty=false;open.clear();importer?.invalidate();$('todo-user').textContent=user.username;$('todo-app').hidden=false;render();message('已保存到服务器');}
  $('todo-reload').onclick=async()=>{if(dirty&&!confirm(tr('重新加载会放弃未保存的草稿，是否继续？')))return;try{if(saving)await saving;await load();}catch(e){message(e.message,true);}};
  $('todo-logout').onclick=async()=>{try{await save();await api('/api/logout','POST',{});block();location.replace('/login/?next=%2Ftodos%2F');}catch(e){message(e.message,true);}};
  let checking=false;async function identity(){if(checking||!user||document.hidden)return;checking=true;try{const r=await fetch('/api/me',{cache:'no-store'}),d=await r.json();if(!r.ok||d.user?.id!==user.id)block();}catch{}finally{checking=false;}}
- addEventListener('focus',identity);document.addEventListener('visibilitychange',()=>{if(!document.hidden)identity();});setInterval(identity,10000);addEventListener('beforeunload',e=>{if(dirty||saving||$('todo-title').value||$('todo-edit-text').value||[...document.querySelectorAll('.point-add textarea')].some(t=>t.value)){e.preventDefault();e.returnValue='';}});
- document.addEventListener('garyhub:language',()=>{render();if(!dirty&&!saving)message('已保存到服务器');});load().catch(e=>message(e.message,true));
+ importer=window.GaryHubTodoImporter.create({api,save,message,getState:()=>({user,revision,epoch,blocked,count:todos.length}),applyResult(result){todos=result.todos;revision=result.revision;dirty=false;render();}});
+ addEventListener('focus',identity);document.addEventListener('visibilitychange',()=>{if(!document.hidden)identity();});setInterval(identity,10000);addEventListener('beforeunload',e=>{if(dirty||saving||importer.hasDraft()||$('todo-title').value||$('todo-edit-text').value||[...document.querySelectorAll('.point-add textarea')].some(t=>t.value)){e.preventDefault();e.returnValue='';}});
+ document.addEventListener('garyhub:language',()=>{render();importer.languageChanged();if(!dirty&&!saving&&!blocked)message('已保存到服务器');});load().catch(e=>message(e.message,true));
 })();

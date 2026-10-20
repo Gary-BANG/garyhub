@@ -153,7 +153,7 @@ async function resolveTargetUserId(req) {
 }
 
 app.get("/health", (req, res) => {
-  res.json({ ok: true, hubVersion: "1.3.5.3" });
+  res.json({ ok: true, hubVersion: "1.3.5.4" });
 });
 
 // 登录
@@ -677,7 +677,7 @@ registerTasksApi(app, { requireLogin, resolveTargetUserId });
 registerEmailApi(app, { requireLogin });
 registerPersonalApi(app, { requireLogin });
 
-app.use((err,req,res,next)=>{if(res.headersSent)return next(err);res.status(err.status||500).json({message:err.status?err.message:"服务暂时不可用，请重试"});});
+app.use((err,req,res,next)=>{if(res.headersSent)return next(err);res.status(err.status||500).json({message:err.status?err.message:"服务暂时不可用，请重试",...(err.name==='TodoImportError'?{code:err.code,path:err.path,details:err.details}:{})});});
 
 initDb()
   .then(() => migratePersonalRecords(require("./db")))

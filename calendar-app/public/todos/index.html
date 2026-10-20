@@ -1,10 +1,31 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>待办清单 · GaryHub</title><script src="/theme.js"></script><link rel="stylesheet" href="/calendar-ui.css"><link rel="stylesheet" href="/todos/todos.css"><script src="/i18n/dictionary.js"></script><script src="/i18n/i18n.js"></script><link rel="stylesheet" href="/i18n/i18n.css"><script src="/i18n/dictionary.js"></script><script src="/i18n/i18n.js"></script><link rel="stylesheet" href="/i18n/i18n.css"></head>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>待办清单 · GaryHub</title><script src="/theme.js"></script><link rel="stylesheet" href="/calendar-ui.css"><link rel="stylesheet" href="/todos/todos.css"><script src="/i18n/dictionary.js"></script><script src="/i18n/i18n.js"></script><link rel="stylesheet" href="/i18n/i18n.css"></head>
 <body><canvas id="sky" aria-hidden="true"></canvas><nav class="site-nav"><a class="brand" href="https://tools.garyhub.uk">Gary<span>Hub.</span></a><div class="nav-links"><a href="/">Calendar</a><a href="/journal/">日记</a><a href="/health-records/">健康</a><a href="/ledger/">记账</a><a href="/todos/" aria-current="page">待办清单</a><button type="button" class="theme icon-button" aria-label="切换明暗主题">◐</button><span id="todo-user" data-i18n-ignore></span><button id="todo-logout" class="text-button" type="button">退出</button></div></nav>
 <main class="page todo-page"><div class="page-hero"><div><span class="eyebrow">A LITTLE AT A TIME</span><h1>待办清单<span class="title-dot">.</span></h1><p>不设期限，把想做的事慢慢完成。</p></div><div class="todo-overview"><strong id="todo-count">0 / 0</strong><span>已完成 / 全部</span></div></div>
-<p id="todo-status" class="message" role="status">正在加载待办…</p><section id="todo-app" hidden><form id="todo-add" class="card todo-add"><label for="todo-title">新的待办</label><div class="todo-add-row"><input id="todo-title" maxlength="160" required placeholder="想做什么？"><button class="primary" type="submit">＋ 新增待办</button></div></form>
+<p id="todo-status" class="message" role="status">正在加载待办…</p><section id="todo-app" hidden><form id="todo-add" class="card todo-add"><label for="todo-title">新的待办</label><div class="todo-add-row"><input id="todo-title" maxlength="160" required placeholder="想做什么？"><div class="todo-add-actions"><button class="primary" type="submit">＋ 新增待办</button><button id="todo-import-open" class="secondary" type="button">导入待办</button><button id="todo-prompt-open" class="secondary" type="button">AI 提示词</button></div></div></form>
 <div class="todo-toolbar"><p>拖动左侧手柄调整顺序；点击箭头展开子要点。</p><div><button id="todo-download" class="secondary compact-button" type="button">下载草稿</button><button id="todo-reload" class="secondary compact-button" type="button">重新加载</button></div></div>
 <p id="todo-empty" class="card empty-state" hidden>清单还是空的，先记下一件想做的事。</p><section id="todo-list" aria-label="待办列表"></section><p class="small todo-limits">每个账号最多 300 条待办，每条最多 100 个子要点。</p></section>
 <footer><span>GARYHUB / ONE THING AT A TIME.</span><a href="/">返回 Calendar →</a></footer></main>
 <dialog id="todo-dialog"><form id="todo-edit"><h2 id="todo-edit-heading">编辑待办</h2><label for="todo-edit-text">内容</label><textarea id="todo-edit-text" maxlength="1000" required rows="4"></textarea><div class="btn-row"><button id="todo-edit-cancel" type="button" class="secondary">取消</button><button type="submit" class="primary">保存</button></div></form></dialog>
-<div id="todo-live" class="sr-only" aria-live="polite"></div><script src="/ambient.js"></script><script src="/todos/todos.js"></script></body></html>
+<dialog id="todo-import-dialog" class="todo-wide-dialog" aria-labelledby="todo-import-heading">
+ <div class="todo-dialog-body">
+ <div class="todo-dialog-heading"><h2 id="todo-import-heading">导入待办</h2><button id="todo-import-close" class="text-button" type="button" aria-label="关闭导入窗口">×</button></div>
+ <p class="small">粘贴 AI 生成的 JSON，或选择已下载的 JSON 文件。预览后追加到清单末尾。</p>
+ <div class="todo-import-file-picker"><button id="todo-import-file-open" class="secondary" type="button">选择 JSON 文件</button><input id="todo-import-file" type="file" accept=".json,application/json" hidden><span id="todo-import-file-status" class="small" role="status"></span></div>
+ <label for="todo-import-input">JSON 内容</label><textarea id="todo-import-input" rows="8" spellcheck="false" aria-describedby="todo-import-help" placeholder="在这里粘贴 JSON…"></textarea>
+ <p id="todo-import-help" class="small">支持 garyhub-todos-v1、待办数组及下载的草稿。标题最多 160 字符，每条最多 100 个子要点，每个子要点最多 1,000 字符；文件最多 2 MB。</p>
+ <label class="todo-import-option"><input id="todo-import-skip" type="checkbox" checked>跳过完全重复的待办（建议）</label>
+ <p id="todo-import-message" class="message" role="status" aria-live="polite"></p>
+ <section id="todo-import-preview" hidden aria-label="导入预览"><div id="todo-import-summary" class="todo-import-summary"></div><p id="todo-import-warning" class="small"></p><div id="todo-import-items"></div></section>
+ </div>
+ <div class="btn-row todo-dialog-footer"><button id="todo-import-cancel" class="secondary" type="button">取消</button><button id="todo-import-check" class="secondary" type="button">解析并预览</button><button id="todo-import-confirm" class="primary" type="button" disabled>确认导入</button></div>
+</dialog>
+<dialog id="todo-prompt-dialog" class="todo-wide-dialog" aria-labelledby="todo-prompt-heading">
+ <div class="todo-dialog-body">
+ <div class="todo-dialog-heading"><h2 id="todo-prompt-heading">AI 提示词</h2><button id="todo-prompt-close" class="text-button" type="button" aria-label="关闭提示词窗口">×</button></div>
+ <p class="small">复制下面的提示词，连同你的计划或长文本发给 AI，再把生成的 JSON 导入待办清单。</p>
+ <label for="todo-prompt-text">可复制的提示词</label><textarea id="todo-prompt-text" rows="17" readonly spellcheck="false" data-i18n-ignore></textarea><p id="todo-prompt-message" class="message" role="status"></p>
+ </div>
+ <div class="btn-row todo-dialog-footer"><button id="todo-prompt-done" class="secondary" type="button">关闭</button><button id="todo-prompt-copy" class="primary" type="button">复制提示词</button></div>
+</dialog>
+<div id="todo-live" class="sr-only" aria-live="polite"></div><script src="/ambient.js"></script><script src="/todos/import-format.js"></script><script src="/todos/import-ui.js"></script><script src="/todos/todos.js"></script></body></html>
