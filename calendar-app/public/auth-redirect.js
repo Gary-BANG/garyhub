@@ -11,6 +11,8 @@
     try{
       if(typeof input!=='string'||input.length>4096||/[\u0000-\u0020\\]/.test(input)||input.startsWith('//'))throw Error();
       const u=new URL(input,base);
+      const canonicalPath=u.pathname.endsWith('/index.html')?u.pathname.slice(0,-10):u.pathname;
+      if(routes[u.origin]?.includes(canonicalPath))u.pathname=canonicalPath;
       if(!u.pathname.endsWith('/')&&!u.pathname.includes('.'))u.pathname+='/';
       if(u.username||u.password||u.port||!routes[u.origin]?.includes(u.pathname))throw Error();
       return u.href;

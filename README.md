@@ -97,3 +97,7 @@ Chinese / English UI, generic protected-profile placeholders, and sortable perso
 ## v1.3.5.2 update package
 
 Central GaryHub sign-in with safe return links and independent monthly/yearly fixed expense estimates. Manual payment recording preserves actual-ledger history and prevents duplicates. See [instructions](docs/GARYHUB_V1_3_5_2.md) and [validation](docs/GARYHUB_V1_3_5_2_TESTS.md). The effective deployment index remains authoritative.
+
+## v1.3.5.3 review fixes
+
+Fixes complete GitHub origin validation, excludes private environment files from every packaging path, and preserves approved index.html login destinations. Install on deployed v1.3.5.2. See [instructions](docs/GARYHUB_V1_3_5_3.md) and [validation](docs/GARYHUB_V1_3_5_3_TESTS.md). This follow-up builds on merged PR #11.
