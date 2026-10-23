@@ -23,9 +23,16 @@ class PushPackageTests(unittest.TestCase):
         self.repo = self.root/'repo'; self.bare = self.root/'remote.git'
         self.git(ROOT, 'clone', '--quiet', '--shared', str(ROOT), str(self.repo))
         self.git(self.repo, 'checkout', '--quiet', '--detach', self.manifest['base_commit'])
+        # A release may be built on the same review branch it exports. Clones
+        # inherit that branch; remove it only in these disposable fixtures so
+        # PrepareOnly actually exercises creation of a new isolated worktree.
+        if self.git(self.repo, 'branch', '--list', self.manifest['branch']):
+            self.git(self.repo, 'branch', '-D', self.manifest['branch'])
         self.git(self.repo, 'config', 'user.name', 'Synthetic Maintainer')
         self.git(self.repo, 'config', 'user.email', 'test@example.invalid')
         self.git(ROOT, 'clone', '--quiet', '--bare', '--shared', str(ROOT), str(self.bare))
+        if self.git(self.bare, 'branch', '--list', self.manifest['branch']):
+            self.git(self.bare, 'branch', '-D', self.manifest['branch'])
         self.git(self.bare, 'update-ref', 'refs/heads/main', self.manifest['base_commit'])
         self.git(self.bare, 'config', 'receive.shallowUpdate', 'true')
         self.git(self.repo, 'remote', 'set-url', 'origin', 'https://github.com/Gary-BANG/garyhub.git')

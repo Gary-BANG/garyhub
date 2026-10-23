@@ -1,0 +1,22 @@
+{
+  "version": "1.3.6.1",
+  "requires_release": "1.3.6.0",
+  "installer_build": "v1.3.6.1-r1",
+  "reviewed_base_commit": "697daf65c269a8f2169857b0eb21e8cf84cf6a3e",
+  "baseline_adapter": "scripts/releases/v1.3.6.0",
+  "updated_features": [
+    "useful_tools_release",
+    "tool_languages_release",
+    "markdown_zip_release"
+  ],
+  "summary": "Bilingual useful tools and Markdown ZIP preview are ready. Existing records were retained.",
+  "isolation_checks": [
+    "useful-http.cjs",
+    "lab-distribution.cjs"
+  ],
+  "test_inputs": {
+    "seed.cjs": "scripts/releases/v1.3.6.0/tests/seed.cjs",
+    "lab-distribution.cjs": "scripts/releases/v1.3.6.0/tests/lab-distribution.cjs",
+    "useful-http.cjs": "scripts/releases/v1.3.6.1/tests/useful-http.cjs"
+  }
+}

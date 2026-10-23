@@ -1,0 +1,16 @@
+{
+  "version": "garyhub-1.3.6.1",
+  "date": "2026-10-23",
+  "notes": [
+    {
+      "scope": "tools",
+      "title": "工具中英文切换 · v1.3.6.1",
+      "body": "图片局部消除、Markdown 预览和 PDF 浅灰转换现支持中英文切换，并沿用全站语言偏好。切换时保留文件、编辑内容和处理参数。"
+    },
+    {
+      "scope": "tools",
+      "title": "Markdown ZIP 文档与配图预览 · v1.3.6.1",
+      "body": "支持打开包含 Markdown 与 PNG、JPG、GIF、WebP 配图的 ZIP，自动解析相对路径。包内多个文档可切换，源码可编辑并实时预览。文件在浏览器本地处理；外部图片不加载。"
+    }
+  ]
+}
