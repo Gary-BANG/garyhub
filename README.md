@@ -1,5 +1,7 @@
 # Gary Hub — 服务器维护总览
 
+> AI 更新入口：[项目档案](docs/PROJECT_CONTEXT.md) · [固定更新流程](docs/UPDATE_WORKFLOW.md) · `python scripts/updater/manage.py context`。下文含历史部署记录，当前生产配置以有效部署索引和现场证据为准。
+
 最后核对：2026-09-30 UTC（InterServer、Calendar v1.3.1.2）
 正式服务器：InterServer `vps3666849`，IPv4 `162.35.168.17`
 
