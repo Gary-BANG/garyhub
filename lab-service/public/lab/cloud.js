@@ -50,3 +50,9 @@ document.querySelector('#cloud-login').href='https://calendar.garyhub.uk/login/?
 document.querySelector('#cloud-logout').onclick=async()=>{if(dirty){label('请先等待同步成功，或导出备份后再退出。');return;}try{const token=(await api('/api/csrf')).token;await api('/api/logout',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':token},body:'{}'});location.href=document.querySelector('#cloud-login').href;}catch(e){label(e.message);}};
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
 window.addEventListener('online',()=>{if(!blocked)queue();});
+
+export function cloudUser(){return user;}
+export async function syncCloudNow(){
+  clearTimeout(timer);await chain;if(blocked)throw Error('请先解决顶部同步冲突，再分发题库');
+  await flush();if(blocked||pending||dirty)throw Error('进度尚未保存到服务器，请先重试同步');
+}

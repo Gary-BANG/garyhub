@@ -33,7 +33,7 @@ async function identity(req) {
   return user;
 }
 async function body(req) {
-  const maxSize=req.url.startsWith('/api/access/')||req.url.startsWith('/api/hub/totp')||req.url.startsWith('/api/password-reset/')?8192:LIMIT;
+  const maxSize=req.url.startsWith('/api/lab/distribution')||req.url.startsWith('/api/access/')||req.url.startsWith('/api/hub/totp')||req.url.startsWith('/api/password-reset/')?8192:LIMIT;
   let size=0; const chunks=[];
   for await (const chunk of req) { size+=chunk.length; if(size>maxSize) { const e=Error('Payload too large'); e.status=413; throw e; } chunks.push(chunk); }
   try {return JSON.parse(Buffer.concat(chunks).toString());} catch {const e=Error('Invalid JSON');e.status=400;throw e;}
@@ -52,6 +52,7 @@ const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript','.mjs':'t
 const academic = require('./academic.cjs').createAcademic({DATA,identity,validCsrf,calendar,json});
 const profileHandler=require("./homepage-privacy.cjs").createProfile({calendar,json});
 const cleanup=require('./user-cleanup.cjs').createCleanup({DATA,CALENDAR,access,identity,validCsrf,calendar,json,body,runtimeFile:process.env.ACCESS_RUNTIME_FILE||'/access-runtime/status.json'});
+const distribution=require('./lab-distribution.cjs').createDistribution({DATA,ROOT,identity,validCsrf,calendar,json,body});
 const server = http.createServer(async (req,res)=>{
   res.setHeader('X-Content-Type-Options','nosniff');
   res.setHeader('X-Frame-Options','DENY');
@@ -65,10 +66,11 @@ const server = http.createServer(async (req,res)=>{
 
     if(await profileHandler(req,res,url))return;
     if(await cleanup(req,res,url))return;
+    if(await distribution(req,res,url))return;
     if(await academic(req,res,url))return;
     if(['/grades','/grades/','/study','/study/'].includes(url.pathname))url.pathname='/academic/index.html';
     url.pathname=decodeURIComponent(url.pathname);
-    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"1.3.5.4"});
+    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"1.3.6.0"});
     if(url.pathname.startsWith('/sub/')) {
       if(req.method!=='GET') return json(res,405,{message:'Method not allowed'});
       const sub=connections.subscription(url.pathname.slice(5));
@@ -165,6 +167,11 @@ const server = http.createServer(async (req,res)=>{
       return json(res,200,{revision:next.revision,updatedAt:next.updatedAt});
     }
     if(!['GET','HEAD'].includes(req.method)) return json(res,405,{message:'Method not allowed'});
+    if(/^\/useful\/(image-eraser|markdown-viewer|pdf-gray)(?:\/|\/index.html)?$/.test(url.pathname)){
+      if(!await identity(req))return redirectLogin(url.pathname+url.search);
+      if(!url.pathname.endsWith('/')&&!url.pathname.endsWith('.html')){res.writeHead(302,{Location:url.pathname+'/'});return res.end();}
+      res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; worker-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'");
+    }
     if(['/totp','/totp/','/totp/index.html'].includes(url.pathname)){if(!await identity(req)){return redirectLogin(url.pathname+url.search);}if(url.pathname==='/totp'){res.writeHead(302,{Location:'/totp/'});return res.end();}}
     if(url.pathname==='/lab' || url.pathname==='/lab/' || url.pathname==='/lab/index.html' || url.pathname==='/access' || url.pathname==='/access/' || url.pathname==='/access/index.html') {
       if(!await identity(req)) {return redirectLogin(url.pathname+url.search);}
