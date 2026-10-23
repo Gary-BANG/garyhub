@@ -5,10 +5,12 @@
 ## 当前源码与部署证据
 
 - 仓库：Gary-BANG/garyhub；默认分支 main；本机常用目录 `D:\Codes\Own_Project\garyhub-repo`。
-- 最近核对的 main：`34d3072e2f11c416c0dbb4c8db6750489b19cfbd`，已合并 v1.3.6.0（PR #14）。
-- 当前应用源码版本：1.3.6.0；此流程整理不改变应用版本。
-- 本次会话尚无生产安装完成输出，不能声称 v1.3.6.0 已正式部署。
-- 机器可读入口：`releases/current.json`；当前发布清单 `releases/1.3.6.0.json`。
+- 本次审阅的 main：`697daf65c269a8f2169857b0eb21e8cf84cf6a3e`，包含 v1.3.6.0（PR #14）及更新流程（PR #15）。
+- 当前应用源码版本：1.3.6.1；更新分支 `update/garyhub-v1.3.6.1`。
+- 状态：源码已准备、本地已验证；GitHub 尚未合并，生产尚未验证。没有实际安装输出前，不记录生产完成或真实通知人数。
+- 机器可读入口：`releases/current.json`；当前清单 `releases/1.3.6.1.json`，明确要求生产基础版本 1.3.6.0。
+- 本次改动：三个实用工具接入现有中英文偏好；Markdown 支持本地 ZIP、多文档选择、相对路径配图、可编辑源码及实时预览；图片工具在手机布局变化后重新适配画布。
+- 行为说明与测试证据：`docs/GARYHUB_V1_3_6_1.md`、`docs/GARYHUB_V1_3_6_1_TESTS.md`。
 
 ## 模块定位
 
@@ -21,7 +23,7 @@
 | ECE 470 Lab | lab-service/server.cjs、public/lab/app.js、cloud.js、core.js |
 | 作业题库分发 | lab-service/lab-distribution.cjs、public/lab/distribution.js、pack-validation.mjs |
 | 三个本地实用工具 | lab-service/public/useful/，避免读取 vendor/ 的大文件 |
-| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v1.3.6.0/ |
+| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v1.3.6.1/ |
 
 Calendar 使用 Node.js、Express、SQLite；Lab 使用 Node 原生 HTTP，浏览器运行 Python/WASM。生产运行代码须保持 Node 20 兼容。浏览器依赖已本地打包，无需让生产服务器在线安装依赖。
 
@@ -37,6 +39,10 @@ Calendar 使用 Node.js、Express、SQLite；Lab 使用 Node 原生 HTTP，浏�
 
 ## 已有更新机制
 
-v1.3.6.0 已有经过验证的 Windows SSH 安装器、离线镜像覆盖、合成环境测试、备份、回滚和站内通知。其脚本包含具体版本常量，统一入口通过发布清单调用它；通用参数化迁移应按后续需求逐项完成，不能假装旧脚本天然适用于任意版本。
+统一入口仍为 `scripts/updater/manage.py`。v1.3.6.1 的小型发布适配器通过 `release-config.json` 配置版本、基础提交、能力组合、隔离检查和更新内容。共享 `build_overlay.py`、`deploy_runtime.py` 复用既有离线镜像覆盖、源码基线、有效部署索引、备份、失败恢复、回滚与站内通知逻辑；旧发布适配器不变。
 
-开发验证记录见 `docs/GARYHUB_V1_3_6_0_TESTS.md`。测试环境与生产现场验证必须分别记录。用户偏好：一次交付可运行 ZIP，减少往返复制代码；说明简洁，成功日志汇总、失败日志按需展开。
+每个升级 ZIP 独立可用，包含安装/回滚入口、SHA256SUMS、应用覆盖和源码补丁。Windows SSH 安装器沿用已有私钥与主机记录；服务器现场核验后才切换。源码通过已有 `push-source.ps1` 在独立 worktree 准备 `update/garyhub-v1.3.6.1`，保留原工作区；`PUSH-TO-GITHUB.cmd` 才执行普通 push 并打开 PR，不自动合并 main。
+
+Markdown ZIP 在浏览器处理，使用原生 DEFLATE 流，不新增服务器运行依赖。支持普通未加密 ZIP（stored/DEFLATE），不支持 RAR、7z、多卷或 ZIP64；图片仅接受 PNG/JPEG/GIF/WebP，外部图片及 SVG 不加载。ZIP 最多 20 MiB、500 个条目、解压合计 50 MiB、单文件 10 MiB、Markdown 4 MiB。源码编辑和包内文档草稿仅保存在本次页面中，不写回原文件。
+
+用户偏好：一次交付可运行 ZIP，减少往返复制代码；说明简洁，成功日志汇总、失败日志按需展开。开发环境验证与生产现场证据分开记录。

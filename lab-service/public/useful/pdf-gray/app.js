@@ -1,11 +1,11 @@
 import * as pdfjs from '../vendor/pdf.mjs';
 pdfjs.GlobalWorkerOptions.workerSrc=new URL('../vendor/pdf.worker.mjs',import.meta.url).href;
 const $=id=>document.getElementById(id);let file=null,busy=false,cancelled=false,task=null,renderTask=null;
-const status=s=>$('pdf-status').textContent=s;
+const status=(s,values)=>ToolUI.text('pdf-status',s,values);
 const tick=()=>new Promise(r=>setTimeout(r,0));
 function check(){if(cancelled)throw Error('已取消处理，原文件保持不变。');}
 function controls(){for(const id of ['pdf-file','pdf-mode','pdf-level','pdf-dpi'])$(id).disabled=busy;for(const id of ['pdf-preview','pdf-convert'])$(id).disabled=busy||!file;$('pdf-cancel').hidden=!busy;$('pdf-progress').hidden=!busy;}
-function choose(f){if(busy||!f)return;if(!/\.pdf$/i.test(f.name)||f.size>20*1024*1024){status('请选择不超过 20 MB 的 PDF。');return;}file=f;$('pdf-info').textContent=f.name+' · '+(f.size/1024/1024).toFixed(2)+' MB';for(const id of ['pdf-original','pdf-result']){$(id).width=1;$(id).height=1;}status('文件已选择。可先预览第一页。');controls();}
+function choose(f){if(busy||!f)return;if(!/\.pdf$/i.test(f.name)||f.size>20*1024*1024){status('请选择不超过 20 MB 的 PDF。');return;}file=f;ToolUI.text('pdf-info','{name} · {size} MB',{name:f.name,size:(f.size/1024/1024).toFixed(2)});for(const id of ['pdf-original','pdf-result']){$(id).width=1;$(id).height=1;}status('文件已选择。可先预览第一页。');controls();}
 $('pdf-file').onchange=e=>choose(e.target.files[0]);document.addEventListener('dragover',e=>e.preventDefault());document.addEventListener('drop',e=>{e.preventDefault();choose(e.dataTransfer.files[0]);});
 $('pdf-level').oninput=()=>{$('pdf-level-value').value=$('pdf-level').value;};
 $('pdf-cancel').onclick=()=>{cancelled=true;renderTask?.cancel();status('正在取消…');};
@@ -28,7 +28,7 @@ async function process(download){
     const dpi=Number($('pdf-dpi').value),level=Number($('pdf-level').value),mode=$('pdf-mode').value;
     const count=download?doc.numPages:1,output=download?await PDFLib.PDFDocument.create():null;let pixels=0;
     for(let i=1;i<=count;i++){
-      check();status(`正在${download?'转换':'预览'}：${i}/${count} 页…`);
+      check();status(download?'正在转换：{page}/{count} 页…':'正在预览：{page}/{count} 页…',{page:i,count});
       const page=await doc.getPage(i),viewport=page.getViewport({scale:dpi/72}),size=page.getViewport({scale:1});
       const width=Math.ceil(viewport.width),height=Math.ceil(viewport.height);pixels+=width*height;
       if(width*height>12500000||pixels>150000000)throw Error('文件在当前清晰度下过大，请降低 DPI 或拆分 PDF。');
@@ -39,7 +39,7 @@ async function process(download){
       if(output){const blob=await new Promise(r=>canvas.toBlob(r,'image/png'));if(!blob)throw Error('页面导出失败');check();const image=await output.embedPng(await blob.arrayBuffer());const out=output.addPage([size.width,size.height]);out.drawImage(image,{x:0,y:0,width:size.width,height:size.height});}
       canvas.width=canvas.height=0;page.cleanup();$('pdf-progress').value=100*i/count;await tick();
     }
-    check();if(output){status('正在生成 PDF…');const bytes=await output.save();check();const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));const a=document.createElement('a');a.href=url;a.download=file.name.replace(/\.pdf$/i,'')+'_浅灰.pdf';a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);status(`转换完成：${count} 页，已开始下载。`);}else status('预览完成。调整参数后可再次预览，或转换全部页面。');
+    check();if(output){status('正在生成 PDF…');const bytes=await output.save();check();const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));const a=document.createElement('a');a.href=url;a.download=file.name.replace(/\.pdf$/i,'')+(GaryHubI18n.language==='en'?'_light-gray.pdf':'_浅灰.pdf');a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);status('转换完成：{count} 页，已开始下载。',{count});}else status('预览完成。调整参数后可再次预览，或转换全部页面。');
   }catch(e){status(cancelled?'已取消处理，原文件保持不变。':e.name==='PasswordException'||e.message?.includes('destroyed')?'此 PDF 受密码保护，请先解锁后再转换。':'处理失败：'+e.message);}
   finally{if(canvas)canvas.width=canvas.height=0;try{await task?.destroy();}catch{}task=null;renderTask=null;busy=false;controls();}
 }

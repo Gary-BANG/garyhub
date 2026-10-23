@@ -1,0 +1,7 @@
+GaryHub's three useful tools had Chinese-only controls, and the Markdown viewer could not resolve images packaged with a document. This update adds English UI using the existing language preference and opens local ZIP archives containing Markdown and relative-path images. Document text and filenames remain verbatim; switching languages retains tool state.
+
+The Markdown source pane is editable, multiple documents in one archive can be selected, and per-document edits are retained during switching. ZIP processing checks bounds, paths, compression and CRCs; only local PNG/JPEG/GIF/WebP resources become image URLs. Remote images and document scripts remain blocked.
+
+The registered v1.3.6.1 adapter reuses a parameterized overlay builder and the reviewed deployment protections. It requires live v1.3.6.0, preserves the TOTP/no-TOTP capability combination, backs up current data, tests isolated accounts, validates HTTPS and publishes idempotent in-app release notices. Source preparation uses the existing separate-worktree importer and never merges main automatically.
+
+Validation: ZIP tests, Node 20 syntax and both capability variants, 29 HTTP checks plus 49 distribution assertions per variant, 41 Chromium browser checks, synthetic notification recipients/read-state/idempotency, inherited backup/rollback tests and PowerShell parsing. Final archive hashes and source-import behavior are checked separately. Production deployment and Windows 5.1 double-click execution require the maintainer's installation output.

@@ -13,7 +13,7 @@ class WorkflowTests(unittest.TestCase):
     def test_current_source_matches_the_registered_adapter(self):
         current, release = m.release()
         self.assertEqual(current['source_version'], release['version'])
-        self.assertEqual(release['version'], '1.3.6.0')
+        self.assertEqual(release['version'], '1.3.6.1')
         self.assertFalse(release['production_verified'])
 
     def test_unknown_version_and_path_escape_are_rejected(self):
@@ -30,7 +30,7 @@ class WorkflowTests(unittest.TestCase):
         original = m.read_json
         def altered(name):
             obj = original(name)
-            if name.endswith('/1.3.6.0.json'): obj['builder'] = 'scripts/anything.py'
+            if name == 'releases/'+original('releases/current.json')['source_version']+'.json': obj['builder'] = 'scripts/anything.py'
             return obj
         with patch.object(m, 'read_json', side_effect=altered), self.assertRaises(ValueError): m.release()
 
@@ -38,7 +38,7 @@ class WorkflowTests(unittest.TestCase):
         original = m.read_json
         def altered(name):
             obj = original(name)
-            if name.endswith('/1.3.6.0.json'): obj['reviewed_base_commit'] = '0'*40
+            if name == 'releases/'+original('releases/current.json')['source_version']+'.json': obj['reviewed_base_commit'] = '0'*40
             return obj
         with patch.object(m, 'read_json', side_effect=altered), self.assertRaises(ValueError): m.release()
 
