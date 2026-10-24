@@ -1,16 +1,16 @@
 # GaryHub 项目档案
 
-维护日期：2026-10-23。首次阅读本文件及 UPDATE_WORKFLOW.md，按任务范围读取相关源码。
+维护日期：2026-10-24。首次阅读本文件及 UPDATE_WORKFLOW.md，按任务范围读取相关源码。
 
 ## 当前源码与部署证据
 
 - 仓库 Gary-BANG/garyhub；默认分支 main；维护者本机 `D:\Codes\Own_Project\garyhub-repo`。
-- 本次审阅 main：`4f5611b6c1d1e6def995ef9664b0035e551a806a`，v1.4.0.0 已合并（PR #17）。该提交的源码树与先前交付 v1.4.0.0 一致。
-- 本次准备 1.4.0.1，分支 `update/garyhub-v1.4.0.1`；入口 `releases/current.json`，清单 `releases/1.4.0.1.json`，严格要求两服务实际运行 v1.4.0.0。
-- 用户反馈 v1.4.0.0 页面运行但鼠标无响应，Tab 可显示介绍。现场镜像/配置/通知人数缺日志，仍未核验；不能据此填写生产完成。
-- 修复：鼠标事件不再受主要设备 hover/fine 媒体查询限制，CSS 不再因 coarse 设备强制取消鼠标放大。pointer 与传统 mouse 均支持；触屏模拟鼠标过滤、键盘、减少动态效果与滚动后坐标重测保留。新版 HTML 为修复 JS/CSS 加版本参数，安装后 HTTPS 核对精确资源 SHA256。
-- 状态：修复源码已准备，DOM/Node20 HTTP/部署保护自动检查通过；真实浏览器未连接，实际鼠标观感/手机排版/帧率未验收。1.4.0.1 尚未推送/合并或生产验证。
-- 当前说明与验证：`docs/GARYHUB_V1_4_0_1.md`、`docs/GARYHUB_V1_4_0_1_TESTS.md`。原 1.4.0.0 档案保留为历史，不能再将其“鼠标悬停完成”当作验收结论。
+- 本次审阅 main：`637d86faae37d6c06b74b15bf850e82e301c8ad7`，v1.4.0.1 已合并（PR #18）。前次档案中的“未合并”是当时状态，不能代替本次远端证据。
+- 本次准备 v1.4.1.0，分支 `update/garyhub-v1.4.1.0`；入口 `releases/current.json`，清单 `releases/1.4.1.0.json`。升级器严格要求 Calendar 和 Tools/Lab 实际运行 v1.4.0.1，不把用户版本陈述或 Git 合并当作生产证据。
+- 新增 Research Dictionary，Tools 链接至 Calendar `/research/`。顶部 Research 管理、第二行搜索/Prompt/导入导出/新增，下面左窄右宽双栏。支持手动新增编辑、双语多义记录、别名/标签搜索、项目上下文 Prompt、JSON 预览合并/替换/新增、导入撤销。
+- 数据按账号和 Research 独立保存。新增表 `research_projects`、`research_receipts`；人工修改需要导入冲突确认，使用独立 SQLite 连接、事务、修订号、账号快照与请求幂等；沿用 Origin/CSRF/会话和账号禁用检查。管理员没有其他用户词库读取特权，不提供团队共享。
+- 状态：源码准备并本地验证；Node20 两种部署能力组合的 HTTP/隔离、真实 Chromium 桌面/手机与明暗主题、导入/迁移/权限、部署保护和打包检查见验证记录。本次分支未推送/合并；未连接生产，通知人数和正式镜像状态未核验。
+- 当前说明与验证：`docs/GARYHUB_V1_4_1_0.md`、`docs/GARYHUB_V1_4_1_0_TESTS.md`。历史功能及验证记录保留，不能把旧的未验收事项写为生产完成。
 
 ## 模块定位
 
@@ -19,12 +19,13 @@
 | 登录、会话、账号、通知 | calendar-app/app.js、auth-utils.js、account-admin.js、hub-api.js |
 | 日历、Todo、私人记录 | calendar-app/ 对应 API 文件和 public/ 对应页面 |
 | 账本、汇率、固定支出 | calendar-app/ledger-api.js、fixed-expenses.js、fx-rates.js |
+| Research Dictionary | calendar-app/research-api.js、public/research/、account-admin.js |
 | Tools 入口、搜索与 Dock | lab-service/public/index.html、tools-catalog.js、tools-dock.js、tools-dock.css |
 | 跨站跳转 | 两服务的 public/auth-redirect.js |
 | ECE 470 Lab | lab-service/server.cjs、public/lab/app.js、cloud.js、core.js |
 | 作业题库分发 | lab-service/lab-distribution.cjs、public/lab/distribution.js、pack-validation.mjs |
 | 三个本地实用工具 | lab-service/public/useful/，避免读取 vendor/ 的大文件 |
-| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v1.4.0.1/ |
+| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v1.4.1.0/ |
 
 Calendar 使用 Node.js、Express、SQLite；Lab 使用 Node 原生 HTTP，浏览器运行 Python/WASM。生产运行代码须保持 Node 20 兼容。浏览器依赖已本地打包，无需让生产服务器在线安装依赖。
 
@@ -40,9 +41,9 @@ Calendar 使用 Node.js、Express、SQLite；Lab 使用 Node 原生 HTTP，浏�
 
 ## 已有更新机制
 
-统一入口仍为 `scripts/updater/manage.py`。v1.4.0.1 使用自己的小型配置与 HTTPS 资源校验适配器，复用 `build_overlay.py`、`deploy_runtime.py`、Windows 安装模板与独立源码导入器，不改共享部署逻辑。baseline_adapter 为 `scripts/releases/v1.4.0.0`，正确匹配无 TOTP 的 app.js/server.cjs/index.html 基线。
+统一入口仍为 `scripts/updater/manage.py`。v1.4.1.0 注册自己的小型配置和 HTTPS 资源/认证校验适配器，复用 `build_overlay.py`、`deploy_runtime.py`、已审阅的 Windows 安装模板与独立源码导入器。baseline_adapter 为 `scripts/releases/v1.4.0.1`；无 TOTP 的 app.js/server.cjs/index.html 从该版本的独立基线施加对应的 Research 入口修改，不改变能力组合。未复制整套历史发布目录，未修改共享备份/切换/回滚运行时。
 
-完整解压升级 ZIP 后双击 RUN-UPDATE.cmd。现场核验两服务版本、能力与源码、有效配置，离线构建与隔离测试，备份后切换；HTTPS 确认目标页面与 JS/CSS 字节，再核对站内通知。ROLLBACK.cmd 返回 v1.4.0.0 应用镜像并保留当前用户记录。PUSH-TO-GITHUB.cmd 使用独立 worktree 准备/推送审查分支，不覆盖原工作区、不 force push、不自动合并 main。
+完整解压升级 ZIP 后双击 RUN-UPDATE.cmd。现场核验两服务版本、能力与源码、有效配置，离线构建与隔离测试，备份后切换；HTTPS 核对当前词典 HTML/JS/CSS 字节和未登录 API 401，再核对站内通知。ROLLBACK.cmd 返回 v1.4.0.1 镜像并保留当前用户记录，包括新表；旧界面不提供词典，旧删除器可能因未识别新表要求审阅，不得绕过检查。PUSH-TO-GITHUB.cmd 使用独立 worktree 准备/推送审查分支，不覆盖原工作区、不 force push、不自动合并 main。
 
 Markdown ZIP 在浏览器处理，使用原生 DEFLATE 流，不新增服务器运行依赖。支持普通未加密 ZIP（stored/DEFLATE），不支持 RAR、7z、多卷或 ZIP64；图片仅接受 PNG/JPEG/GIF/WebP，外部图片及 SVG 不加载。ZIP 最多 20 MiB、500 个条目、解压合计 50 MiB、单文件 10 MiB、Markdown 4 MiB。源码编辑和包内文档草稿仅保存在本次页面中，不写回原文件。
 

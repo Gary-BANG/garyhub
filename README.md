@@ -115,3 +115,9 @@ Searchable bilingual SVG icon grid and single-row Dock, with smooth proximity ma
 ## v1.4.0.1 mouse hover fix
 
 Fix Tools hover on touch-primary or misclassified input devices: actual mouse entry triggers selection, descriptions and magnification without click or Tab. Retains touch filtering, reduced-motion and keyboard support. Requires deployed v1.4.0.0. See [repair instructions](docs/GARYHUB_V1_4_0_1.md) and [validation](docs/GARYHUB_V1_4_0_1_TESTS.md).
+
+## v1.4.1.0 Research Dictionary upgrade
+
+Adds per-Research bilingual terminology, manual term editing, contextual AI Prompt downloads, reviewed JSON import/merge and export, bilingual search, tags and import undo. The two-row header sits above a narrow term list and wide detail pane. Uses existing GaryHub sign-in and private per-user SQLite data.
+
+Install on actual v1.4.0.1 with the existing checked updater. See [instructions](docs/GARYHUB_V1_4_1_0.md) and [validation](docs/GARYHUB_V1_4_1_0_TESTS.md). Source is prepared and locally validated; production completion requires server evidence.

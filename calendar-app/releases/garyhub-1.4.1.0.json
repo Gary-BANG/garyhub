@@ -1,0 +1,11 @@
+{
+  "version": "garyhub-1.4.1.0",
+  "date": "2026-10-24",
+  "notes": [
+    {
+      "scope": "tools",
+      "title": "Research Dictionary · v1.4.1.0",
+      "body": "新增按 Research 管理的私人双语科研词库：顶部项目切换与搜索操作，左侧标签和词条，右侧释义、用法及双语例句。支持手动新增和编辑、下载 AI Prompt、JSON 词库导入预览、冲突处理、导出与撤销最近一次导入；中英文、缩写和别名均可搜索。"
+    }
+  ]
+}
