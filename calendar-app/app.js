@@ -20,6 +20,7 @@ const {migrateLedger,registerLedger}=require("./ledger-api");
 const {migrateMembership,registerMembership}=require("./membership");
 const {migrateTotp,registerTotp}=require("./totp-api");
 const {migrateTodos,registerTodos}=require("./todos-api");
+const {migrateResearch,registerResearch}=require("./research-api");
 const { findLoginIdentity } = require("./login-identity");
 const { migratePasswordReset, registerPasswordReset } = require("./password-reset");
 const app = express();
@@ -29,6 +30,7 @@ const PUBLIC_DIR = path.join(__dirname, "public");
 app.set("trust proxy", 1);
 
 app.use("/api/todos",express.json({limit:"2mb"}));
+app.use("/api/research",express.json({limit:"4mb"}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -153,7 +155,7 @@ async function resolveTargetUserId(req) {
 }
 
 app.get("/health", (req, res) => {
-  res.json({ ok: true, hubVersion: "1.4.0.1" });
+  res.json({ ok: true, hubVersion: "1.4.1.0" });
 });
 
 // 登录
@@ -672,6 +674,7 @@ registerTotp(app,{requireLogin,requireAdmin});
 registerProfile(app,{db:require("./db"),requireAdmin});
 registerLedger(app,{requireLogin});
 registerTodos(app,{requireLogin});
+registerResearch(app,{requireLogin});
 registerHubApi(app,{db:require("./db"),requireLogin,requireAdmin});
 registerTasksApi(app, { requireLogin, resolveTargetUserId });
 registerEmailApi(app, { requireLogin });
@@ -688,6 +691,7 @@ initDb()
   .then(() => migrateTotp(require("./db")))
   .then(() => migrateLedger(require("./db")))
   .then(() => migrateTodos(require("./db")))
+  .then(() => migrateResearch(require("./db")))
   .then(() => migratePasswordReset(require("./db")))
   .then(() => {
     app.listen(PORT, "0.0.0.0", () => {

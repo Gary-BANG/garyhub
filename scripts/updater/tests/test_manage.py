@@ -13,7 +13,7 @@ class WorkflowTests(unittest.TestCase):
     def test_current_source_matches_the_registered_adapter(self):
         current, release = m.release()
         self.assertEqual(current['source_version'], release['version'])
-        self.assertEqual(release['version'], '1.4.0.1')
+        self.assertEqual(release['version'], '1.4.1.0')
         self.assertFalse(release['production_verified'])
 
     def test_unknown_version_and_path_escape_are_rejected(self):

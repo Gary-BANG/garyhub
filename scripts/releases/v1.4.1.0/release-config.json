@@ -1,0 +1,50 @@
+{
+  "version": "1.4.1.0",
+  "requires_release": "1.4.0.1",
+  "installer_build": "v1.4.1.0-r1",
+  "reviewed_base_commit": "637d86faae37d6c06b74b15bf850e82e301c8ad7",
+  "baseline_adapter": "scripts/releases/v1.4.0.1",
+  "source_subject": "Add project-based bilingual Research Dictionary",
+  "updated_features": [
+    "research_dictionary_release"
+  ],
+  "summary": "Research Dictionary is ready. Existing records and credentials were retained.",
+  "asset_checksums": [
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/research/index.html",
+      "sha256": "93d119a6aab5dd00302a69a08cc3d5b83e75c8f5c24f57030bf98f53b0bb05db"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/research/format.js",
+      "sha256": "3901326c0f1ea27b4d77778d20c6cff6a85640149c48b881ac6e1b1e10137d78"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/research/research.js",
+      "sha256": "35cd48934e40cf3edd67272a3552c7b215b5a17bbdc61292b6cba82dd3599ed6"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/research/research.css",
+      "sha256": "b669c815410a92c3e9eaa95e268ec09a0faae892854e5dc7a382c815dd21f6f1"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/tools-catalog.js",
+      "sha256": "de81f87a6a0dea251243b10a4c6ad1ac3e992c839b0454576f1b027f04dd3d1d"
+    }
+  ],
+  "isolation_checks": [
+    "research-http.cjs",
+    "useful-http.cjs",
+    "lab-distribution.cjs"
+  ],
+  "test_inputs": {
+    "seed.cjs": "scripts/releases/v1.3.6.0/tests/seed.cjs",
+    "research-http.cjs": "scripts/releases/v1.4.1.0/tests/research-http.cjs",
+    "useful-http.cjs": "scripts/releases/v1.3.6.1/tests/useful-http.cjs",
+    "lab-distribution.cjs": "scripts/releases/v1.3.6.0/tests/lab-distribution.cjs"
+  }
+}
