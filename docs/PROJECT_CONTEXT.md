@@ -4,14 +4,13 @@
 
 ## 当前源码与部署证据
 
-- 仓库：Gary-BANG/garyhub；默认分支 main；本机常用目录 `D:\Codes\Own_Project\garyhub-repo`。
-- 本次审阅的 main：`bf5d8e2aa1f87024ba3c183b5e5d4155dc6e6a4f`，已合并 v1.3.6.1（PR #16）。旧档案中的“v1.3.6.1 尚未合并”已过时；生产仍需现场证据。
-- 当前准备的应用源码版本：1.4.0.0；独立更新分支 `update/garyhub-v1.4.0.0`。
-- 状态：源码已准备；本地 DOM、Node20 HTTP、通知与部署保护检查已通过；真实浏览器视觉/手机布局/帧率尚未验证（可用浏览器连接失败）。本次 GitHub 尚未推送/合并，生产尚未安装或验证。不能把自动化通过写成视觉验收或上线完成。
-- 机器可读入口：`releases/current.json`；当前清单 `releases/1.4.0.0.json`，严格要求两个生产服务均为 1.3.6.1，能力标识继续区分有/无 TOTP。
-- 本次改动：Tools 改为独立 SVG 图标、多行网格/单行 Dock、双语名称与简介、按中文/英文/简称/用途搜索、布局偏好保存、键盘导航；保留背景和主题。只在动画未收敛时运行图标 spring 循环，减少动态效果/触屏停用图标放大。
-- 本次新增文件集中在 `lab-service/public/tools-*`；`hub.css`、`hub.js`、工具内部编辑器、数据库与账号逻辑保持基线内容。
-- 行为说明与验证证据：`docs/GARYHUB_V1_4_0_0.md`、`docs/GARYHUB_V1_4_0_0_TESTS.md`。实际生产版本与通知人数必须等真实安装输出。
+- 仓库 Gary-BANG/garyhub；默认分支 main；维护者本机 `D:\Codes\Own_Project\garyhub-repo`。
+- 本次审阅 main：`4f5611b6c1d1e6def995ef9664b0035e551a806a`，v1.4.0.0 已合并（PR #17）。该提交的源码树与先前交付 v1.4.0.0 一致。
+- 本次准备 1.4.0.1，分支 `update/garyhub-v1.4.0.1`；入口 `releases/current.json`，清单 `releases/1.4.0.1.json`，严格要求两服务实际运行 v1.4.0.0。
+- 用户反馈 v1.4.0.0 页面运行但鼠标无响应，Tab 可显示介绍。现场镜像/配置/通知人数缺日志，仍未核验；不能据此填写生产完成。
+- 修复：鼠标事件不再受主要设备 hover/fine 媒体查询限制，CSS 不再因 coarse 设备强制取消鼠标放大。pointer 与传统 mouse 均支持；触屏模拟鼠标过滤、键盘、减少动态效果与滚动后坐标重测保留。新版 HTML 为修复 JS/CSS 加版本参数，安装后 HTTPS 核对精确资源 SHA256。
+- 状态：修复源码已准备，DOM/Node20 HTTP/部署保护自动检查通过；真实浏览器未连接，实际鼠标观感/手机排版/帧率未验收。1.4.0.1 尚未推送/合并或生产验证。
+- 当前说明与验证：`docs/GARYHUB_V1_4_0_1.md`、`docs/GARYHUB_V1_4_0_1_TESTS.md`。原 1.4.0.0 档案保留为历史，不能再将其“鼠标悬停完成”当作验收结论。
 
 ## 模块定位
 
@@ -25,7 +24,7 @@
 | ECE 470 Lab | lab-service/server.cjs、public/lab/app.js、cloud.js、core.js |
 | 作业题库分发 | lab-service/lab-distribution.cjs、public/lab/distribution.js、pack-validation.mjs |
 | 三个本地实用工具 | lab-service/public/useful/，避免读取 vendor/ 的大文件 |
-| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v1.4.0.0/ |
+| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v1.4.0.1/ |
 
 Calendar 使用 Node.js、Express、SQLite；Lab 使用 Node 原生 HTTP，浏览器运行 Python/WASM。生产运行代码须保持 Node 20 兼容。浏览器依赖已本地打包，无需让生产服务器在线安装依赖。
 
@@ -41,11 +40,9 @@ Calendar 使用 Node.js、Express、SQLite；Lab 使用 Node 原生 HTTP，浏�
 
 ## 已有更新机制
 
-统一入口仍为 `scripts/updater/manage.py`。v1.4.0.0 使用自己的 `release-config.json` 和小型适配器；共享 `build_overlay.py`、`deploy_runtime.py` 继续承担离线镜像覆盖、精确源码基线、有效部署索引、备份、失败恢复、回滚与站内通知。旧发布适配器未改动。本次共享 builder 仅增加可选 `source_subject`，旧配置的默认提交标题保持不变。
+统一入口仍为 `scripts/updater/manage.py`。v1.4.0.1 使用自己的小型配置与 HTTPS 资源校验适配器，复用 `build_overlay.py`、`deploy_runtime.py`、Windows 安装模板与独立源码导入器，不改共享部署逻辑。baseline_adapter 为 `scripts/releases/v1.4.0.0`，正确匹配无 TOTP 的 app.js/server.cjs/index.html 基线。
 
-v1.4.0.0 的 baseline_adapter 必须是 `scripts/releases/v1.3.6.1`，以匹配无 TOTP 组合的实际 app.js、server.cjs 和首页，不能用 canonical 有 TOTP 文件作为这类部署的基线。新适配器额外在既有 HTTPS 检查后核对 Dock 版本标记和三个新资源。
-
-每个升级 ZIP 独立可用，包含安装/回滚入口、SHA256SUMS、应用覆盖和源码补丁。完整解压后双击 `RUN-UPDATE.cmd`；沿用既有 SSH 私钥和主机记录，现场核验通过才切换。安装后通过既有 `push-source.ps1` 在独立 worktree 准备 `update/garyhub-v1.4.0.0`，保留原工作区；`PUSH-TO-GITHUB.cmd` 才执行普通 push 并打开 PR，不自动合并 main。回滚保留安装后新产生的用户记录。
+完整解压升级 ZIP 后双击 RUN-UPDATE.cmd。现场核验两服务版本、能力与源码、有效配置，离线构建与隔离测试，备份后切换；HTTPS 确认目标页面与 JS/CSS 字节，再核对站内通知。ROLLBACK.cmd 返回 v1.4.0.0 应用镜像并保留当前用户记录。PUSH-TO-GITHUB.cmd 使用独立 worktree 准备/推送审查分支，不覆盖原工作区、不 force push、不自动合并 main。
 
 Markdown ZIP 在浏览器处理，使用原生 DEFLATE 流，不新增服务器运行依赖。支持普通未加密 ZIP（stored/DEFLATE），不支持 RAR、7z、多卷或 ZIP64；图片仅接受 PNG/JPEG/GIF/WebP，外部图片及 SVG 不加载。ZIP 最多 20 MiB、500 个条目、解压合计 50 MiB、单文件 10 MiB、Markdown 4 MiB。源码编辑和包内文档草稿仅保存在本次页面中，不写回原文件。
 

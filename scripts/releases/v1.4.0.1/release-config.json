@@ -1,0 +1,28 @@
+{
+  "version": "1.4.0.1",
+  "requires_release": "1.4.0.0",
+  "installer_build": "v1.4.0.1-r1",
+  "reviewed_base_commit": "4f5611b6c1d1e6def995ef9664b0035e551a806a",
+  "baseline_adapter": "scripts/releases/v1.4.0.0",
+  "source_subject": "Fix Tools mouse hover independent of primary input classification",
+  "updated_features": [
+    "tools_dock_release",
+    "tools_hover_fix_release"
+  ],
+  "summary": "Mouse hover, magnification and descriptions are restored. Existing records were retained.",
+  "asset_checksums": {
+    "/tools-dock.js": "bc30809695c53bdc0c868af12359152d719754934beef938a79f021a69249f55",
+    "/tools-dock.css": "87168c1c7ca8754dd505e0a75f569376139cb15efb1e0d052828b4935422d6fe"
+  },
+  "isolation_checks": [
+    "dock-http.cjs",
+    "useful-http.cjs",
+    "lab-distribution.cjs"
+  ],
+  "test_inputs": {
+    "seed.cjs": "scripts/releases/v1.3.6.0/tests/seed.cjs",
+    "lab-distribution.cjs": "scripts/releases/v1.3.6.0/tests/lab-distribution.cjs",
+    "useful-http.cjs": "scripts/releases/v1.3.6.1/tests/useful-http.cjs",
+    "dock-http.cjs": "scripts/releases/v1.4.0.0/tests/dock-http.cjs"
+  }
+}

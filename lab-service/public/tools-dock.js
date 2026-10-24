@@ -7,7 +7,9 @@
   const $ = id => document.getElementById(id);
   const search = $('tool-search'), scroll = $('dock-scroll'), list = $('tool-list');
   const detail = $('detail-content'), title = $('detail-title'), copy = $('detail-copy');
-  const fine = matchMedia('(hover:hover) and (pointer:fine)');
+  // Capabilities describe the primary device, not the mouse currently in use.
+  // Use them for the initial hint only; real mouse events must always work.
+  const hoverHint = matchMedia('(any-hover:hover)');
   const motion = matchMedia('(prefers-reduced-motion:reduce)');
   const entries = [...list.querySelectorAll('[data-tool]')].map(node => ({
     node, link:node.querySelector('a'), glyph:node.querySelector('.tool-glyph'),
@@ -20,6 +22,7 @@
   };
   let lang = window.GaryHubI18n?.language === 'en' ? 'en' : 'zh';
   let current = null, pointer = null, focused = null, raf = 0, last = 0, leaveTimer = 0, descriptionAnimation;
+  let input = hoverHint.matches ? 'mouse' : 'touch', lastTouch = -Infinity;
   let dirty = true, view = 'grid';
   try { if (localStorage.getItem('garyhub.tools.view') === 'dock') view = 'dock'; } catch {}
   const visible = () => entries.filter(entry => !entry.node.hidden);
@@ -42,7 +45,7 @@
   }
   function frame(time) {
     raf = 0;
-    if (document.hidden || motion.matches || !fine.matches) {resetIcons();return;}
+    if (document.hidden || motion.matches || input==='touch') {resetIcons();return;}
     if (dirty) measure();
     const dt = last ? Math.min((time-last)/1000, .032) : 1/60; last = time;
     let moving = false;
@@ -72,7 +75,8 @@
     }
     if (moving) raf=requestAnimationFrame(frame);else last=0;
   }
-  function animateIcons() {if (!raf && !motion.matches && fine.matches && !document.hidden) raf=requestAnimationFrame(frame);}
+  function animateIcons() {if (!raf && !motion.matches && input!=='touch' && !document.hidden) raf=requestAnimationFrame(frame);}
+  function setInput(value) {input=value;browser.dataset.input=value;}
   function show(entry, animate=true) {
     const changed=current!==entry; current=entry;
     for (const item of entries) {
@@ -83,12 +87,14 @@
     }
     title.hidden=!entry;
     title.textContent=entry?entry.tool.name[lang]:'';
-    copy.textContent=entry?entry.tool.description[lang]:(fine.matches?strings[lang].hint:strings[lang].touchHint);
+    copy.textContent=entry?entry.tool.description[lang]:(input==='touch'?strings[lang].touchHint:strings[lang].hint);
     copy.classList.toggle('detail-hint',!entry);
     if (changed && animate && !motion.matches && typeof detail.animate==='function') {
       const opacity=descriptionAnimation ? Number(getComputedStyle(detail).opacity) : .3;
       descriptionAnimation?.cancel();
       descriptionAnimation=detail.animate([{opacity:Math.max(.3,opacity),transform:'translateY(4px)'},{opacity:1,transform:'translateY(0)'}],{duration:170,easing:'cubic-bezier(.2,.7,.2,1)'});
+      const running=descriptionAnimation;
+      running.onfinish=()=>{if(descriptionAnimation===running)descriptionAnimation=undefined;};
     }
   }
   function filter() {
@@ -127,19 +133,34 @@
   search.addEventListener('input',filter);
   $('search-clear').addEventListener('click',()=>{search.value='';filter();search.focus();});
   for (const button of document.querySelectorAll('[data-view-button]')) button.addEventListener('click',()=>layout(button.dataset.viewButton));
-  list.addEventListener('pointermove',event=>{
-    if (event.pointerType==='touch' || !fine.matches) return;
+  function touchInput() {
+    lastTouch=performance.now();pointer=null;focused=null;setInput('touch');
+    resetIcons();show(null,false);
+  }
+  function mouseInput(event) {
+    if (event.pointerType==='touch') {touchInput();return;}
+    if (event.pointerType==='pen' && event.buttons) return;
+    // Ignore compatibility mouse events synthesized after a finger tap/scroll.
+    if (event.sourceCapabilities?.firesTouchEvents ||
+        (event.type.startsWith('mouse') && performance.now()-lastTouch<900)) return;
+    clearTimeout(leaveTimer);setInput('mouse');
     pointer={x:event.clientX,y:event.clientY};
-    const node=event.target.closest('[data-tool]');const entry=entries.find(entry=>entry.node===node);
+    const node=event.target.closest?.('[data-tool]');const entry=entries.find(entry=>entry.node===node);
     if (entry && current!==entry) show(entry);
     animateIcons();
-  });
-  list.addEventListener('pointerleave',()=>{pointer=null;animateIcons();});
-  browser.addEventListener('pointerenter',()=>clearTimeout(leaveTimer));
-  browser.addEventListener('pointerleave',()=>{clearTimeout(leaveTimer);leaveTimer=setTimeout(()=>{if(!focused)show(null);},180);});
+  }
+  // Entry must respond before a click and even if the pointer then stays still.
+  for (const type of ['pointerover','pointermove','mouseover','mousemove']) list.addEventListener(type,mouseInput);
+  list.addEventListener('pointerdown',event=>{if(event.pointerType==='touch')touchInput();},{passive:true});
+  list.addEventListener('touchstart',touchInput,{passive:true});
+  const leaveIcons=()=>{pointer=null;animateIcons();};
+  list.addEventListener('pointerleave',leaveIcons);
+  list.addEventListener('mouseleave',leaveIcons);
+  for (const type of ['pointerenter','mouseenter']) browser.addEventListener(type,()=>clearTimeout(leaveTimer));
+  for (const type of ['pointerleave','mouseleave']) browser.addEventListener(type,()=>{clearTimeout(leaveTimer);leaveTimer=setTimeout(()=>show(focused||null),180);});
   list.addEventListener('focusin',event=>{
     focused=entries.find(entry=>entry.link===event.target)||null;
-    if (focused) {pointer=null;focused.link.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'});dirty=true;show(focused);animateIcons();}
+    if (focused) {setInput('keyboard');pointer=null;focused.link.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'});dirty=true;show(focused);animateIcons();}
   });
   list.addEventListener('focusout',event=>{if (!list.contains(event.relatedTarget)) {focused=null;animateIcons();if (!browser.contains(event.relatedTarget)) show(null);}});
   list.addEventListener('keydown',event=>{
@@ -160,12 +181,12 @@
   scroll.addEventListener('scroll',()=>{dirty=true;arrows();},{passive:true});
   const resize=()=>{dirty=true;arrows();};
   addEventListener('resize',resize,{passive:true});
+  addEventListener('scroll',resize,{passive:true,capture:true});
   if(typeof ResizeObserver==='function')new ResizeObserver(resize).observe(scroll);
   document.addEventListener('garyhub:language',event=>{lang=event.detail.language==='en'?'en':'zh';language();});
   addEventListener('storage',event=>{if(event.key==='garyhub.tools.view')layout(event.newValue,false);});
-  motion.addEventListener('change',()=>{descriptionAnimation?.cancel();resetIcons();if(!motion.matches)animateIcons();});
-  fine.addEventListener('change',()=>{resetIcons();show(current,false);});
+  motion.addEventListener('change',()=>{descriptionAnimation?.cancel();descriptionAnimation=undefined;resetIcons();if(!motion.matches)animateIcons();});
   document.addEventListener('visibilitychange',()=>{pointer=null;resetIcons();});
   addEventListener('pagehide',()=>{clearTimeout(leaveTimer);resetIcons();descriptionAnimation?.cancel();});
-  $('tools-controls').hidden=false;layout(view,false);language();filter();
+  setInput(input);$('tools-controls').hidden=false;layout(view,false);language();filter();
 })();
