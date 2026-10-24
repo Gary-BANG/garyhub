@@ -100,7 +100,7 @@ def build(root, here, output):
     push=importlib.util.module_from_spec(spec);spec.loader.exec_module(push);push.ROOT=root
     pr_body=source_bytes(root,str((here/'PR-DESCRIPTION.md').relative_to(root))).decode()
     with contextlib.redirect_stdout(io.StringIO()):
-        push.build(base,'update/garyhub-v'+version,work/'git-source.zip','Add bilingual useful tools and Markdown ZIP preview',pr_body)
+        push.build(base,'update/garyhub-v'+version,work/'git-source.zip',config.get('source_subject','Add bilingual useful tools and Markdown ZIP preview'),pr_body)
     with zipfile.ZipFile(work/'git-source.zip') as z:
         for name in z.namelist():
             relative='/'.join(name.split('/')[1:])

@@ -1,0 +1,72 @@
+/* Tools landing page only: shared login styles and the canvas stay untouched. */
+.tools-page {--dock-surface:#fffdf8b8;--dock-glow:#fffef9;--tile:#f1e8db;--tile-line:#c9bba7;--panel:#fffdf880;--focus:#987045}
+.tools-page.dark {--dock-surface:#292b2aab;--dock-glow:#45463e;--tile:#32352f;--tile-line:#5d5d4d;--panel:#272a2780;--focus:#dfb484}
+.tools-page .wrap {max-width:1160px}
+.tools-page nav {gap:18px}
+.tools-page .brand {flex-shrink:0}
+.tools-page .nav-right {gap:18px}
+.tools-page .hero {text-align:center;padding:44px 0 26px}
+.tools-page .hero h1 {font-size:clamp(32px,4.1vw,52px);letter-spacing:-1.8px;line-height:1.15;margin:12px 0}
+.tools-page .hero p {max-width:none;font-size:14px;margin:0}
+.tools-page .eyebrow {font-size:10px;letter-spacing:2px}
+.tool-browser {max-width:1040px;margin:auto}
+.tools-controls {display:flex;align-items:center;gap:12px;max-width:850px;margin:0 auto 22px}
+.tool-search {position:relative;display:flex;align-items:center;flex:1;min-width:0;border:1px solid var(--line);border-radius:18px;background:var(--panel);box-shadow:0 4px 18px var(--shadow)}
+.tool-search:focus-within {border-color:var(--accent);outline:2px solid var(--focus);outline-offset:3px}
+.tool-search>svg {width:19px;height:19px;margin-left:18px;flex-shrink:0;color:var(--accent)}
+.tool-search input {border:0;background:transparent;padding:15px 42px 15px 12px;outline:none;min-width:0;font-size:14px;color:var(--ink);border-radius:18px}
+.tool-search input::placeholder {color:var(--muted);opacity:1}
+.tool-search input::-webkit-search-cancel-button {display:none}
+.search-clear {position:absolute;right:8px;width:34px;height:34px;border:0;background:transparent;color:var(--muted);border-radius:50%;font-size:22px}
+.search-clear:hover {background:var(--shadow);color:var(--ink)}
+.view-switch {display:flex;gap:4px;padding:5px;border:1px solid var(--line);border-radius:15px;background:var(--panel)}
+.view-switch button {width:42px;height:42px;display:grid;place-items:center;border:0;border-radius:10px;background:transparent;color:var(--muted)}
+.view-switch button[aria-pressed=true] {background:var(--tile);color:var(--accent);box-shadow:inset 0 0 0 1px var(--tile-line)}
+.view-switch svg {width:19px;height:19px}
+.tools-caption {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 5px 12px;color:var(--muted);font:10px/1.5 monospace;letter-spacing:1.8px}
+.tools-caption output {font:12px/1.5 system-ui,sans-serif;letter-spacing:0}
+.dock-frame {position:relative;border:1px solid var(--line);border-radius:30px;background:var(--dock-surface);box-shadow:inset 0 1px 0 var(--dock-glow),0 15px 45px var(--shadow)}
+@supports (backdrop-filter:blur(8px)) {.dock-frame {backdrop-filter:blur(8px)}}
+.dock-scroll {overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:var(--line) transparent;border-radius:30px}
+.tool-list {display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px 14px;padding:35px 30px 21px;margin:0;list-style:none}
+.tool-list li {min-width:0;position:relative}
+.tool-link {display:flex;flex-direction:column;align-items:center;position:relative;text-align:center;min-height:132px;gap:0;padding:0 3px 9px;border-radius:18px;isolation:isolate}
+.tool-link:focus-visible {outline:2px solid var(--focus);outline-offset:2px}
+.tool-glyph {width:64px;height:64px;display:grid;place-items:center;border:1px solid var(--tile-line);border-radius:19px;background:linear-gradient(145deg,var(--paper),var(--tile));box-shadow:inset 0 1px 0 var(--dock-glow),0 5px 12px var(--shadow);color:var(--accent);transform-origin:50% 75%;pointer-events:none}
+.tool-glyph svg {width:31px;height:31px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.tool-name {font-size:13px;line-height:1.35;font-weight:600;margin-top:19px;max-width:100%;overflow-wrap:anywhere;color:var(--ink)}
+.tool-short {font-size:10px;line-height:1.4;color:var(--muted);margin-top:4px;max-width:100%;overflow-wrap:anywhere}
+.tool-link[data-active] .tool-name {color:var(--accent)}
+.tools-page [hidden] {display:none!important}
+.tool-browser[data-view=dock] .tool-list {display:flex;gap:14px;width:max-content;min-width:100%;justify-content:center;padding:39px 44px 22px}
+.tool-browser[data-view=dock] .tool-list li {width:112px;flex:0 0 112px}
+.tool-browser[data-view=dock] .tool-short {display:none}
+.dock-step {position:absolute;top:73px;z-index:4;width:32px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--paper);color:var(--ink);box-shadow:0 2px 8px var(--shadow);font-size:24px;line-height:1}
+.dock-step.prev {left:8px}.dock-step.next {right:8px}
+.tool-detail {min-height:140px;padding:25px 20px 10px;text-align:center;max-width:640px;margin:auto;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.detail-content {width:100%}
+.detail-kicker {font:10px/1.4 monospace;letter-spacing:1.6px;color:var(--accent);margin:0 0 5px}
+.detail-title {font:normal 24px/1.25 Georgia,serif;letter-spacing:-.4px;margin:0 0 7px;color:var(--ink)}
+.detail-copy {margin:0;color:var(--muted);font-size:13px;line-height:1.7;min-height:45px;text-wrap:pretty}
+.detail-hint {color:var(--muted);font-size:12px;line-height:1.7;margin:0}
+.no-tools {padding:45px 20px;text-align:center;color:var(--muted);min-height:180px;margin:0}
+.tools-page footer {max-width:1060px;margin:22px auto 20px;font-size:10px;gap:12px;flex-wrap:wrap}
+.tools-page .sr-only {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.tool-symbols {position:absolute;width:0;height:0;overflow:hidden}
+@media (min-width:1250px) {.tool-browser[data-view=dock] {max-width:1100px}.tool-browser[data-view=dock] .tool-list li {width:104px;flex-basis:104px}.tool-browser[data-view=dock] .tool-list {gap:12px}}
+@media (max-width:900px) {.tool-list {grid-template-columns:repeat(4,minmax(0,1fr));gap:15px 12px}.tools-page .hero {padding-top:32px}}
+@media (max-width:560px) {
+ .tools-page nav {padding:15px 18px;gap:12px}.tools-page .nav-right {gap:12px;font-size:12px;margin-left:auto}
+ .tools-page [data-hub-account] {border-top:1px solid var(--line);padding-top:10px}
+ .tools-page .wrap {padding:0 18px}.tools-page .hero {padding:30px 0 22px}.tools-page .hero h1 {font-size:34px;max-width:330px;margin:12px auto}
+ .tools-page .hero p {font-size:12px;max-width:280px;margin:auto}.tools-page .eyebrow {font-size:9px;letter-spacing:1px}
+ .tools-controls {gap:8px;margin-bottom:18px}.tool-search input {font-size:12px;padding-left:9px;padding-top:14px;padding-bottom:14px}.tool-search>svg {margin-left:12px;width:16px}.view-switch {gap:1px;padding:4px}.view-switch button {width:44px;height:44px}
+ .tools-caption {font-size:9px;letter-spacing:1px}.tools-caption output {font-size:11px}
+ .tool-list {grid-template-columns:repeat(3,minmax(0,1fr));padding:26px 10px 14px;gap:9px 2px}.tool-link {min-height:125px;padding:0 2px 8px}.tool-glyph {width:57px;height:57px;border-radius:17px}.tool-glyph svg {width:28px;height:28px}
+ .tool-name {font-size:11px;margin-top:16px}.tool-short {font-size:9px}.dock-frame,.dock-scroll {border-radius:23px}
+ .tool-detail {min-height:145px;padding:19px 5px 8px}.detail-title {font-size:22px}.detail-copy {font-size:12px;min-height:60px}
+ .tool-browser[data-view=dock] .tool-list {padding:30px 38px 15px;gap:8px}.tool-browser[data-view=dock] .tool-list li {width:91px;flex-basis:91px}.dock-step {top:57px}
+ .tools-page footer {margin:20px 18px;font-size:9px}
+}
+@media (hover:none),(pointer:coarse) {.tool-glyph {transform:none!important}.tool-detail {min-height:100px}.tool-short {font-size:10px}.tool-browser[data-view=dock] .tool-short {display:block}}
+@media (prefers-reduced-motion:reduce) {.dock-scroll {scroll-behavior:auto}.tool-glyph {transform:none!important}}

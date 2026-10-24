@@ -107,3 +107,7 @@ Fixes complete GitHub origin validation, excludes private environment files from
 ## v1.3.5.4 Todo import and AI prompts
 
 Preview and append Todos and points from pasted or uploaded JSON; copy a schema-matched AI prompt. Identical content is skipped by default. Existing drafts, ordering, completion states, per-account ownership and revision checks are preserved. Install on deployed v1.3.5.3. See [instructions](docs/GARYHUB_V1_3_5_4.md) and [validation](docs/GARYHUB_V1_3_5_4_TESTS.md).
+
+## v1.4.0.0 Tools icon navigation
+
+Searchable bilingual SVG icon grid and single-row Dock, with smooth proximity magnification, descriptions, saved layout, keyboard and touch support. Requires deployed v1.3.6.1. See [instructions](docs/GARYHUB_V1_4_0_0.md) and [validation and outstanding visual acceptance](docs/GARYHUB_V1_4_0_0_TESTS.md). Source preparation and production deployment are recorded separately.
