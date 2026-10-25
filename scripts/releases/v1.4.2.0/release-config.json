@@ -1,0 +1,112 @@
+{
+  "version": "1.4.2.0",
+  "requires_release": "1.4.1.0",
+  "installer_build": "v1.4.2.0-r4",
+  "reviewed_base_commit": "18cb483b3417b51686ab37b09ac2a69499233c71",
+  "baseline_adapter": "scripts/releases/v1.4.1.0",
+  "source_subject": "Add admin server monitoring, unified Reading access and ambient workspace",
+  "updated_features": [
+    "server_monitor_release",
+    "tool_access_release",
+    "ambient_workspace_release"
+  ],
+  "summary": "Server Monitor, unified Reading access, daily quotes and ambient music are ready. Current user records and credentials were retained.",
+  "asset_checksums": [
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/research/index.html",
+      "sha256": "1839f572b7a1399d14b46c91e647741241766cd37f4065bab85fe23a1bb63e63"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/research/research.css",
+      "sha256": "2d17b97945c9618abdd946b37900f1290b34383a0928b59a126129eafd368e8d"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/particles.js",
+      "sha256": "55dbb0a2e3ac8b11c9eabb4578d68740d6038d286b3c1a2c51c2ec2f46fa2c1b"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/daily-quote.js",
+      "sha256": "ab932b2e007a393d8b86d8126e03acad49a482538c63ef8bc94b1ddd51721bad"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/daily-quote.css",
+      "sha256": "dc256166fcac888a8332dff7cf3e94b3c95e66e737b9c24c77cdc529641bd2cd"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/ambient-music.js",
+      "sha256": "ec4ec8f711b2e5ef158e095e0ef22844ac4f944a8bf5b4c1cd5fe425e8e4671f"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/ambient-music.css",
+      "sha256": "12efdc4f237b3de28188f57bbeef9b244f96bcacb6f027762a32c1e477fafa83"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/ambient.mp3",
+      "sha256": "5c524e6eaf8f9cdafe634ab5acd18e817b8557dd77875d49bae046fd7054306b"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/tools-catalog.js",
+      "sha256": "bf81ca5f232e862539aa4fb7855259285e82871983f7cf4c7828f068ab496b68"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/tools-dock.js",
+      "sha256": "f060d870b087c7b0bc2ddff48e79ce841406723224c56c4bff63fbb4be6441c2"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/ambient-music.js",
+      "sha256": "ec4ec8f711b2e5ef158e095e0ef22844ac4f944a8bf5b4c1cd5fe425e8e4671f"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/ambient-music.css",
+      "sha256": "12efdc4f237b3de28188f57bbeef9b244f96bcacb6f027762a32c1e477fafa83"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/ambient.mp3",
+      "sha256": "5c524e6eaf8f9cdafe634ab5acd18e817b8557dd77875d49bae046fd7054306b"
+    }
+  ],
+  "isolation_checks": [
+    "features-http.cjs",
+    "research-http.cjs",
+    "useful-http.cjs"
+  ],
+  "isolation_environment": {
+    "TRUSTED_ORIGINS": "https://garyhub.uk,https://calendar.garyhub.uk,https://tools.garyhub.uk,https://lab.garyhub.uk,http://calendar-check:3000",
+    "MINIFLUX_URL": "http://calendar-check:18100",
+    "READING_NAMESPACE": "aaaaaaaaaaaaaaaaaaaaaaaa",
+    "SERVER_METRICS_FILE": "/checks/monitor-fixture.json"
+  },
+  "test_inputs": {
+    "seed.cjs": "scripts/releases/v1.3.6.0/tests/seed.cjs",
+    "features-http.cjs": "scripts/releases/v1.4.2.0/tests/features-http.cjs",
+    "monitor-fixture.json": "scripts/releases/v1.4.2.0/tests/monitor-fixture.json",
+    "research-http.cjs": "scripts/releases/v1.4.1.0/tests/research-http.cjs",
+    "useful-http.cjs": "scripts/releases/v1.3.6.1/tests/useful-http.cjs",
+    "miniflux-acceptance.cjs": "scripts/releases/v1.4.2.0/tests/miniflux-acceptance.cjs"
+  },
+  "support_files": {
+    "integrations.py": "scripts/releases/v1.4.2.0/integrations.py",
+    "support/collect.py": "server-monitor/collect.py",
+    "support/garyhub-monitor.service": "server-monitor/garyhub-monitor.service",
+    "support/garyhub-monitor.timer": "server-monitor/garyhub-monitor.timer",
+    "service_discovery.py": "scripts/releases/v1.4.2.0/service_discovery.py"
+  },
+  "variant_exclusions": {
+    "1.3.4.1": [
+      "lab-service/public/totp/index.html"
+    ]
+  }
+}

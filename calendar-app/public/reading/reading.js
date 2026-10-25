@@ -1,0 +1,4 @@
+(()=>{'use strict';let uid;const $=id=>document.getElementById(id);async function api(path,options={}){const r=await fetch(path,{cache:'no-store',...options}),v=await r.json();if(!r.ok)throw Error(v.message||'请求失败');return v;}
+(async()=>{try{const v=await api('/api/hub/reading-link');uid=v.userId;$('message').textContent=v.link?'已关联 '+v.link.mf_username:'已使用 GaryHub 登录；管理员和订阅用户可进入。';$('reading').hidden=false;}catch(e){$('message').textContent=e.message;}})();
+$('link-form').onsubmit=async e=>{e.preventDefault();const button=e.target.querySelector('button');button.disabled=true;try{const {token}=await api('/api/csrf');await api('/api/hub/reading-link',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':token},body:JSON.stringify({accountId:uid,token:$('token').value})});$('link-status').textContent='关联完成。点击“进入 Reading”查看原阅读记录。';}catch(error){$('link-status').textContent=error.message;}finally{$('token').value='';button.disabled=false;}};
+})();

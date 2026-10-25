@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="GaryHub tools for studying, creating and everyday life.">
+  <title>Tools · GaryHub</title>
+  <link rel="stylesheet" href="/hub.css"><link rel="stylesheet" href="/hub-account.css">
+  <link rel="stylesheet" href="/i18n/i18n.css"><link rel="stylesheet" href="/tools-dock.css?v=1.4.0.1">
+  <script src="/i18n/dictionary.js"></script><script src="/useful/tool-i18n.js"></script><script src="/i18n/i18n.js"></script>
+  <script defer src="/tools-catalog.js?v=1.4.2.0"></script><script defer src="/tools-dock.js?v=1.4.2.0"></script>
+<link rel="stylesheet" href="/ambient-music.css?v=1.4.2.0"></head>
+<body class="tools-page" data-tools-release="1.4.2.0">
+  <canvas id="sky" aria-hidden="true"></canvas>
+  <svg class="tool-symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
+<symbol id="tool-grades" viewBox="0 0 32 32"><path d="M7 4h14v24H7zM11 9h6M11 15h2m4 0h.1M11 20h2m4 0h.1M11 25h6"/></symbol>
+<symbol id="tool-study" viewBox="0 0 32 32"><path d="M3 6c6-2 9-1 13 2 4-3 7-4 13-2v21c-6-2-9-1-13 2-4-3-7-4-13-2zM16 8v21M7 11l5 1m-5 4 5 1m9-5 4-1m-4 6 4-1"/></symbol>
+<symbol id="tool-lab" viewBox="0 0 32 32"><path d="M9 4h14M12 4v10L5 25q-2 4 3 4h16q5 0 3-4l-7-11V4M10 21h12M14 17h.1m4 9h.1"/></symbol>
+<symbol id="tool-calendar" viewBox="0 0 32 32"><rect x="4" y="6" width="24" height="23" rx="4"/><path d="M4 13h24M10 3v6m12-6v6M10 18h.1m6 0h.1m6 0h.1M10 24h.1m6 0h.1"/></symbol>
+<symbol id="tool-files" viewBox="0 0 32 32"><path d="M3 10V7q0-3 3-3h7l4 5h9q3 0 3 3v13q0 3-3 3H6q-3 0-3-3zM3 13h26"/></symbol>
+<symbol id="tool-research" viewBox="0 0 32 32"><path d="M5 5h10v22H5zM15 5h12v22H15M8 11h4m-4 5h4m7-5h5m-5 5h5M8 22h4m7 0h5"/></symbol>
+<symbol id="tool-reading" viewBox="0 0 32 32"><circle cx="7" cy="25" r="2"/><path d="M5 15a12 12 0 0 1 12 12M5 5a22 22 0 0 1 22 22"/></symbol>
+<symbol id="tool-status" viewBox="0 0 32 32"><path d="M2 17h6l4-9 7 17 4-8h7"/><path d="M4 9V5h5M23 5h5v4M28 24v4h-5M9 28H4v-4"/></symbol>
+<symbol id="tool-access" viewBox="0 0 32 32"><circle cx="16" cy="16" r="12"/><ellipse cx="16" cy="16" rx="5" ry="12"/><path d="M4 16h24M7 9h18M7 23h18"/></symbol>
+<symbol id="tool-totp" viewBox="0 0 32 32"><path d="M16 3 27 7v9c0 7-7 11-11 13C12 27 5 23 5 16V7z"/><circle cx="16" cy="15" r="3"/><path d="M16 18v5"/></symbol>
+<symbol id="tool-eraser" viewBox="0 0 32 32"><path d="m5 19 13-14q2-2 4 0l6 6q2 2 0 4L15 28H9l-4-5q-2-2 0-4zM10 14l12 12M15 28h14"/></symbol>
+<symbol id="tool-markdown" viewBox="0 0 32 32"><path d="M4 8v17m0-17 7 9 7-9v17M24 7v16m-4-4 4 4 4-4"/></symbol>
+<symbol id="tool-pdf" viewBox="0 0 32 32"><path d="M8 3h11l7 7v19H8zM19 3v8h7M12 16h9m-9 4h9m-9 4h6"/></symbol>
+  </defs></svg>
+  <nav aria-label="Main navigation">
+    <a class="brand" href="https://garyhub.uk">Gary<i>Hub.</i></a>
+    <div class="nav-right"><a href="https://garyhub.uk">Home</a><a href="https://calendar.garyhub.uk">Calendar</a><button class="theme" aria-label="Toggle color theme">◐</button></div>
+    <div data-hub-account data-scope="" data-admin="true"></div>
+  </nav>
+  <main class="wrap" data-i18n-ignore>
+    <section class="hero">
+      <span class="eyebrow" data-copy="eyebrow">A PERSONAL COLLECTION / GARYHUB</span>
+      <h1><span data-copy="headline">一方小天地，</span> <em data-copy="headlineAccent">做更多事。</em></h1>
+      <p data-copy="subtitle">学习、创作与日常所需，在这里各就其位。</p>
+    </section>
+    <section class="tool-browser" id="tool-browser" data-view="grid" aria-label="工具导航">
+      <div class="tools-controls" id="tools-controls" hidden>
+        <div class="tool-search">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
+          <label for="tool-search" class="sr-only" data-copy="searchLabel">搜索工具</label>
+          <input id="tool-search" type="search" autocomplete="off" maxlength="160" placeholder="搜索工具名称或用途…" aria-controls="tool-list">
+          <button type="button" class="search-clear" id="search-clear" aria-label="清空搜索" hidden>×</button>
+        </div>
+        <div class="view-switch" role="group" aria-label="显示方式" id="view-switch">
+          <button type="button" data-view-button="grid" aria-label="多行图标" aria-pressed="true" title="多行图标"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="15" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="15" width="6" height="6" rx="1.5"/><rect x="15" y="15" width="6" height="6" rx="1.5"/></svg></button>
+          <button type="button" data-view-button="dock" aria-label="单行 Dock" aria-pressed="false" title="单行 Dock"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="9" width="5" height="9" rx="1.5"/><rect x="9.5" y="5" width="5" height="13" rx="1.5"/><rect x="17" y="9" width="5" height="9" rx="1.5"/></svg></button>
+        </div>
+      </div>
+      <div class="tools-caption"><span data-copy="toolbox">你的工具箱</span><output id="tool-count" role="status" aria-live="polite" aria-atomic="true"></output></div>
+      <div class="dock-frame">
+        <button class="dock-step prev" type="button" id="dock-prev" aria-label="向前浏览工具" hidden>‹</button>
+        <div class="dock-scroll" id="dock-scroll"><ul class="tool-list" id="tool-list">
+          <li data-tool="grades"><a class="tool-link" href="/grades/"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-grades"></use></svg></span><span class="tool-name">成绩规划</span><span class="tool-short">课程成绩与 GPA</span></a></li>
+          <li data-tool="study"><a class="tool-link" href="/study/"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-study"></use></svg></span><span class="tool-name">学习中心</span><span class="tool-short">讲义与学习进度</span></a></li>
+          <li data-tool="lab"><a class="tool-link" href="https://lab.garyhub.uk/lab/"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-lab"></use></svg></span><span class="tool-name">ECE 470 实验室</span><span class="tool-short">机器人编程练习</span></a></li>
+          <li data-tool="research"><a class="tool-link" href="https://calendar.garyhub.uk/research/"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-research"></use></svg></span><span class="tool-name">科研词典</span><span class="tool-short">双语术语与例句</span></a></li>
+          <li data-tool="calendar"><a class="tool-link" href="https://calendar.garyhub.uk"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-calendar"></use></svg></span><span class="tool-name">日历</span><span class="tool-short">日程与私人记录</span></a></li>
+          <li data-tool="files" hidden><a class="tool-link" href="https://files.garyhub.uk"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-files"></use></svg></span><span class="tool-name">文件</span><span class="tool-short">个人文件管理</span></a></li>
+          <li data-tool="reading" hidden><a class="tool-link" href="https://rss.garyhub.uk"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-reading"></use></svg></span><span class="tool-name">订阅阅读</span><span class="tool-short">RSS 订阅</span></a></li>
+          <li data-tool="status" hidden><a class="tool-link" href="https://kuma.garyhub.uk"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-status"></use></svg></span><span class="tool-name">服务状态</span><span class="tool-short">运行与可用性</span></a></li>
+          <li data-tool="server-monitor" hidden><a class="tool-link" href="/server-monitor/"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-status"></use></svg></span><span class="tool-name">服务器监控</span><span class="tool-short">资源与 VPN</span></a></li>
+          <li data-tool="access"><a class="tool-link" href="https://lab.garyhub.uk/access/"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-access"></use></svg></span><span class="tool-name">网络访问</span><span class="tool-short">授权与连接说明</span></a></li>
+          <li data-tool="eraser"><a class="tool-link" href="/useful/image-eraser/"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-eraser"></use></svg></span><span class="tool-name">图片局部消除</span><span class="tool-short">涂抹与修补</span></a></li>
+          <li data-tool="markdown"><a class="tool-link" href="/useful/markdown-viewer/"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-markdown"></use></svg></span><span class="tool-name">Markdown 预览</span><span class="tool-short">文档、公式与 ZIP</span></a></li>
+          <li data-tool="pdf"><a class="tool-link" href="/useful/pdf-gray/"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-pdf"></use></svg></span><span class="tool-name">PDF 浅灰转换</span><span class="tool-short">调整深浅以便打印</span></a></li>
+        </ul><p class="no-tools" id="no-tools" hidden></p></div>
+        <button class="dock-step next" type="button" id="dock-next" aria-label="向后浏览工具" hidden>›</button>
+      </div>
+      <div class="tool-detail" id="tool-detail" role="region" aria-label="工具介绍">
+        <div class="detail-content" id="detail-content">
+          <p class="detail-kicker" data-copy="detailKicker">为每一件小事，找到顺手的工具</p>
+          <h2 class="detail-title" id="detail-title" hidden></h2>
+          <p class="detail-copy detail-hint" id="detail-copy">移动到图标上查看介绍，点击即可进入。</p>
+        </div>
+      </div>
+      <p id="reading-help" hidden><a href="https://calendar.garyhub.uk/reading/">Reading 使用说明 / 关联旧账号 ↗</a></p><noscript><p>工具链接可直接使用。启用 JavaScript 后可搜索工具、切换语言与布局。 / Tool links work directly. Enable JavaScript for search, language and layout controls.</p></noscript>
+    </section>
+  </main>
+  <footer data-i18n-ignore><span>GARYHUB / MADE FOR EVERYDAY</span><span data-copy="footer">学习 · 实践 · 记录</span></footer>
+  <script src="/hub.js"></script><script src="/hub-account.js"></script>
+<script src="/ambient-music.js?v=1.4.2.0"></script></body>
+</html>

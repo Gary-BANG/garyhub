@@ -21,6 +21,8 @@ const {migrateMembership,registerMembership}=require("./membership");
 const {migrateTotp,registerTotp}=require("./totp-api");
 const {migrateTodos,registerTodos}=require("./todos-api");
 const {migrateResearch,registerResearch}=require("./research-api");
+const {migrateToolAccess,registerToolAccess}=require("./tool-access");
+const {registerDailyQuote}=require("./daily-quote");
 const { findLoginIdentity } = require("./login-identity");
 const { migratePasswordReset, registerPasswordReset } = require("./password-reset");
 const app = express();
@@ -155,7 +157,7 @@ async function resolveTargetUserId(req) {
 }
 
 app.get("/health", (req, res) => {
-  res.json({ ok: true, hubVersion: "1.4.1.0" });
+  res.json({ ok: true, hubVersion: "1.4.2.0" });
 });
 
 // 登录
@@ -675,6 +677,8 @@ registerProfile(app,{db:require("./db"),requireAdmin});
 registerLedger(app,{requireLogin});
 registerTodos(app,{requireLogin});
 registerResearch(app,{requireLogin});
+registerToolAccess(app);
+registerDailyQuote(app,{db:require("./db"),requireLogin});
 registerHubApi(app,{db:require("./db"),requireLogin,requireAdmin});
 registerTasksApi(app, { requireLogin, resolveTargetUserId });
 registerEmailApi(app, { requireLogin });
@@ -692,6 +696,7 @@ initDb()
   .then(() => migrateLedger(require("./db")))
   .then(() => migrateTodos(require("./db")))
   .then(() => migrateResearch(require("./db")))
+  .then(() => migrateToolAccess(require("./db")))
   .then(() => migratePasswordReset(require("./db")))
   .then(() => {
     app.listen(PORT, "0.0.0.0", () => {

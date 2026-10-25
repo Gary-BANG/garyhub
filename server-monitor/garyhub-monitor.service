@@ -1,0 +1,13 @@
+[Unit]
+Description=GaryHub local resource and VPN sampler
+After=docker.service xray.service
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/garyhub-monitor/collect.py
+UMask=0077
+TimeoutStartSec=75
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/garyhub-monitor

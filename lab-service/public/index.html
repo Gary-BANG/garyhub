@@ -7,9 +7,9 @@
   <link rel="stylesheet" href="/hub.css"><link rel="stylesheet" href="/hub-account.css">
   <link rel="stylesheet" href="/i18n/i18n.css"><link rel="stylesheet" href="/tools-dock.css?v=1.4.0.1">
   <script src="/i18n/dictionary.js"></script><script src="/useful/tool-i18n.js"></script><script src="/i18n/i18n.js"></script>
-  <script defer src="/tools-catalog.js?v=1.4.1.0"></script><script defer src="/tools-dock.js?v=1.4.0.1"></script>
-</head>
-<body class="tools-page" data-tools-release="1.4.1.0">
+  <script defer src="/tools-catalog.js?v=1.4.2.0"></script><script defer src="/tools-dock.js?v=1.4.2.0"></script>
+<link rel="stylesheet" href="/ambient-music.css?v=1.4.2.0"></head>
+<body class="tools-page" data-tools-release="1.4.2.0">
   <canvas id="sky" aria-hidden="true"></canvas>
   <svg class="tool-symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
 <symbol id="tool-grades" viewBox="0 0 32 32"><path d="M7 4h14v24H7zM11 9h6M11 15h2m4 0h.1M11 20h2m4 0h.1M11 25h6"/></symbol>
@@ -59,9 +59,10 @@
           <li data-tool="lab"><a class="tool-link" href="https://lab.garyhub.uk/lab/"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-lab"></use></svg></span><span class="tool-name">ECE 470 实验室</span><span class="tool-short">机器人编程练习</span></a></li>
           <li data-tool="research"><a class="tool-link" href="https://calendar.garyhub.uk/research/"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-research"></use></svg></span><span class="tool-name">科研词典</span><span class="tool-short">双语术语与例句</span></a></li>
           <li data-tool="calendar"><a class="tool-link" href="https://calendar.garyhub.uk"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-calendar"></use></svg></span><span class="tool-name">日历</span><span class="tool-short">日程与私人记录</span></a></li>
-          <li data-tool="files"><a class="tool-link" href="https://files.garyhub.uk"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-files"></use></svg></span><span class="tool-name">文件</span><span class="tool-short">个人文件管理</span></a></li>
-          <li data-tool="reading"><a class="tool-link" href="https://rss.garyhub.uk"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-reading"></use></svg></span><span class="tool-name">订阅阅读</span><span class="tool-short">RSS 订阅</span></a></li>
-          <li data-tool="status"><a class="tool-link" href="https://kuma.garyhub.uk"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-status"></use></svg></span><span class="tool-name">服务状态</span><span class="tool-short">运行与可用性</span></a></li>
+          <li data-tool="files" hidden><a class="tool-link" href="https://files.garyhub.uk"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-files"></use></svg></span><span class="tool-name">文件</span><span class="tool-short">个人文件管理</span></a></li>
+          <li data-tool="reading" hidden><a class="tool-link" href="https://rss.garyhub.uk"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-reading"></use></svg></span><span class="tool-name">订阅阅读</span><span class="tool-short">RSS 订阅</span></a></li>
+          <li data-tool="status" hidden><a class="tool-link" href="https://kuma.garyhub.uk"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-status"></use></svg></span><span class="tool-name">服务状态</span><span class="tool-short">运行与可用性</span></a></li>
+          <li data-tool="server-monitor" hidden><a class="tool-link" href="/server-monitor/"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-status"></use></svg></span><span class="tool-name">服务器监控</span><span class="tool-short">资源与 VPN</span></a></li>
           <li data-tool="access"><a class="tool-link" href="https://lab.garyhub.uk/access/"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-access"></use></svg></span><span class="tool-name">网络访问</span><span class="tool-short">授权与连接说明</span></a></li>
           <li data-tool="totp"><a class="tool-link" href="/totp/"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-totp"></use></svg></span><span class="tool-name">2FA 验证码</span><span class="tool-short">双重验证</span></a></li>
           <li data-tool="eraser"><a class="tool-link" href="/useful/image-eraser/"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-eraser"></use></svg></span><span class="tool-name">图片局部消除</span><span class="tool-short">涂抹与修补</span></a></li>
@@ -77,10 +78,10 @@
           <p class="detail-copy detail-hint" id="detail-copy">移动到图标上查看介绍，点击即可进入。</p>
         </div>
       </div>
-      <noscript><p>工具链接可直接使用。启用 JavaScript 后可搜索工具、切换语言与布局。 / Tool links work directly. Enable JavaScript for search, language and layout controls.</p></noscript>
+      <p id="reading-help" hidden><a href="https://calendar.garyhub.uk/reading/">Reading 使用说明 / 关联旧账号 ↗</a></p><noscript><p>工具链接可直接使用。启用 JavaScript 后可搜索工具、切换语言与布局。 / Tool links work directly. Enable JavaScript for search, language and layout controls.</p></noscript>
     </section>
   </main>
   <footer data-i18n-ignore><span>GARYHUB / MADE FOR EVERYDAY</span><span data-copy="footer">学习 · 实践 · 记录</span></footer>
   <script src="/hub.js"></script><script src="/hub-account.js"></script>
-</body>
+<script src="/ambient-music.js?v=1.4.2.0"></script></body>
 </html>

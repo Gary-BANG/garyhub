@@ -1,0 +1,26 @@
+{
+  "version": "garyhub-1.4.2.0",
+  "date": "2026-10-25",
+  "notes": [
+    {
+      "scope": "tools",
+      "title": "服务器监控",
+      "body": "管理员可查看服务器内存、磁盘、目录占用、容器与 VPN 用户流量。统计自启用采集后累积。"
+    },
+    {
+      "scope": "tools",
+      "title": "工具权限与 Reading 登录",
+      "body": "Files、Status 与 Server Monitor 仅管理员可用；Reading 对管理员及订阅用户开放，沿用 GaryHub 登录，各账号阅读空间独立。"
+    },
+    {
+      "scope": "calendar",
+      "title": "每日金句",
+      "body": "Calendar、Journal、Health、Ledger 与 Todo List 顶部新增每日一句，按账号时区换日，同一天保持一致。"
+    },
+    {
+      "scope": "tools",
+      "title": "科研词典与轻音乐",
+      "body": "Research Dictionary 新增粒子背景；粒子页面新增原创轻音乐和播放按钮，记住开关状态。浏览器阻止自动播放时可点击按钮开始。"
+    }
+  ]
+}

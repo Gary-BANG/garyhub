@@ -1,0 +1,7 @@
+Adds administrator-only server resource and VPN monitoring, enforces Files/Status/Reading access at the service boundary, and connects Miniflux web login to GaryHub with per-account cookie isolation and verified legacy-account linking. Calendar workspaces gain stable daily quotes; Research gains particles; ambient pages share an original looping track with persistent playback controls.
+
+The release registers its own 1.4.2.0 manifest and adapter over the existing updater. It backs up and validates the additional Caddy/Miniflux/Xray integrations, checks Miniflux on disposable existing images before cutover, and removes only managed statistics fields on rollback while retaining current data and VPN clients. Validation and production-state limits are in docs/GARYHUB_V1_4_2_0_TESTS.md.
+
+Installer r3 identifies external services from live proxy/database endpoints and verifies the actual PostgreSQL identity before backup; it no longer assumes a miniflux-db service label or container default database. Credentials travel through stdin and remain out of command logs.
+
+Installer r4 supplies the exact synthetic Calendar Origin and reads the same fixture environment in local HTTP validation. The r3 environment reproduced a 403 login; both capability variants pass after correction. Failed isolated steps now identify the check and expose only allowlisted diagnostics, preserving container logs privately before cleanup. Eight failure/control-flow regressions pass; production remains unverified after the user's r3 pre-cutover stop.

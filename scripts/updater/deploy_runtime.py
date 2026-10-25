@@ -9,11 +9,15 @@ ACTIVE=Path('/opt/my-services/garyhub-active-deployment.json')
 LOCK=Path('/opt/my-services/.garyhub-privacy-ledger-upgrade.lock')
 def configure(root,config):
  global ROOT,CONFIG,VERSION,RELEASE,REQUIRES,STATE
+ HOOKS.clear()
  ROOT=Path(root).resolve();CONFIG=dict(config)
  VERSION=CONFIG['version'];REQUIRES=CONFIG['requires_release'];RELEASE='v'+VERSION
  for value in [VERSION,REQUIRES]:
   if not re.fullmatch(r'\d+\.\d+\.\d+\.\d+',value):raise ValueError('Invalid release configuration')
  STATE=ROOT/'deployment-state.json'
+HOOKS={}
+def hook(name,*args):
+ if name in HOOKS:return HOOKS[name](*args)
 LOG=None
 os.umask(0o077)
 def say(s):print(s,flush=True)
@@ -34,6 +38,35 @@ def run(args,check=True):
  if check and p.returncode:raise RuntimeError('Command failed: '+str(args[0])+'. Details remain in the private server log.')
  return p
 def jr(args):return json.loads(run(args).stdout)
+def safe_diagnostic(result):
+ # Never echo command lines, environment, HTTP bodies or arbitrary exception text.
+ # These fixed codes and primitive assertion values also work with older Node versions.
+ text=(result.stdout+result.stderr).decode(errors='replace')[-16000:];details=[]
+ for code in ['ERR_ASSERTION','MODULE_NOT_FOUND','ERR_MODULE_NOT_FOUND','ENOENT','EACCES','ECONNREFUSED','ENOTFOUND','EADDRINUSE','SQLITE_ERROR','SQLITE_BUSY','SQLITE_READONLY','SQLITE_CANTOPEN']:
+  if re.search(r'\b'+code+r'\b',text):details.append(code)
+ for key in ['actual','expected']:
+  found=re.search(r'(?m)^\s*'+key+r':\s*(-?\d+(?:\.\d+)?|true|false|null)\s*,?\s*$',text)
+  if found:details.append(key+'='+found[1])
+ location=re.search(r'/checks/([A-Za-z0-9_-]+\.cjs:\d+:\d+)',text)
+ if location:details.append(location[1])
+ for pattern,label in [(r'permission denied','permission denied'),(r'no space left on device','disk full'),(r'network .* already exists','test network already exists'),(r'address already in use|port is already allocated','port occupied'),(r'read-only file system','read-only filesystem'),(r'Cannot find module','module missing'),(r'OCI runtime|failed to create task','container startup failed')]:
+  if re.search(pattern,text,re.I):details.append(label)
+ return '; '.join(details)
+def isolated_step(label,args):
+ if LOG:LOG.write('\n[isolated check: '+label+']\n');LOG.flush()
+ result=run(args,False)
+ if result.returncode:
+  detail=safe_diagnostic(result)
+  raise RuntimeError('Isolated check failed: '+label+' (exit '+str(result.returncode)+(' / '+detail if detail else '')+').'+(' Private log: '+str(LOG.name) if LOG else ''))
+ return result
+def isolated_logs(names):
+ # Capture logs before disposable containers are removed. Only allowlisted diagnostics
+ # reach the console; full logs stay in the existing private execution log.
+ for name in names:
+  try:
+   result=run(['docker','logs','--tail','80',name],False);detail=safe_diagnostic(result)
+   if detail:say('    '+name+': '+detail)
+  except Exception:pass
 def image(name):return jr(['docker','inspect',name])[0]
 def up(c):run(['docker','compose','-p',c['project'],'-f',c['new_config'],'up','-d','--no-deps',c['service']])
 def old_up(c):run(['docker','compose','-p',c['project'],'-f',c['old_config'],'up','-d','--no-deps',c['service']])
@@ -130,6 +163,7 @@ def restore(s,manual=False):
  if not manual:
   for c in s['services'].values():
    if image(c['name'])['Image'] not in {c['old_image_id'],c['new_image_id']}:raise RuntimeError('A service changed after the interrupted deployment; automatic rollback stopped to preserve later work')
+ hook('rollback',s,manual)
  say('Restoring prior application images; keeping current records and existing credentials...')
  for key in ['calendar-app','garyhub-lab']:old_up(s['services'][key]);health(key)
  # This release never changes Caddy; preserve its current mounted inode and content.
@@ -194,6 +228,43 @@ def main():
  with open(LOCK,'a')as lock:
   fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
   return locked_main()
+def validate_apps(services,backup):
+ slug='garyhub-v'+VERSION.replace('.','')
+ net=slug+'-check';cal=slug+'-calendar-check';lab=slug+'-lab-check'
+ testdata=backup/'isolated';testdata.mkdir();labtest=testdata/'lab';labtest.mkdir();tests=ROOT/'tests'
+ for name in [cal,lab]:
+  if run(['docker','inspect',name],False).returncode==0:raise RuntimeError('An earlier isolated test container exists; inspect before retrying')
+ fixture_env=[]
+ for key,value in CONFIG.get('isolation_environment',{}).items():
+  if not re.fullmatch(r'[A-Z][A-Z0-9_]*',key) or not isinstance(value,str):raise RuntimeError('Invalid synthetic environment')
+  fixture_env+=['-e',key+'='+value]
+ isolated_step('create Calendar/Lab test network',['docker','network','create','--internal',net])
+ phase='seed synthetic Calendar database'
+ try:
+  isolated_step(phase,['docker','run','--rm','--network',net,'-e','DATA_DIR=/app/data','-v',str(testdata)+':/app/data','-v',str(tests)+':/checks:ro',services['calendar-app']['tag'],'node','/checks/seed.cjs'])
+  phase='start synthetic Calendar'
+  isolated_step(phase,['docker','run','-d','--name',cal,'--network',net,'--network-alias','calendar-check','-e','DATA_DIR=/app/data','-e','SESSION_SECRET=synthetic-isolated-check-long-enough','-e','GARYHUB_TOTP_ENCRYPTION_KEY='+base64.b64encode(bytes([17])*32).decode(),'-e','NODE_ENV=test','-e','COOKIE_SECURE=false',*fixture_env,'-v',str(testdata)+':/app/data','-v',str(tests)+':/checks:ro',services['calendar-app']['tag']])
+  phase='start synthetic Tools/Lab'
+  isolated_step(phase,['docker','run','-d','--name',lab,'--network',net,'--network-alias','lab-check','-e','CALENDAR_URL=http://calendar-check:3000','-e','LAB_DATA_DIR=/check-lab',*fixture_env,'-v',str(labtest)+':/check-lab','-v',str(tests)+':/checks:ro',services['garyhub-lab']['tag']])
+  phase='Calendar startup health';health(cal,True)
+  phase='Tools/Lab startup health';health(lab,True)
+  for test in CONFIG['isolation_checks']:
+   phase=test
+   isolated_step(phase,['docker','exec','-e','CHECK_CALENDAR=http://calendar-check:3000','-e','CHECK_LAB=http://lab-check:3000','-e','CHECK_VERSION='+VERSION,cal,'node','/checks/'+test])
+  phase='synthetic database foreign key integrity'
+  with sqlite3.connect(testdata/'calendar.sqlite')as db:
+   if db.execute('PRAGMA foreign_key_check').fetchall():raise RuntimeError('Isolated foreign key integrity check failed')
+  release='/app/releases/garyhub-'+VERSION+'.json'
+  phase='synthetic release notice recipients'
+  pub=json.loads(isolated_step(phase,['docker','exec',cal,'node','/app/scripts/publish-hub-release.js',release]).stdout)
+  phase='synthetic release notice idempotency'
+  again=json.loads(isolated_step(phase,['docker','exec',cal,'node','/app/scripts/publish-hub-release.js',release]).stdout)
+  if pub.get('recipients')!=5 or not again.get('alreadyPublished') or again.get('recipients')!=5:raise RuntimeError('Isolated notification recipient/deduplication check failed')
+ except Exception as error:
+  isolated_logs([cal,lab])
+  if str(error).startswith('Isolated check failed:'):raise
+  raise RuntimeError('Isolated check failed: '+phase+'.'+(' Private log: '+str(LOG.name) if LOG else ''))from error
+ finally:run(['docker','rm','-f',lab,cal],False);run(['docker','network','rm',net],False)
 def locked_main():
  global LOG
  if STATE.exists():
@@ -261,6 +332,7 @@ def locked_main():
  caddy_path=Path(cm['Source']);old_caddy=caddy_path.read_text();new_caddy=old_caddy;shutil.copy2(caddy_path,backup/'Caddyfile');(backup/'Caddyfile.new').write_text(new_caddy)
  if ACTIVE.exists():shutil.copy2(ACTIVE,backup/'active.json')
  s={'base_version':base_version,'calendar_data':str(caldata),'release':RELEASE,'version':VERSION,'requires_release':REQUIRES,'status':'prepared','backup':str(backup),'services':services,'caddy_path':str(caddy_path),'old_active_exists':ACTIVE.exists()}
+ hook('prepare',s,configs,lives,backup)
  say('2/8 Building on the exact current Calendar and Tools/Lab images, offline...')
  for name in lives:
   appdir='/app' if name=='calendar-app' else '/lab';folder='calendar-app' if name=='calendar-app' else 'lab-service';build=ROOT/('build-'+name);shutil.copytree(ROOT/'payload'/base_version/folder,build/'payload',dirs_exist_ok=True)
@@ -272,25 +344,8 @@ def locked_main():
   run(['docker','tag',lives[name]['Image'],base]);run(['docker','build','--network=none','--build-arg','BASE_IMAGE='+base,'-t',tag,build]);services[name]['new_image_id']=jr(['docker','image','inspect',tag])[0]['Id'];services[name]['tag']=tag
   configs[name]['services'][services[name]['service']]['image']=tag;write(services[name]['new_config'],configs[name])
  say('3/8 Testing both new applications together with isolated synthetic accounts and data...')
- slug='garyhub-v'+VERSION.replace('.','')
- net=slug+'-check';cal=slug+'-calendar-check';lab=slug+'-lab-check'
- testdata=backup/'isolated';testdata.mkdir();labtest=testdata/'lab';labtest.mkdir();tests=ROOT/'tests'
- for name in [cal,lab]:
-  if run(['docker','inspect',name],False).returncode==0:raise RuntimeError('An earlier isolated test container exists; inspect before retrying')
- run(['docker','network','create','--internal',net])
- try:
-  run(['docker','run','--rm','--network',net,'-e','DATA_DIR=/app/data','-v',str(testdata)+':/app/data','-v',str(tests)+':/checks:ro',services['calendar-app']['tag'],'node','/checks/seed.cjs'])
-  run(['docker','run','-d','--name',cal,'--network',net,'--network-alias','calendar-check','-e','DATA_DIR=/app/data','-e','SESSION_SECRET=synthetic-isolated-check-long-enough','-e','GARYHUB_TOTP_ENCRYPTION_KEY='+base64.b64encode(bytes([17])*32).decode(),'-e','NODE_ENV=test','-e','COOKIE_SECURE=false','-v',str(testdata)+':/app/data','-v',str(tests)+':/checks:ro',services['calendar-app']['tag']])
-  run(['docker','run','-d','--name',lab,'--network',net,'--network-alias','lab-check','-e','CALENDAR_URL=http://calendar-check:3000','-e','LAB_DATA_DIR=/check-lab','-v',str(labtest)+':/check-lab','-v',str(tests)+':/checks:ro',services['garyhub-lab']['tag']])
-  health(cal,True);health(lab,True)
-  for test in CONFIG['isolation_checks']:
-   run(['docker','exec','-e','CHECK_CALENDAR=http://calendar-check:3000','-e','CHECK_LAB=http://lab-check:3000','-e','CHECK_VERSION='+VERSION,cal,'node','/checks/'+test])
-  with sqlite3.connect(testdata/'calendar.sqlite')as db:
-   if db.execute('PRAGMA foreign_key_check').fetchall():raise RuntimeError('Isolated foreign key integrity check failed')
-  release='/app/releases/garyhub-'+VERSION+'.json'
-  pub=jr(['docker','exec',cal,'node','/app/scripts/publish-hub-release.js',release]);again=jr(['docker','exec',cal,'node','/app/scripts/publish-hub-release.js',release])
-  if pub.get('recipients')!=5 or not again.get('alreadyPublished') or again.get('recipients')!=5:raise RuntimeError('Isolated notification recipient/deduplication check failed')
- finally:run(['docker','rm','-f',lab,cal],False);run(['docker','network','rm',net],False)
+ validate_apps(services,backup)
+ hook('validate',s)
  say('4/8 Creating consistent database and byte-verified Lab data backups...')
  for filename in ['calendar.sqlite','sessions.sqlite']:
   if (caldata/filename).exists():snapshot(caldata/filename,backup/filename)
@@ -304,11 +359,13 @@ def locked_main():
   s['status']='cutover';write(STATE,s)
   say('5/8 Switching Calendar and Tools/Lab; retaining all current mounts and settings...')
   for name in ['calendar-app','garyhub-lab']:up(services[name]);health(name,True)
+  hook('apply',s)
   say('6/8 Validating HTTPS, useful tool assets, login and record authentication...')
-  if sha(caddy_path)!=sha(backup/'Caddyfile'):raise RuntimeError('Caddy changed while the update was running')
+  if sha(caddy_path)!=s.get('managed_caddy_sha',sha(backup/'Caddyfile')):raise RuntimeError('Caddy changed while the update was running')
   verify_https()
   active=json.loads((backup/'active.json').read_text()) if s['old_active_exists'] else {'services':{}}
   for name,c in services.items():active.setdefault('services',{})[name]={k:c[k] for k in ['project','service','new_config','old_config','new_image_id']}
+  if s.get('integration_active'):active['integrations']=s['integration_active']
   active['previous_release']=active.get('release');active['release']=RELEASE
   for feature in CONFIG['updated_features']:active[feature]=VERSION
   active['source_base_version']=base_version;active['rollback']='python3 '+str(ROOT/'deploy.py')+' --rollback';write(ACTIVE,active);s['active_sha']=sha(ACTIVE);s['caddy_sha']=sha(caddy_path);s['status']='notification-pending';write(STATE,s)
