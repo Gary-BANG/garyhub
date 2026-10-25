@@ -4,6 +4,7 @@ import hashlib
 import importlib.util
 import io
 import json
+import os
 import shutil
 import subprocess
 import tempfile
@@ -76,7 +77,12 @@ def build(root, here, output):
     manifest={'release':'v'+version, 'installer_build':build_id, 'base_commit':base, 'requires_release':config['requires_release'], 'variants':{}, 'files':{}}
     for variant in ['1.3.4.1', '1.3.4.2']:
         baselines={'calendar-app':{}, 'garyhub-lab':{}};new_paths={key:[] for key in baselines}
+        excluded_for_variant=config.get('variant_exclusions',{}).get(variant,[])
+        if not isinstance(excluded_for_variant,list) or any(p not in runtime for p in excluded_for_variant):
+            raise RuntimeError('Variant exclusion does not match a reviewed runtime file')
         for path in runtime:
+            if path in excluded_for_variant:
+                continue
             service='calendar-app' if path.startswith('calendar-app/') else 'garyhub-lab'
             short=path.split('/',1)[1]
             override=here/'variant-overrides'/variant/path
@@ -89,6 +95,10 @@ def build(root, here, output):
     for name in ['deploy.py','release-config.json','README.md','TEST-RESULTS.md']:
         put(name,source_bytes(root,str((here/name).relative_to(root))))
     put('deploy_runtime.py',source_bytes(root,'scripts/updater/deploy_runtime.py'))
+    for target, source in config.get('support_files', {}).items():
+        if Path(target).is_absolute() or '..' in Path(target).parts or '\\' in target or excluded(target):
+            raise RuntimeError('Invalid support-file destination')
+        put(target, source_bytes(root, source))
     for name,path in config['test_inputs'].items():
         if Path(name).name!=name:
             raise RuntimeError('Invalid isolated test filename')
@@ -131,8 +141,14 @@ def build(root, here, output):
     (outer/'PUSH-TO-GITHUB.cmd').write_bytes(cmd.replace('\n','\r\n').encode())
     (outer/'SHA256SUMS.txt').write_text(''.join(digest(p.read_bytes())+'  '+p.relative_to(outer).as_posix()+'\n' for p in sorted(outer.rglob('*')) if p.is_file()))
     output.parent.mkdir(parents=True,exist_ok=True)
-    with zipfile.ZipFile(output,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as z:
+    temporary=output.with_name(output.name+'.partial')
+    if temporary.exists():
+        raise RuntimeError('An interrupted output archive exists; review before building')
+    with zipfile.ZipFile(temporary,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as z:
         for p in sorted(outer.rglob('*')):
             if p.is_file():z.write(p,outer.name+'/'+p.relative_to(outer).as_posix())
+    if output.exists():
+        raise RuntimeError('Output appeared during build; existing file preserved')
+    os.replace(temporary,output)
     report={'file':str(output),'size':output.stat().st_size,'sha256':digest(output.read_bytes()),'payload_files':len(manifest['files']),'runtime_paths':runtime,'work':str(work)}
     print(json.dumps(report,indent=2));return report

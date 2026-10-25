@@ -1,0 +1,5 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict');
+const {namespace,cookies,setCookie}=require('../reading-proxy.cjs');
+test('cookies are scoped to GaryHub account and current Reading mapping',()=>{const alice=namespace({id:2,readingUsername:'alpha'}),bob=namespace({id:3,readingUsername:'beta'});assert.notEqual(alice,bob);assert.notEqual(alice,namespace({id:2,readingUsername:'legacy'}));assert.equal(cookies('session=old; '+alice+'session=a; '+bob+'session=b',alice),'session=a');assert.equal(cookies(bob+'session=b',alice),'');});
+test('upstream cookie remains secure and host-only, and deletion keeps its expiry',()=>{const value=setCookie('session=x; Domain=internal.invalid; Path=/miniflux; SameSite=None; Secure; Max-Age=0','gh-test-');assert.match(value,/^gh-test-session=x/);assert.ok(!value.includes('internal.invalid'));assert.ok(!value.includes('/miniflux'));assert.match(value,/Max-Age=0/);assert.match(value,/Path=\/; Secure; HttpOnly; SameSite=Lax/);});

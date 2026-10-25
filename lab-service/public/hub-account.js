@@ -9,7 +9,7 @@
  mount.append(name,login,admin,...(scope?[bell]:[]),logout,message,panel);login.hidden=logout.hidden=admin.hidden=bell.hidden=true;
  async function api(path,options={}){const r=await fetch(path,{cache:'no-store',...options});let data;try{data=await r.json();}catch{throw Error('服务暂时不可用');}if(r.status===428){location.replace('https://calendar.garyhub.uk/change-password/');throw Error('请先修改临时密码');}if(!r.ok)throw Error(data.message||'请求失败');return data;}
  async function mutate(path,method='POST',body={}){const {token}=await api('/api/csrf');return api(path,{method,headers:{'Content-Type':'application/json','X-CSRF-Token':token},body:JSON.stringify(body)});}
- function conceal(){const p=document.querySelector('[data-academics]');if(p&&!document.getElementById('profileUnlock')){p.replaceChildren(el('span','该部分已隐藏','gh-masked'));p.setAttribute('aria-label','该部分已隐藏');}}
+ function conceal(){window.GaryHubIdentity={user:null};document.dispatchEvent(new CustomEvent("garyhub:identity",{detail:window.GaryHubIdentity}));const p=document.querySelector('[data-academics]');if(p&&!document.getElementById('profileUnlock')){p.replaceChildren(el('span','该部分已隐藏','gh-masked'));p.setAttribute('aria-label','该部分已隐藏');}}
  function resetPrivate(){conceal();panel.hidden=true;panel.replaceChildren();items=[];bell.textContent='🔔';bell.setAttribute('aria-expanded','false');}
  function render(){panel.replaceChildren(el('h3',scope==='all'?'全部更新':'Network Access 更新'));if(!items.length)panel.append(el('p','暂无通知'));
   for(const n of items){const row=el('article',undefined,'gh-notice'+(!n.read_at?' gh-unread':''));row.append(el('small',`${labels[n.scope]||n.scope} · ${n.created_at}`),el('strong',n.title),el('p',n.body));if(!n.read_at){const read=el('button','标为已读','gh-button');read.type='button';read.onclick=async()=>{read.disabled=true;try{await mutate(`/api/hub/notifications/${n.id}/read`);await notices();}catch(e){message.textContent=e.message;read.disabled=false;}};row.append(read);}else row.append(el('small','已读'));panel.append(row);}
@@ -20,7 +20,7 @@
   try{const me=await api('/api/hub/me');if(ticket!==requestId)return;if(me.user?.mustChangePassword){location.replace('https://calendar.garyhub.uk/change-password/');return;}const changed=started&&user?.id!==me.user?.id;if(changed)resetPrivate();user=me.user;started=true;name.textContent=user?user.username:'';login.hidden=!!user;logout.hidden=!user;bell.hidden=!user;admin.hidden=!(user?.role==='admin'&&mount.dataset.admin==='true');message.textContent='';
    if(!user){resetPrivate();if(mount.dataset.required==='true')location.replace(login.href);}
    const p=document.querySelector('[data-academics]');if(p&&!document.getElementById('profileUnlock')){if(!me.canViewAcademics)conceal();else{const academic=await api('/api/hub/academics');if(ticket===requestId&&user&&academic.allowed){p.textContent=`GPA: ${academic.gpa} · Rank: ${academic.rank}`;p.removeAttribute('aria-label');}else conceal();}}
-   await notices();document.dispatchEvent(new CustomEvent('garyhub:identity',{detail:me}));
+   await notices();window.GaryHubIdentity=me;document.dispatchEvent(new CustomEvent('garyhub:identity',{detail:me}));
   }catch(e){resetPrivate();message.textContent='登录状态暂不可用';name.textContent='';}finally{loading=false;}
  }
  logout.onclick=async()=>{logout.disabled=true;try{await mutate('/api/logout');++requestId;user=null;resetPrivate();if(mount.dataset.required==='true')location.replace(login.href);else location.reload();}catch(e){message.textContent=e.message;logout.disabled=false;}};

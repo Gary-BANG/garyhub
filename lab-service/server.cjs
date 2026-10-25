@@ -48,11 +48,13 @@ async function validCsrf(req) {
 function storeUrl() {
   try {const configured=access.settings().storeUrl;const url=new URL(configured===undefined?process.env.ACCESS_STORE_URL:configured);return url.protocol==='https:'?url.href:null;} catch {return null;}
 }
-const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.wasm':'application/wasm','.png':'image/png','.svg':'image/svg+xml','.woff2':'font/woff2','.woff':'font/woff','.zip':'application/zip','.md':'text/plain; charset=utf-8'};
+const mime={'.mp3':'audio/mpeg','.html':'text/html; charset=utf-8','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.wasm':'application/wasm','.png':'image/png','.svg':'image/svg+xml','.woff2':'font/woff2','.woff':'font/woff','.zip':'application/zip','.md':'text/plain; charset=utf-8'};
 const academic = require('./academic.cjs').createAcademic({DATA,identity,validCsrf,calendar,json});
 const profileHandler=require("./homepage-privacy.cjs").createProfile({calendar,json});
 const cleanup=require('./user-cleanup.cjs').createCleanup({DATA,CALENDAR,access,identity,validCsrf,calendar,json,body,runtimeFile:process.env.ACCESS_RUNTIME_FILE||'/access-runtime/status.json'});
 const distribution=require('./lab-distribution.cjs').createDistribution({DATA,ROOT,identity,validCsrf,calendar,json,body});
+const monitor=require('./server-monitor.cjs').createMonitor({identity,calendar,json});
+const readingProxy=require('./reading-proxy.cjs').createReadingProxy({calendar,json});
 const server = http.createServer(async (req,res)=>{
   res.setHeader('X-Content-Type-Options','nosniff');
   res.setHeader('X-Frame-Options','DENY');
@@ -64,13 +66,15 @@ const server = http.createServer(async (req,res)=>{
     const redirectLogin=target=>{res.writeHead(302,{Location:auth.loginUrl(target,publicOrigin),'Cache-Control':'no-store'});res.end();};
     if(['/login','/login/','/login.html'].includes(url.pathname))return redirectLogin(url.searchParams.get('next')||(host==='garyhub.uk'?'/':'/lab/'));
 
+    if(await readingProxy(req,res,url))return;
+    if(await monitor(req,res,url))return;
     if(await profileHandler(req,res,url))return;
     if(await cleanup(req,res,url))return;
     if(await distribution(req,res,url))return;
     if(await academic(req,res,url))return;
     if(['/grades','/grades/','/study','/study/'].includes(url.pathname))url.pathname='/academic/index.html';
     url.pathname=decodeURIComponent(url.pathname);
-    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"1.4.1.0"});
+    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"1.4.2.0"});
     if(url.pathname.startsWith('/sub/')) {
       if(req.method!=='GET') return json(res,405,{message:'Method not allowed'});
       const sub=connections.subscription(url.pathname.slice(5));
@@ -178,13 +182,14 @@ const server = http.createServer(async (req,res)=>{
       if(url.pathname==='/lab') {res.writeHead(302,{Location:'/lab/'});return res.end();}
       if(url.pathname==='/access') {res.writeHead(302,{Location:'/access/'});return res.end();}
     }
+    if(url.pathname.startsWith('/server-monitor')){const user=await identity(req);if(!user)return redirectLogin('/server-monitor/');if(user.role!=='admin')return json(res,403,{message:'需要管理员权限'});if(url.pathname==='/server-monitor'){res.writeHead(302,{Location:'/server-monitor/'});return res.end();}}
     if(url.pathname==='/admin/' || url.pathname==='/admin' || url.pathname==='/admin.html' || url.pathname==='/admin/index.html') {
       const user=await identity(req);
       if(!user){return redirectLogin('/admin/'+url.search);}
       if(user.role!=='admin')return json(res,403,{message:'需要管理员权限'});
     }
     const isHome=(req.headers.host||'').split(':')[0]==='garyhub.uk';
-    if(isHome&&!['/','/index.html','/hub-account.js','/auth-redirect.js','/hub-account.css','/profile-privacy.js','/profile-privacy.css','/login.html','/login.js','/password-reset.js','/password-reset.css','/hub.css','/i18n/dictionary.js','/i18n/i18n.js','/i18n/i18n.css'].includes(url.pathname))return json(res,404,{message:'Not found'});
+    if(isHome&&!['/','/index.html','/hub-account.js','/auth-redirect.js','/hub-account.css','/profile-privacy.js','/profile-privacy.css','/login.html','/login.js','/password-reset.js','/password-reset.css','/hub.css','/ambient-music.js','/ambient-music.css','/ambient.mp3','/i18n/dictionary.js','/i18n/i18n.js','/i18n/i18n.css'].includes(url.pathname))return json(res,404,{message:'Not found'});
     let name=decodeURIComponent(url.pathname); if(name.endsWith('/')) name+='index.html';
     if(isHome&&name==='/index.html')name='/homepage.html';
     if(['/admin','/admin/','/admin/index.html'].includes(name))name='/admin.html';

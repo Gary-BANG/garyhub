@@ -1,0 +1,5 @@
+Quiet Steps — GaryHub original synthesized ambient score, 2026.
+No third-party recording or sample is used.
+The composition, recording and generation script are dedicated to the public domain under CC0 1.0 Universal:
+https://creativecommons.org/publicdomain/zero/1.0/
+Generation source: scripts/assets/make-ambient.py in the GaryHub repository.

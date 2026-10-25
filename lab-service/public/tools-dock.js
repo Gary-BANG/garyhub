@@ -21,6 +21,9 @@
     en:{eyebrow:'A PERSONAL COLLECTION / GARYHUB',headline:'A little space.',headlineAccent:'For doing more.',subtitle:'Your everyday tools, all in one place.',searchLabel:'Search tools',placeholder:'Search tools or what you want to do…',clear:'Clear search',view:'Display layout',grid:'Icon grid',dock:'Single-row Dock',toolbox:'THE TOOLBOX',detailKicker:'A LITTLE HELP FOR EVERYDAY',hint:'Hover to explore. Click to open.',touchHint:'Tap an icon to open the tool.',footer:'STUDY · BUILD · KEEP TRACK',region:'Tools navigation',detail:'Tool description',prev:'Browse previous tools',next:'Browse next tools',empty:'No matching tools. Try another name or purpose.',count:(n,total,filtered) => filtered ? `${n} / ${total} tools` : `${total} tools`}
   };
   let lang = window.GaryHubI18n?.language === 'en' ? 'en' : 'zh';
+  let permissions=window.GaryHubIdentity?.user||null;
+  const permitted=tool=>!tool.audience||permissions?.role==='admin'||tool.audience==='subscriber'&&permissions?.accountTier==='subscriber';
+  document.addEventListener('garyhub:identity',event=>{permissions=event.detail?.user||null;filter();const help=document.getElementById('reading-help');if(help)help.hidden=!permitted({audience:'subscriber'});});
   let current = null, pointer = null, focused = null, raf = 0, last = 0, leaveTimer = 0, descriptionAnimation;
   let input = hoverHint.matches ? 'mouse' : 'touch', lastTouch = -Infinity;
   let dirty = true, view = 'grid';
@@ -98,12 +101,12 @@
     }
   }
   function filter() {
-    for (const entry of entries) entry.node.hidden=!catalog.matches(entry.tool,search.value);
+    for (const entry of entries) entry.node.hidden=!permitted(entry.tool)||!catalog.matches(entry.tool,search.value);
     if (current?.node.hidden) show(null);
     if (focused?.node.hidden) focused=null;
     pointer=null;dirty=true;resetIcons();
     const count=visible().length;
-    $('tool-count').textContent=strings[lang].count(count,entries.length,!!catalog.normalize(search.value));
+    $('tool-count').textContent=strings[lang].count(count,entries.filter(e=>permitted(e.tool)).length,!!catalog.normalize(search.value));
     $('no-tools').hidden=count!==0;$('no-tools').textContent=strings[lang].empty;
     $('search-clear').hidden=!search.value;
     scroll.scrollLeft=0;arrows();
@@ -127,7 +130,7 @@
       entry.link.setAttribute('aria-label',entry.tool.name[lang]);
     }
     // Keep the query, layout, active description and scroll position when translating.
-    $('tool-count').textContent=s.count(visible().length,entries.length,!!catalog.normalize(search.value));
+    $('tool-count').textContent=s.count(visible().length,entries.filter(e=>permitted(e.tool)).length,!!catalog.normalize(search.value));
     $('no-tools').textContent=s.empty;show(current,false);dirty=true;arrows();
   }
   search.addEventListener('input',filter);
