@@ -23,6 +23,7 @@ const {migrateTodos,registerTodos}=require("./todos-api");
 const {migrateResearch,registerResearch}=require("./research-api");
 const {migrateToolAccess,registerToolAccess}=require("./tool-access");
 const {registerDailyQuote}=require("./daily-quote");
+const {migrateMusic,registerMusic}=require("./music-api");
 const { findLoginIdentity } = require("./login-identity");
 const { migratePasswordReset, registerPasswordReset } = require("./password-reset");
 const app = express();
@@ -157,7 +158,7 @@ async function resolveTargetUserId(req) {
 }
 
 app.get("/health", (req, res) => {
-  res.json({ ok: true, hubVersion: "1.4.2.0" });
+  res.json({ ok: true, hubVersion: "1.4.3.0" });
 });
 
 // 登录
@@ -679,6 +680,7 @@ registerTodos(app,{requireLogin});
 registerResearch(app,{requireLogin});
 registerToolAccess(app);
 registerDailyQuote(app,{db:require("./db"),requireLogin});
+registerMusic(app,{requireLogin});
 registerHubApi(app,{db:require("./db"),requireLogin,requireAdmin});
 registerTasksApi(app, { requireLogin, resolveTargetUserId });
 registerEmailApi(app, { requireLogin });
@@ -697,6 +699,7 @@ initDb()
   .then(() => migrateTodos(require("./db")))
   .then(() => migrateResearch(require("./db")))
   .then(() => migrateToolAccess(require("./db")))
+  .then(() => migrateMusic(require("./db")))
   .then(() => migratePasswordReset(require("./db")))
   .then(() => {
     app.listen(PORT, "0.0.0.0", () => {

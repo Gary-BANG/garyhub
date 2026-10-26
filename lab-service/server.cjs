@@ -74,7 +74,7 @@ const server = http.createServer(async (req,res)=>{
     if(await academic(req,res,url))return;
     if(['/grades','/grades/','/study','/study/'].includes(url.pathname))url.pathname='/academic/index.html';
     url.pathname=decodeURIComponent(url.pathname);
-    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"1.4.2.0"});
+    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"1.4.3.0"});
     if(url.pathname.startsWith('/sub/')) {
       if(req.method!=='GET') return json(res,405,{message:'Method not allowed'});
       const sub=connections.subscription(url.pathname.slice(5));
@@ -107,6 +107,7 @@ const server = http.createServer(async (req,res)=>{
         const payload=JSON.stringify(await body(req));const upstream=await calendar(req,url.pathname,'POST',payload);
         return json(res,upstream.status,await upstream.json());
       }
+      if(url.pathname==='/api/music/selected'&&req.method==='GET'){const upstream=await calendar(req,url.pathname);return json(res,upstream.status,await upstream.json());}
       const allowed={'/api/csrf':'GET','/api/me':'GET','/api/login':'POST','/api/logout':'POST'};
       if(allowed[url.pathname]===req.method) {
         const payload=req.method==='POST'?JSON.stringify(await body(req)):undefined;

@@ -1,6 +1,7 @@
 'use strict';
 const crypto = require('node:crypto');
 const {CURRENCIES, convert} = require('./fx-rates');
+const entitlement = require('./entitlements');
 
 async function migrateFixedExpenses(db) {
   await db.run(`CREATE TABLE IF NOT EXISTS fixed_expenses (
@@ -51,7 +52,8 @@ function registerFixedExpenses(app, {db, route, categories, fx, transaction, out
     }
     for(const total of Object.values(rawTotals))total.monthly=total.annual/12;
     if(![annual,...Object.values(byCategory),...Object.values(rawTotals).map(x=>x.annual)].every(Number.isSafeInteger))fail('统计金额超过安全范围');
-    res.json({items:items.map(output),categories:await categories(uid),fx:rate,rawTotals,activeCount,
+    const user=await entitlement.currentUser(db,req),usage=await db.get('SELECT COUNT(*) AS n FROM fixed_expenses WHERE user_id=?',[uid]);
+    res.json({items:items.map(output),categories:await categories(uid),fx:rate,rawTotals,activeCount,limit:entitlement.limits(user).fixedExpenses,used:usage.n,
       summary:rate.available?{currency,annual,monthly:annual/12,byCategory}:null});
   }));
   app.post('/api/ledger/fixed', ...route(async(req,res)=>{
@@ -59,7 +61,8 @@ function registerFixedExpenses(app, {db, route, categories, fx, transaction, out
     const result=await transaction(async()=>{
       const old=await db.get('SELECT * FROM fixed_expenses WHERE user_id=? AND request_id=?',[uid,v.requestId]);
       if(old)return {item:output(old),duplicate:true};
-      if((await db.get('SELECT COUNT(*) AS n FROM fixed_expenses WHERE user_id=?',[uid])).n>=300)fail('每账号最多保存300项固定开支');
+      const cap=entitlement.limits(await entitlement.currentUser(db,req)).fixedExpenses;
+      if((await db.get('SELECT COUNT(*) AS n FROM fixed_expenses WHERE user_id=?',[uid])).n>=cap)fail(`当前账号最多保存 ${cap} 项固定开支；停用项目仍计入，删除后释放名额。`,422);
       const x=await fields(uid,v),id=crypto.randomUUID();
       await db.run('INSERT INTO fixed_expenses(id,user_id,name,amount,currency,period,category_id,notes,active,request_id) VALUES(?,?,?,?,?,?,?,?,?,?)',[id,uid,x.name,x.amount,x.currency,x.period,x.category_id,x.notes,x.active,v.requestId]);
       return {item:output(await find(uid,id))};

@@ -1,17 +1,21 @@
 # GaryHub 项目档案
 
-维护日期：2026-10-25。首次阅读本文件及 UPDATE_WORKFLOW.md，按任务范围读取相关源码。
+维护日期：2026-10-26。首次阅读本文件及 UPDATE_WORKFLOW.md，按任务范围读取相关源码。
 
 ## 当前源码与部署证据
 
-- 仓库 Gary-BANG/garyhub，main 最新审阅提交 `18cb483b3417b51686ab37b09ac2a69499233c71`，PR #19 已合并 v1.4.1.0。旧档案“未合并”的说法是当时状态，不再代表 GitHub。
-- 当前安装器修订 r4：用户 r3 已通过服务/数据库识别和离线构建，在 3/8 隔离测试以笼统 Docker 错误停止，尚未切换正式服务或发布本次通知。按 r3 隔离环境本地复现模拟登录 403；r4 补全测试专用 TRUSTED_ORIGINS，本地运行器直接读取同一发布配置。失败输出增加具体测试名、允许公开的错误码/状态及私有日志路径，清理前保留临时容器日志；不输出凭据或响应正文。
-- r3 已修复 r2 固定 `miniflux-db` Compose 服务名的问题：从实际 Caddy 上游与 Miniflux 数据库连接解析目标，在源容器网络命名空间验证 DNS，唯一匹配运行容器，再以实际数据库/用户进行只读身份验证及备份；不猜测服务名，不使用 PostgreSQL 默认数据库代替。
-- 本次准备 v1.4.2.0，分支 `update/garyhub-v1.4.2.0`，严格要求两个 Web 服务现场实际 v1.4.1.0；入口 `releases/current.json`、清单 `releases/1.4.2.0.json`。
-- 新增管理员 Server Monitor；Files/Status 仅管理员，Reading 仅管理员及 subscriber。Reading 使用当前 Miniflux 与 PostgreSQL，通过 GaryHub 权限验证和隔离 Cookie 的网关统一网页登录；旧账号支持 API Token 验证关联，不保存 Token。
-- 五个私人工作区页新增每日金句，按账号时区稳定换日；Research 增加粒子；所有粒子页面新增同一首原创音乐、播放按钮、偏好记忆和跨页面播放协调。
-- 状态：源码准备及本地验证见 `docs/GARYHUB_V1_4_2_0_TESTS.md`；尚未推送/合并本次分支，未连接生产，正式服务版本、实际通知人数与 Miniflux 现场验收结果尚未核验。
-- 功能、指标含义、旧 Reading 关联和恢复边界：`docs/GARYHUB_V1_4_2_0.md`。Research 仍按账号和项目独立保存，管理员不因此获得其他用户词库读取权限。
+- 仓库 Gary-BANG/garyhub。已核对 main 基础提交 `0acf0c89dba8db923441df162a22743d604a5ebf`：PR #20 已合并 v1.4.2.0。旧档案中的“尚未合并”是历史状态。
+- 当前安装器修订 r2。用户 r1 现场输出（2026-10-26 18:58:05 UTC）已通过基础版本/源码核对和离线构建，停在 3/8 的 Tools/Lab startup health；fake-r2.cjs:5:35 与本地未设置 DATA_DIR 时的 ERR_INVALID_ARG_TYPE 完全一致。原因是通用隔离环境把 Calendar 的 NODE_OPTIONS/R2 假凭据也传给 Lab，而此前本地运行器给两个服务共用了 DATA_DIR，掩盖了差异。
+- r2 新增按服务的隔离环境配置：仅 Calendar 加载模拟 R2，Lab 仅使用 LAB_DATA_DIR；本地运行器读取与安装器相同的环境选择函数，明确断言 Lab 不含 DATA_DIR、R2 凭据或该 preload。增加六项回归并验证实际 Docker 启动参数；有/无 TOTP 各 166 项 HTTP 及 5 个合成收件人/通知去重通过。保留全部现场校验，不跳过健康测试；实际 Docker 与服务器结果仍待用户运行 r2 核验。
+- 本次在独立分支 `update/garyhub-v1.4.3.0` 准备 v1.4.3.0；源码入口 `releases/current.json`、清单 `releases/1.4.3.0.json`。安装器必须现场确认 Calendar 和 Tools/Lab 均实际 v1.4.2.0，不能凭 GitHub 合并推断上线。
+- 普通账号最多 5 项固定开支、5 条 Todo、每条 10 个 points；订阅与管理员保留原 300 项/条及每条 100 points 上限。按保存总数计数，已完成/停用内容仍计入。已有超额内容保留，可编辑、完成、排序、删除；事务内限制新增和导入，等级从当前用户表读取。
+- 订阅与管理员新增个人 MP3 音乐库，选择随账号保存。每人最多 10 首、单首 20 MiB、合计 100 MiB；站点应用管理的音乐对象总上限 8 GiB。上传使用有界内存，不落音频临时文件；播放由浏览器直连 R2 私有对象的 5 分钟签名链接。
+- 粒子页面新增音乐库入口，保留唱片开关与跨页面协调，播放位置按账号/曲目区分。普通账号或订阅降级时使用默认音乐，已有文件保留。删除、失败上传、账号删除通过持久队列处理云对象；待清理对象仍占配额，结果不确定的上传延迟清理。
+- R2 凭据仅存服务器 `/etc/garyhub/music-r2.env`（0600），只读挂载到 Calendar `/run/garyhub-music.env`。安装可在未配置 R2 时完成；独立 `SETUP-R2.cmd` 通过现有 SSH 接收本地输入并验证真实对象写/读/删，失败恢复原配置，不重启服务。已存在对象时不允许直接切换桶/账号。
+- v1.4.3.0 复用共享 overlay 构建器与部署运行时，仅新增小型发布适配器和受限配置挂载；继承 v1.4.2.0 的 Reading、监控、Caddy 与 VPN 配置，不再修改这些 host integrations。有/无 TOTP 两种组合分别验证；本次修正无 TOTP 组合账号删除时无条件访问 TOTP 表的问题。
+- 真实 Node 20、Express/sqlite3 的两种组合 HTTP 验证、通知收件人数/去重及浏览器交互检查见 `docs/GARYHUB_V1_4_3_0_TESTS.md`。R2 测试为合成传输与独立签名参考，不代表真实 Cloudflare 已配置。
+- 状态分别为：v1.4.3.0 源码准备及本地验证；本次分支未推送/合并；已收到用户 r1 在切换前停止的现场证据，v1.4.3.0 尚未上线；r2 实际安装/回滚与通知人数、真实 R2 网络/CORS/凭据和计费状态仍待现场验证。
+- 功能和恢复边界：`docs/GARYHUB_V1_4_3_0.md`；Cloudflare 网页和双击配置：`docs/GARYHUB_V1_4_3_0_CLOUDFLARE.md`。Research 仍按账号及项目独立，管理员没有额外读取权限。
 
 ## 模块定位
 
@@ -22,14 +26,15 @@
 | 账本、汇率、固定支出 | calendar-app/ledger-api.js、fixed-expenses.js、fx-rates.js |
 | 工具权限、Reading 关联、每日金句 | calendar-app/tool-access.js、daily-quote.js；lab-service/reading-proxy.cjs |
 | 服务器监控 | server-monitor/collect.py、lab-service/server-monitor.cjs、public/server-monitor/ |
-| 粒子与音乐 | calendar-app/public/ambient.js、particles.js、两个服务 public/ambient-music.* |
+| 粒子与音乐 | calendar-app/music-api.js、music-storage.js、public/music/；两个服务 public/ambient-music.* |
+| 订阅额度 | calendar-app/entitlements.js、fixed-expenses.js、todos-api.js |
 | Research Dictionary | calendar-app/research-api.js、public/research/、account-admin.js |
 | Tools 入口、搜索与 Dock | lab-service/public/index.html、tools-catalog.js、tools-dock.js、tools-dock.css |
 | 跨站跳转 | 两服务的 public/auth-redirect.js |
 | ECE 470 Lab | lab-service/server.cjs、public/lab/app.js、cloud.js、core.js |
 | 作业题库分发 | lab-service/lab-distribution.cjs、public/lab/distribution.js、pack-validation.mjs |
 | 三个本地实用工具 | lab-service/public/useful/，避免读取 vendor/ 的大文件 |
-| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v1.4.2.0/ |
+| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v1.4.3.0/ |
 
 Calendar 使用 Node.js、Express、SQLite；Lab 使用 Node 原生 HTTP，浏览器运行 Python/WASM。生产运行代码须保持 Node 20 兼容。浏览器依赖已本地打包，无需让生产服务器在线安装依赖。
 
@@ -45,11 +50,11 @@ Calendar 使用 Node.js、Express、SQLite；Lab 使用 Node 原生 HTTP，浏�
 
 ## 已有更新机制
 
-统一入口 `scripts/updater/manage.py`。v1.4.2.0 注册自己的发布配置、HTTPS 校验及 host integration 适配器，复用共享 overlay 构建器、备份/切换/回滚运行时、已审阅 Windows 安装模板和独立源码导入器。baseline_adapter 为 `scripts/releases/v1.4.1.0`。不复制整套旧发布目录，不把新版本指向旧硬编码安装器。
+统一入口 `scripts/updater/manage.py`。当前 v1.4.3.0 有独立清单、release-config 和 deploy.py，复用 `scripts/updater/build_overlay.py`、`deploy_runtime.py`、已审阅 Windows 安装模板及独立源码导入器；baseline_adapter 为 `scripts/releases/v1.4.2.0`。不复制整套旧发布目录，不把新版本指向旧硬编码安装器。
 
-本次新增采集定时器、只读快照挂载、Reading 网关、Caddy 权限门及 Miniflux 代理认证配置。Xray 统计接口仅本机回环监听。升级时基于现场配置准备候选，验证 Miniflux 隔离实例、备份 PostgreSQL/SQLite/Lab 和私有配置后切换；HTTPS 和统计核验后按 RELEASE_POLICY 发布并验证全体收件人与去重。
+完整解压 ZIP 后双击 RUN-UPDATE。现场依次核对版本、源码、能力组合和有效 Compose，离线构建，使用隔离合成数据验证，备份 SQLite/Lab 并干跑新增音乐迁移，再切换并验证 HTTPS，最后按 RELEASE_POLICY 核对全体收件人与去重。SETUP-R2 在应用安装成功后单独配置；指南随 ZIP 提供。
 
-完整解压 ZIP 后双击 RUN-UPDATE.cmd；ROLLBACK.cmd 恢复 v1.4.1.0 镜像与本次相关配置，保留所有当前记录和后来新增的 VPN 用户。有效配置依然从 `/opt/my-services/garyhub-active-deployment.json` 与实际容器核对，新增 integrations 记录 Miniflux 的有效 Compose。PUSH-TO-GITHUB.cmd 仍以独立 worktree 准备审查分支，不覆盖原工作区、不 force push、不自动合并 main。
+ROLLBACK 恢复 v1.4.2.0 应用和原有效配置，保留当前记录与音乐，不改动现有 Reading/VPN 集成。新音乐表不增加 users 外键，数据库删除触发器兼容旧镜像；回滚期间不运行音乐对象清理，后续升级继续处理。PUSH-TO-GITHUB 仍用独立 worktree 准备审查分支，不覆盖原工作区、不强推、不自动合并 main。
 
 Markdown ZIP 在浏览器处理，使用原生 DEFLATE 流，不新增服务器运行依赖。支持普通未加密 ZIP（stored/DEFLATE），不支持 RAR、7z、多卷或 ZIP64；图片仅接受 PNG/JPEG/GIF/WebP，外部图片及 SVG 不加载。ZIP 最多 20 MiB、500 个条目、解压合计 50 MiB、单文件 10 MiB、Markdown 4 MiB。源码编辑和包内文档草稿仅保存在本次页面中，不写回原文件。
 

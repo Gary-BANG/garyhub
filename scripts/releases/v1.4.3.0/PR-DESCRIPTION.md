@@ -1,0 +1,7 @@
+Standard accounts can now save at most five fixed expenses and five Todos, with ten points per Todo. Quotas are enforced inside write transactions, including imports, while over-limit existing records remain editable and deletable. Subscribers and administrators retain the existing 300/100 limits.
+
+Subscribers and administrators gain a private MP3 library with account-persistent selection, per-user and site storage limits, and direct browser playback from private R2 objects. Uploads are bounded in memory; failed uploads and account deletion use durable cleanup jobs. R2 credentials stay in a private read-only mounted server file, with a separate SSH setup entry point and Chinese dashboard guide.
+
+The release registers a small 1.4.3.0 adapter over the shared updater, requires live 1.4.2.0, preserves both TOTP capability combinations and existing host integrations, and retains backup/rollback and recipient/idempotency checks. Validation and production-state limits are recorded in docs/GARYHUB_V1_4_3_0_TESTS.md. No production deployment or real Cloudflare setup is claimed.
+
+Installer r2 scopes the synthetic R2 preload/credentials to Calendar only. The r1 user log stopped before cutover when Lab, which has no DATA_DIR, loaded that preload. The original failure is reproduced exactly; local fixtures now use the same service environment selector as Docker startup and keep Lab without Calendar-only variables. Six new regressions and both real Node 20 HTTP capability combinations pass. All deployment gates are retained; production remains awaiting r2 evidence.
