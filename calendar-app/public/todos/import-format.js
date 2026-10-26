@@ -115,7 +115,7 @@
   if(error.details?.line)result+=en?' (line '+error.details.line+', column '+error.details.column+')':'（第 '+error.details.line+' 行，第 '+error.details.column+' 列）';
   return result;
  }
- function prompt(language='zh',remaining=limits.todos){
+ function prompt(language='zh',remaining=limits.todos,accountLimits=limits){
   const sample={format:FORMAT,todos:[{title:language==='en'?'Prepare a project update':'准备项目更新',done:false,points:[{text:language==='en'?'Review the requirements and list the changes to make.':'核对需求，列出需要完成的具体改动。',done:false}]}]};
   const example=JSON.stringify(sample,null,2),capacity=Math.max(0,Math.min(limits.todos,remaining));
   if(language==='en')return `Organize the material I provide into Todos that can be imported into GaryHub.
@@ -124,7 +124,7 @@ Rules:
 1. Group related work into a short main Todo title and actionable points. Preserve important details, ordering, names, numbers and constraints. Do not invent requirements, dates or completion.
 2. Output one valid JSON object using the example below. Use double quotes, no comments, no trailing commas, no Markdown code fences and no explanation around the JSON.
 3. Use format "${FORMAT}" and a todos array. Each Todo uses title, done and points; each point uses text and done. Do not add fields such as id, accountId, revision, priority or dueDate. GaryHub creates identifiers automatically.
-4. There can be at most 300 Todos in total and 100 points per Todo. Titles must be nonempty and at most 160 characters; point text must be nonempty and at most 1,000 characters. Long material should be split into points without silently discarding details. The combined saved list is limited to 1.8 MB.
+4. There can be at most ${accountLimits.todos} Todos in total and ${accountLimits.points} points per Todo. Titles must be nonempty and at most 160 characters; point text must be nonempty and at most 1,000 characters. Long material should be split into points without silently discarding details. The combined saved list is limited to 1.8 MB.
 5. This account currently has room for ${capacity} new Todos. If the material cannot fit, ask me how to prioritize or divide it before producing the final JSON. Do not silently omit tasks.
 6. Default done to false; only mark an item true if my material explicitly says it is complete. Main Todos and points have independent completion states. Use an empty points array when no points are needed. Preserve the material's original language.
 7. Ask me about essential ambiguities before the final output. Once ready, output only the JSON.
@@ -140,7 +140,7 @@ Material to organize:
 1. 将相关工作归为简短的主待办标题，并拆成可执行的子要点。保留重要细节、顺序、名称、数字和限制，不擅自编造要求、日期或完成情况。
 2. 按下方示例输出一个合法 JSON 对象。使用双引号，不要注释、尾随逗号、Markdown 代码块或 JSON 前后的解释。
 3. format 固定为 "${FORMAT}"，todos 为数组。每条待办使用 title、done、points；每个子要点使用 text、done。不要增加 id、accountId、revision、priority、dueDate 等字段，编号由 GaryHub 自动生成。
-4. 每个账号累计最多 300 条待办，每条最多 100 个子要点。标题为非空文本，最多 160 字符；子要点为非空文本，每个最多 1,000 字符。长材料应拆分为多个子要点，不要静默丢弃细节。合并后的整份清单最多 1.8 MB。
+4. 每个账号累计最多 ${accountLimits.todos} 条待办，每条最多 ${accountLimits.points} 个子要点。标题为非空文本，最多 160 字符；子要点为非空文本，每个最多 1,000 字符。长材料应拆分为多个子要点，不要静默丢弃细节。合并后的整份清单最多 1.8 MB。
 5. 当前账号还可新增 ${capacity} 条待办。如果材料无法容纳，请在输出最终 JSON 前询问我如何取舍或分批，不要擅自删减任务。
 6. done 默认 false，只有材料明确表示已完成时才填写 true。主待办与子要点独立标记；没有子要点时使用空数组。保留材料原有语言。
 7. 关键内容不明确时先向我澄清；准备好以后只输出 JSON。

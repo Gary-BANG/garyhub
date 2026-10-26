@@ -42,7 +42,7 @@ def safe_diagnostic(result):
  # Never echo command lines, environment, HTTP bodies or arbitrary exception text.
  # These fixed codes and primitive assertion values also work with older Node versions.
  text=(result.stdout+result.stderr).decode(errors='replace')[-16000:];details=[]
- for code in ['ERR_ASSERTION','MODULE_NOT_FOUND','ERR_MODULE_NOT_FOUND','ENOENT','EACCES','ECONNREFUSED','ENOTFOUND','EADDRINUSE','SQLITE_ERROR','SQLITE_BUSY','SQLITE_READONLY','SQLITE_CANTOPEN']:
+ for code in ['ERR_ASSERTION','ERR_INVALID_ARG_TYPE','MODULE_NOT_FOUND','ERR_MODULE_NOT_FOUND','ENOENT','EACCES','ECONNREFUSED','ENOTFOUND','EADDRINUSE','SQLITE_ERROR','SQLITE_BUSY','SQLITE_READONLY','SQLITE_CANTOPEN']:
   if re.search(r'\b'+code+r'\b',text):details.append(code)
  for key in ['actual','expected']:
   found=re.search(r'(?m)^\s*'+key+r':\s*(-?\d+(?:\.\d+)?|true|false|null)\s*,?\s*$',text)
@@ -228,24 +228,29 @@ def main():
  with open(LOCK,'a')as lock:
   fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
   return locked_main()
+def isolation_environment(service):
+ if service not in {'calendar-app','garyhub-lab'}:raise RuntimeError('Unknown isolated service')
+ common=CONFIG.get('isolation_environment',{})
+ scoped=CONFIG.get('isolation_service_environment',{})
+ if not isinstance(common,dict) or not isinstance(scoped,dict) or set(scoped)-{'calendar-app','garyhub-lab'}:raise RuntimeError('Invalid synthetic service environment')
+ for values in [common,*scoped.values()]:
+  if not isinstance(values,dict) or any(not isinstance(k,str) or not re.fullmatch(r'[A-Z][A-Z0-9_]*',k) or not isinstance(v,str) for k,v in values.items()):raise RuntimeError('Invalid synthetic environment')
+ return {**common,**scoped.get(service,{})}
 def validate_apps(services,backup):
  slug='garyhub-v'+VERSION.replace('.','')
  net=slug+'-check';cal=slug+'-calendar-check';lab=slug+'-lab-check'
  testdata=backup/'isolated';testdata.mkdir();labtest=testdata/'lab';labtest.mkdir();tests=ROOT/'tests'
  for name in [cal,lab]:
   if run(['docker','inspect',name],False).returncode==0:raise RuntimeError('An earlier isolated test container exists; inspect before retrying')
- fixture_env=[]
- for key,value in CONFIG.get('isolation_environment',{}).items():
-  if not re.fullmatch(r'[A-Z][A-Z0-9_]*',key) or not isinstance(value,str):raise RuntimeError('Invalid synthetic environment')
-  fixture_env+=['-e',key+'='+value]
+ fixture_env={service:[arg for key,value in isolation_environment(service).items() for arg in ['-e',key+'='+value]] for service in ['calendar-app','garyhub-lab']}
  isolated_step('create Calendar/Lab test network',['docker','network','create','--internal',net])
  phase='seed synthetic Calendar database'
  try:
   isolated_step(phase,['docker','run','--rm','--network',net,'-e','DATA_DIR=/app/data','-v',str(testdata)+':/app/data','-v',str(tests)+':/checks:ro',services['calendar-app']['tag'],'node','/checks/seed.cjs'])
   phase='start synthetic Calendar'
-  isolated_step(phase,['docker','run','-d','--name',cal,'--network',net,'--network-alias','calendar-check','-e','DATA_DIR=/app/data','-e','SESSION_SECRET=synthetic-isolated-check-long-enough','-e','GARYHUB_TOTP_ENCRYPTION_KEY='+base64.b64encode(bytes([17])*32).decode(),'-e','NODE_ENV=test','-e','COOKIE_SECURE=false',*fixture_env,'-v',str(testdata)+':/app/data','-v',str(tests)+':/checks:ro',services['calendar-app']['tag']])
+  isolated_step(phase,['docker','run','-d','--name',cal,'--network',net,'--network-alias','calendar-check','-e','DATA_DIR=/app/data','-e','SESSION_SECRET=synthetic-isolated-check-long-enough','-e','GARYHUB_TOTP_ENCRYPTION_KEY='+base64.b64encode(bytes([17])*32).decode(),'-e','NODE_ENV=test','-e','COOKIE_SECURE=false',*fixture_env['calendar-app'],'-v',str(testdata)+':/app/data','-v',str(tests)+':/checks:ro',services['calendar-app']['tag']])
   phase='start synthetic Tools/Lab'
-  isolated_step(phase,['docker','run','-d','--name',lab,'--network',net,'--network-alias','lab-check','-e','CALENDAR_URL=http://calendar-check:3000','-e','LAB_DATA_DIR=/check-lab',*fixture_env,'-v',str(labtest)+':/check-lab','-v',str(tests)+':/checks:ro',services['garyhub-lab']['tag']])
+  isolated_step(phase,['docker','run','-d','--name',lab,'--network',net,'--network-alias','lab-check','-e','CALENDAR_URL=http://calendar-check:3000','-e','LAB_DATA_DIR=/check-lab',*fixture_env['garyhub-lab'],'-v',str(labtest)+':/check-lab','-v',str(tests)+':/checks:ro',services['garyhub-lab']['tag']])
   phase='Calendar startup health';health(cal,True)
   phase='Tools/Lab startup health';health(lab,True)
   for test in CONFIG['isolation_checks']:

@@ -98,7 +98,7 @@
    }catch(e){if(valid(ticket,epoch))showError(e);}
    finally{if(valid(ticket,epoch))setBusy(false);}
   };
-  function updatePrompt(){const state=options.getState();$('todo-prompt-text').value=F.prompt(language(),F.limits.todos-state.count);}
+  function updatePrompt(){const state=options.getState();$('todo-prompt-text').value=F.prompt(language(),Math.max(0,state.limits.todos-state.count),state.limits);}
   $('todo-prompt-open').onclick=()=>{
    if(options.getState().blocked)return;
    updatePrompt();promptStatus='';$('todo-prompt-message').textContent='';promptDialog.showModal();$('todo-prompt-copy').focus();

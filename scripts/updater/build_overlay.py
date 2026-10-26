@@ -136,6 +136,17 @@ def build(root, here, output):
         data=source_bytes(root,str((here/name).relative_to(root)))
         if name.endswith('.cmd'):data=data.replace(b'\r\n',b'\n').replace(b'\n',b'\r\n')
         (outer/name).write_bytes(data)
+    for name, source in config.get('outer_files', {}).items():
+        if Path(name).name != name or '\\' in name or excluded(name) or (outer/name).exists():
+            raise RuntimeError('Invalid extra installer file')
+        data=source_bytes(root,source)
+        if source.endswith('.template.ps1'):
+            text=data.decode('utf-8-sig')
+            for key,value in {'PACKAGE_SHA256':digest(payload.read_bytes()),'INSTALLER_BUILD_ID':build_id,'RELEASE_VERSION':version,'REQUIRES_VERSION':config['requires_release']}.items():
+                text=text.replace(key,value)
+            data=b'\xef\xbb\xbf'+text.encode()
+        if name.endswith('.cmd'):data=data.replace(b'\r\n',b'\n').replace(b'\n',b'\r\n')
+        (outer/name).write_bytes(data)
     shutil.copytree(bundle/'git-source',outer/'git-source')
     cmd='@echo off\nsetlocal\nchcp 65001 >nul\npowershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0git-source\\Push-GitHub.ps1" -PackageRoot "%~dp0git-source"\nset "PUSH_RESULT=%ERRORLEVEL%"\necho.\npause\nexit /b %PUSH_RESULT%\n'
     (outer/'PUSH-TO-GITHUB.cmd').write_bytes(cmd.replace('\n','\r\n').encode())

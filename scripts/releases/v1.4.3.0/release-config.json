@@ -1,0 +1,106 @@
+{
+  "version": "1.4.3.0",
+  "requires_release": "1.4.2.0",
+  "installer_build": "v1.4.3.0-r2",
+  "reviewed_base_commit": "0acf0c89dba8db923441df162a22743d604a5ebf",
+  "baseline_adapter": "scripts/releases/v1.4.2.0",
+  "source_subject": "Add subscription quotas and private R2 background music",
+  "updated_features": [
+    "subscription_music_release"
+  ],
+  "summary": "Standard accounts: 5 fixed expenses, 5 Todos, 10 points per Todo. Private MP3 library for subscribers/admins; default music remains available until R2 setup. Existing records retained.",
+  "asset_checksums": [
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/ambient-music.js",
+      "sha256": "53232c383dd663c12ab65f2b822dc3e0b6be6927140fd5ee0cbb5157da43cf71"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/ambient-music.css",
+      "sha256": "714bfadfd1b53296c258a418c1ca0ca926bad26e458bb0eac399cd89bdd1e418"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/music/index.html",
+      "sha256": "5c6e1926a89e23960787a08259154ab35b86307541c0b982360e468d416da23a"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/music/music.js",
+      "sha256": "39da3004d735233fa7e28758020affd7d8abe748bbfb6728fb4ff1344bd202b4"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/music/music.css",
+      "sha256": "2a373ba0942cbef7e0ac65d9b3a9cd59675f1b9dc108b3978398d69195b66423"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/todos/todos.js",
+      "sha256": "2f8158bb0d80873dd875cf73d4a7a4129c0223a89e63e5cc2d4fcd9b911442dc"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/todos/import-ui.js",
+      "sha256": "a1cd353843309842fcc796a60e1cd48fb8fac96c9e07bf7180e14d68e307cfe2"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/todos/import-format.js",
+      "sha256": "577a3de4cd10a8619f729f0d6af48871593f53122116d3ce632e2bf6699e2dd2"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/ledger/fixed/fixed.js",
+      "sha256": "89f230fc365e3bf8f83bf300d8904bffbde8579e3aacc631e53abdc5094f1228"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/ambient-music.js",
+      "sha256": "53232c383dd663c12ab65f2b822dc3e0b6be6927140fd5ee0cbb5157da43cf71"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/ambient-music.css",
+      "sha256": "714bfadfd1b53296c258a418c1ca0ca926bad26e458bb0eac399cd89bdd1e418"
+    }
+  ],
+  "isolation_checks": [
+    "subscription-http.cjs",
+    "research-regression.cjs",
+    "useful-http.cjs"
+  ],
+  "isolation_environment": {
+    "TRUSTED_ORIGINS": "https://garyhub.uk,https://calendar.garyhub.uk,https://tools.garyhub.uk,https://lab.garyhub.uk,http://calendar-check:3000",
+    "READING_NAMESPACE": "aaaaaaaaaaaaaaaaaaaaaaaa",
+    "SERVER_METRICS_FILE": "/checks/monitor-fixture.json"
+  },
+  "test_inputs": {
+    "seed.cjs": "scripts/releases/v1.4.3.0/tests/seed.cjs",
+    "seed-base.cjs": "scripts/releases/v1.3.6.0/tests/seed.cjs",
+    "fake-r2.cjs": "scripts/releases/v1.4.3.0/tests/fake-r2.cjs",
+    "subscription-http.cjs": "scripts/releases/v1.4.3.0/tests/subscription-http.cjs",
+    "research-http.cjs": "scripts/releases/v1.4.1.0/tests/research-http.cjs",
+    "useful-http.cjs": "scripts/releases/v1.3.6.1/tests/useful-http.cjs",
+    "monitor-fixture.json": "scripts/releases/v1.4.2.0/tests/monitor-fixture.json",
+    "research-regression.cjs": "scripts/releases/v1.4.3.0/tests/research-regression.cjs"
+  },
+  "support_files": {
+    "configure-r2.py": "scripts/releases/v1.4.3.0/configure-r2.py"
+  },
+  "outer_files": {
+    "SETUP-R2.cmd": "scripts/releases/v1.4.3.0/SETUP-R2.cmd",
+    "Setup-R2.ps1": "scripts/releases/v1.4.3.0/Setup-R2.template.ps1",
+    "CLOUDFLARE-R2.md": "docs/GARYHUB_V1_4_3_0_CLOUDFLARE.md"
+  },
+  "isolation_service_environment": {
+    "calendar-app": {
+      "NODE_OPTIONS": "--require /checks/fake-r2.cjs",
+      "R2_ACCOUNT_ID": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "R2_BUCKET": "garyhub-music-test",
+      "R2_ACCESS_KEY_ID": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "R2_SECRET_ACCESS_KEY": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    }
+  }
+}
