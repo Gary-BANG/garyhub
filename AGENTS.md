@@ -22,7 +22,9 @@ adapter/configuration changes; never point a new version at an old hardcoded
 installer. Run checks needed by the actual changed behavior, then build once.
 Repeat a check only after a related change, failure or unresolved concern.
 
-Update the project context, release manifest and validation record together.
+Update the root README, project context, release manifest and validation record
+together. Follow the README synchronization checklist in docs/UPDATE_WORKFLOW.md;
+keep current source features and production evidence separate.
 Keep source-prepared, locally-validated, GitHub-merged and production-verified
 states distinct. A documentation/tooling-only PR does not bump the running app
 version or publish production release notices. Existing production release

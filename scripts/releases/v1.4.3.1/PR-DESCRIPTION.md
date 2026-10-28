@@ -1,0 +1,9 @@
+Study Hub now has a collapsible course/lecture sidebar and opens the selected lecture, including imported images, in Markdown Viewer in a new tab. Markdown sections start collapsed; readers can expand all or use a hidden-by-default outline to reveal and locate a section. Source edits preserve matching section states and remain temporary.
+
+Refresh the root README and require its synchronization in the fixed update workflow. Register a v1.4.3.1 overlay requiring actual v1.4.3.0, reuse the existing updater and preserve live music, account data and host integrations. Health versions are updated for both TOTP capability variants.
+
+Validation and deployment boundaries: docs/GARYHUB_V1_4_3_1_TESTS.md. Production completion and notification recipient counts require installer output; this PR does not assert deployment.
+
+Installer r2 fixes unauthenticated hashing of a protected HTML route. Public response hashes remain checked; the protected page now requires both its live-container file hash and a correct HTTPS login redirect. Tests reproduce the r1 302 response and verify authenticated bytes, incorrect hashes/redirects, and the actual phase-6 verifier against real local services. User logs report r1 automatically rolled back to v1.4.3.0 before release notices; r2 deployment is still awaiting evidence.
+
+Installer r3 fixes rollback index coherence: restored services use pinned backup Compose files, so the active index must record those actual paths. A narrowly scoped preflight reconciler handles only the known r1 rollback when package, state, unchanged original index, both live images/identities/paths, full resolved configs and Caddy evidence match. It preserves an audit backup and writes only the index. Fifteen stateful regression tests cover rollback-to-retry, manual rollback, interruption/idempotency and refusal of unknown/later changes. User r2 logs stopped before build/cutover; r3 production recovery is not claimed complete.

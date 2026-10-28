@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "version": "1.4.3.1",
+  "requires_release": "1.4.3.0",
+  "reviewed_base_commit": "903f47778d3f8bf1d6efb99b1b21c10764b1cdae",
+  "adapter_dir": "scripts/releases/v1.4.3.1",
+  "builder": "scripts/releases/v1.4.3.1/build-package.py",
+  "capability_variants": {
+    "1.3.4.1": "without_totp",
+    "1.3.4.2": "with_totp"
+  },
+  "validation_record": "docs/GARYHUB_V1_4_3_1_TESTS.md",
+  "protections": [
+    "reviewed_source_baseline",
+    "active_deployment_index",
+    "consistent_data_backup",
+    "preserve_current_records_on_rollback",
+    "health_and_https",
+    "release_notice_recipients_and_idempotency"
+  ],
+  "production_verified": false,
+  "installer_revision": "r3"
+}

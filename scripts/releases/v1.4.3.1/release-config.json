@@ -1,0 +1,87 @@
+{
+  "version": "1.4.3.1",
+  "requires_release": "1.4.3.0",
+  "installer_build": "v1.4.3.1-r3",
+  "reviewed_base_commit": "903f47778d3f8bf1d6efb99b1b21c10764b1cdae",
+  "baseline_adapter": "scripts/releases/v1.4.3.0",
+  "source_subject": "Improve Study Hub navigation and collapsible Markdown reading",
+  "updated_features": [
+    "study_markdown_release"
+  ],
+  "summary": "Study Hub sidebar and direct lecture viewing; collapsible Markdown sections and outline. Current records, music and host integrations retained.",
+  "asset_checksums": [
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/academic/app.js",
+      "sha256": "7a822a65e2f2a48c6351086b6919cf2d79151c79324b8590fa5c964720ef6907"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/academic/style.css",
+      "sha256": "28c09c904a59eafceb5f3ce322694099308d2ae975f6d123e4263fbe117fbc96"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/academic/index.html",
+      "sha256": "26247a64b47c5397a4f2c38ae7f8513e867e970e0c645759a75ec143fb827033"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/i18n/dictionary.js",
+      "sha256": "8cd068519cff23067dca28c88607d508afe0f07fa4684201e8bdbf1d0be8c950"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/useful/tool-i18n.js",
+      "sha256": "586fb65f4bfef9736ceff7818dda09d84b924d28dcad016cb729f8ab7ce97033"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/useful/markdown-viewer/app.js",
+      "sha256": "971d9d26dd8e159e86fe3333b7272f02635e05281e7d4d96c4430cad177e9137"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/useful/markdown-viewer/sections.mjs",
+      "sha256": "5c2baf17c456bab7a6ad94dbfb4ba2c52727c2c30859f67fef31c79367845540"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/useful/markdown-viewer/study-document.mjs",
+      "sha256": "b57cfec704c70b9349abb078e9952b5bf860bab3632fd5b7f9a1035035c165c3"
+    }
+  ],
+  "isolation_checks": [
+    "useful-http.cjs",
+    "study-http.cjs",
+    "asset-response.cjs"
+  ],
+  "test_inputs": {
+    "seed.cjs": "scripts/releases/v1.4.3.0/tests/seed.cjs",
+    "seed-base.cjs": "scripts/releases/v1.3.6.0/tests/seed.cjs",
+    "useful-http.cjs": "scripts/releases/v1.3.6.1/tests/useful-http.cjs",
+    "study-http.cjs": "scripts/releases/v1.4.3.1/tests/study-http.cjs",
+    "study-fixture.cjs": "scripts/releases/v1.4.3.1/tests/study-fixture.cjs",
+    "asset-response.cjs": "scripts/releases/v1.4.3.1/tests/asset-response.cjs",
+    "asset-checks.json": "scripts/releases/v1.4.3.1/release-config.json"
+  },
+  "isolation_environment": {
+    "TRUSTED_ORIGINS": "https://garyhub.uk,https://calendar.garyhub.uk,https://tools.garyhub.uk,https://lab.garyhub.uk,http://calendar-check:3000"
+  },
+  "protected_asset_checksums": [
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/useful/markdown-viewer/index.html",
+      "sha256": "08b9e35d3fae0d5595ea5d705c95ce05646a069a3a5182ae4e7ddc2c441731bf",
+      "service": "garyhub-lab",
+      "file": "/lab/public/useful/markdown-viewer/index.html"
+    }
+  ],
+  "support_files": {
+    "rollback_recovery.py": "scripts/releases/v1.4.3.1/rollback_recovery.py"
+  },
+  "rollback_recovery": {
+    "root": "/opt/garyhub-update-v1.4.3.1-r1",
+    "manifest_sha256": "c169540991fb7efa002df347ced1d1a3826f994c3a2276ad09b85bedb5e94148"
+  }
+}
