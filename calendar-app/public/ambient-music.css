@@ -2,3 +2,5 @@
 .ambient-toggle[data-playing=false] .record{display:none}
 
 .ambient-library{display:inline-grid;place-items:center;width:30px;height:30px;flex:0 0 30px;border-radius:50%;text-decoration:none;color:inherit;border:1px solid var(--line,#9aafbb66);font-size:17px}.ambient-library:focus-visible{outline:2px solid var(--accent,#8dbacf);outline-offset:3px}
+
+.gary-tool-bar .ambient-toggle{width:34px;height:34px;flex:0 0 34px;padding:5px;border-radius:50%;display:inline-grid}.header-actions .ambient-toggle{padding:5px;border-radius:50%}@media print{.ambient-toggle,.ambient-library{display:none!important}}

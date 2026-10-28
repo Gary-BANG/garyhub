@@ -1,9 +1,10 @@
-(()=>{'use strict';if(!document.getElementById('sky'))return;const theme=document.querySelector('.theme,#theme');if(!theme||document.querySelector('.ambient-toggle'))return;
+(()=>{'use strict';const config=document.currentScript?.dataset||{},target=config.musicTarget;
+ if(!target&&!document.getElementById('sky'))return;const theme=document.querySelector(target||'.theme,#theme');if(!theme||document.querySelector('.ambient-toggle'))return;
  const id=crypto.randomUUID(),key='gh-music-',audio=new Audio('/ambient.mp3');audio.loop=true;audio.volume=.16;audio.preload='metadata';
  const button=document.createElement('button');button.type='button';button.className='ambient-toggle';button.dataset.playing='false';button.setAttribute('aria-pressed','false');
  button.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><g class="record"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="7" opacity=".45"/><circle cx="12" cy="12" r="3"/><path d="M6 9a7 7 0 0 1 3-3M15 18a7 7 0 0 0 3-3"/></g><g class="mute-mark"><path d="M13 7v8m0-7 4-1v3l-4 1"/><ellipse cx="11.5" cy="15.5" rx="2" ry="1.5"/><path d="m4 4 16 16" stroke-width="2"/></g></svg>';
  theme.before(button);
- const library=document.createElement('a');library.href='https://calendar.garyhub.uk/music/';library.className='ambient-library';library.textContent='♫';library.title='个人音乐库 / Music library';library.setAttribute('aria-label',library.title);button.before(library);
+ if(config.musicLibrary!=='false'){const library=document.createElement('a');library.href='https://calendar.garyhub.uk/music/';library.className='ambient-library';library.textContent='♫';library.title='个人音乐库 / Music library';library.setAttribute('aria-label',library.title);button.before(library);}
  let source='guest-default',refreshing=false,sourceReady=false,lastError=0;
  const get=name=>document.cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith(key+name+'='))?.slice((key+name+'=').length);
  function set(name,value){document.cookie=key+name+'='+value+'; Path=/; Max-Age=31536000; SameSite=Lax'+(location.protocol==='https:'?'; Secure':'')+((location.hostname==='garyhub.uk'||location.hostname.endsWith('.garyhub.uk'))?'; Domain=.garyhub.uk':'');}

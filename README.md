@@ -2,11 +2,11 @@
 
 GaryHub 是使用统一账号的个人工作空间，包含日历与私人记录、账本、待办、学习工具和服务器工具。仓库保存应用源码、脱敏文档与可复现更新器；正式服务通过经过验证的升级包部署，GitHub 合并不会自动更新服务器。
 
-**当前源码版本：v1.4.3.1。** 本次升级基于已合并 PR #21 的 v1.4.3.0（`903f47778d3f8bf1d6efb99b1b21c10764b1cdae`），新增学习中心侧栏控制、讲义直达 Markdown Viewer、章节折叠和目录导航。源码准备、本地测试、GitHub 合并、生产上线分别记录；当前版本的生产完成情况须以安装输出为证。
+**当前源码版本：v1.4.3.2。** 基于已合并 PR #22 的 v1.4.3.1（`2b3d597e3f000b9340356aed6191af81970368cb`），修复 ECE 470 题面公式排版，并在成绩规划、学习中心、图片局部消除、Markdown Viewer 和 PDF 浅灰打印加入 Play Music，不增加 Music Library 入口。
 
-当前安装器为 **v1.4.3.1-r3**。r2 保留受保护 HTML 的正确校验；r3 修正回滚后 Compose 路径与部署索引不一致的问题，仅在完整证据吻合时对齐已知 r1 遗留索引。应用功能和版本保持不变，修订包上线结果仍待现场输出。
+当前安装器为 **v1.4.3.2-r1**。源码准备、本地验证、GitHub 合并和生产上线分别记录。本次源码尚未推送／合并；生产状态和通知人数须以现场安装输出为证。安装器严格要求 Calendar 与 Tools/Lab 均实际运行 v1.4.3.1。
 
-维护日期：2026-10-27（America/Chicago）。
+维护日期：2026-10-28（America/Chicago）。
 
 ## 应用入口
 
@@ -21,10 +21,12 @@ Calendar 使用 Node.js 20、Express 与 SQLite；Tools/Lab 使用 Node 原生 H
 
 ## 当前功能与使用边界
 
+- ECE 470 Lab 题干与解析支持 `$...$`、`$$...$$`、`\(...\)`、`\[...\]`，常见旧式 ASCII 数学记法可自动排版。题目切换、运行与提交后保持排版；无法解析的内容显示原文。转换只影响显示，首次提交前仍隐藏公式答案与解析。
 - 学习中心按账号保存课程、讲次、进度与配图，支持 Markdown、文件夹、ZIP 和 GitHub 导入。课程／讲次左栏可用图标收起；Lecture Notes 可在新标签页直接打开当前讲义的 Markdown Viewer。
 - Markdown Viewer 支持源码编辑、公式、表格及 ZIP 内配图。章节默认收起，可逐节或全部展开；左侧层级目录默认收起，点击标题自动展开并定位。普通本地文件在浏览器处理；学习中心讲义通过既有登录接口读取，账号变化后清除已打开的私人讲义。Viewer 编辑仅留在本次页面，不写回原讲义或文件。
 - 普通账号最多保存 5 项固定开支、5 条 Todo、每条 10 个 points；订阅用户和管理员保留现有 300 项／条和每条 100 points 上限。已有超额内容保留，已完成／停用内容仍计数。
 - 订阅用户和管理员可上传个人 MP3：每人最多 10 首、单首 20 MiB、合计 100 MiB；应用管理的 R2 音乐对象总上限为 8 GiB。选曲随账号保存，降级后使用默认音乐，原文件保留。默认音乐不要求配置 R2；个人音乐需要管理员完成私有桶配置。
+- 成绩规划、学习中心与三个实用工具页使用现有音乐选曲、播放进度和多标签页协调，只提供 Play Music 按钮。原有主页／Calendar／Tools 的 Music Library 入口保留。实用工具页仅对 R2 音频新增 media-src 许可，文件处理仍受本机连接限制。
 - Research Dictionary、账本、讲义与练习数据按账号隔离；管理员身份不额外授予读取他人私人内容的权限。界面支持中文、英文和日夜主题。
 
 ZIP 阅读支持普通未加密 stored／DEFLATE ZIP，不支持 RAR、7z、多卷或 ZIP64；只加载允许的本地位图。完整格式与大小限制见[项目档案](docs/PROJECT_CONTEXT.md)。
@@ -41,27 +43,27 @@ python scripts/updater/manage.py check
 
 用独立分支开发，按实际行为变化选择测试；同步 README、项目档案、发布清单、版本说明与验证记录，再通过统一入口生成 upgrade ZIP。每次发布都必须检查根 README 的版本、功能、文档链接和状态表述；长期规则以 `docs/UPDATE_WORKFLOW.md` 为准。
 
-## v1.4.3.1 安装与回滚
+## v1.4.3.2 安装与回滚
 
-1. 安装前，Calendar 与 Tools/Lab 必须均实际运行 v1.4.3.0。源码版本不能代替现场版本证据；版本或源码不匹配时安装器会停止。
+1. 安装前，Calendar 与 Tools/Lab 必须均实际运行 v1.4.3.1。源码版本不能代替现场版本证据；版本或源码不匹配时安装器会停止。
 2. 完整解压 upgrade ZIP，在 Windows 双击 `RUN-UPDATE.cmd`，使用已有 OpenSSH 与 SSH 密钥。安装器执行源码／配置核对、离线构建、合成数据隔离验证、一致性备份、切换、HTTPS 与资源校验。
 3. 部署健康后，向全部已批准且启用的账号（含管理员）发布未读站内通知，并核对人数和去重。执行输出用于确认生产是否完成。
-4. `ROLLBACK.cmd` 恢复本次安装前的 v1.4.3.0 应用和有效配置，保留当前用户记录。若已有后续部署或配置变化，回滚会停止等待核对。
+4. `ROLLBACK.cmd` 恢复本次安装前的 v1.4.3.1 应用和有效配置，保留当前用户记录。若已有后续部署或配置变化，回滚会停止等待核对。
 5. `PUSH-TO-GITHUB.cmd` 使用独立工作目录准备并推送审查分支，保留原工作区，不强推、不自动合并 `main`。
 
 构建入口：
 
 ```bash
-python scripts/updater/manage.py build --release 1.4.3.1 --output <新的ZIP绝对路径>
+python scripts/updater/manage.py build --release 1.4.3.2 --output <新的ZIP绝对路径>
 ```
 
-详见 [v1.4.3.1 说明](docs/GARYHUB_V1_4_3_1.md)、[验证记录](docs/GARYHUB_V1_4_3_1_TESTS.md)及[发布通知规则](docs/RELEASE_POLICY.md)。
+详见 [v1.4.3.2 说明](docs/GARYHUB_V1_4_3_2.md)、[验证记录](docs/GARYHUB_V1_4_3_2_TESTS.md)及[发布通知规则](docs/RELEASE_POLICY.md)。
 
 ## 部署与私密数据
 
 正式运行目录为 `/opt/my-services`，不是 Git working tree。**有效配置以 `/opt/my-services/garyhub-active-deployment.json`、实际容器镜像和挂载为准。** 不要直接套用旧文档的 Compose 路径或在服务器执行未经验证的 `git pull`。
 
-Calendar 数据挂载 `/app/data`，Lab 数据挂载 `/data`，实际宿主路径须现场核对。保留现有共享登录 Cookie、明确 Origin、CSRF、TOTP 能力组合、R2 只读配置挂载和 Reading／监控／VPN 集成。Caddy 是 HTTPS 入口；相关外部服务与网络配置不因本次阅读界面更新而改变。
+Calendar 数据挂载 `/app/data`，Lab 数据挂载 `/data`，实际宿主路径须现场核对。保留现有共享登录 Cookie、明确 Origin、CSRF、TOTP 能力组合、R2 只读配置挂载和 Reading／监控／VPN 集成。Caddy 是 HTTPS 入口；相关外部服务与网络配置按既有配置继承。
 
 不得提交 `.env`、私有 Compose、数据库、会话、密钥、邮件授权、生产备份、`homepage-protected.json` 或 `profile-private.json`。GitHub 不是数据库备份；恢复数据库前必须评估备份之后的用户操作。
 

@@ -11,3 +11,6 @@
 @media(max-width:900px){#content:has(.homework-panel){grid-template-columns:minmax(0,1fr)}.homework-panel{grid-column:1;grid-row:auto;position:static;margin-top:20px}#content:has(.homework-panel)>#solution{grid-row:3}.homework-list{max-height:350px}}
 
 #cloud-bar{position:sticky;top:0;z-index:1000;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 20px;background:#f9f4eb;color:#493924;border-bottom:1px solid #dbccba;font:12px system-ui;margin-left:230px}#cloud-bar a{color:inherit}#cloud-status{flex:1}#cloud-bar button{font:inherit;padding:5px 8px} @media(max-width:900px){#cloud-bar{margin-left:0}}
+
+/* Keep long imported expressions inside the question on narrow screens. */
+.prompt{min-width:0;overflow-wrap:anywhere}.lab-formula{display:inline-block;max-width:100%;overflow-x:auto;overflow-y:hidden;vertical-align:middle;padding:2px 0}.lab-formula:has(.katex-display){display:block}.lab-formula .katex{font-size:1.08em}.lab-formula .katex-display{margin:.35em 0;text-align:left}.lab-math-fallback{font-family:Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere}

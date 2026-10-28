@@ -2,7 +2,7 @@
 
 `manage.py` 提供 context、plan、check、build 四个命令。前三个只读；build 显式调用已注册版本适配器生成 ZIP。不会自行连接生产或推送 GitHub。
 
-当前 v1.4.3.1 使用独立发布配置和共享 build_overlay.py、deploy_runtime.py，保留经过验证的备份、回滚和通知逻辑。历史适配器不变。新版本仍须注册独立清单和小型适配器，明确基础提交与实际基础版本。build_overlay 只打包已提交且工作区干净的源码，通过既有 push-source 在独立 worktree 准备源码，保留用户原工作区。
+当前 v1.4.3.2 使用独立发布配置和共享 build_overlay.py、deploy_runtime.py，保留经过验证的备份、回滚和通知逻辑。历史适配器不变。新版本仍须注册独立清单和小型适配器，明确基础提交与实际基础版本。build_overlay 只打包已提交且工作区干净的源码，通过既有 push-source 在独立 worktree 准备源码，保留用户原工作区。
 
 `plan` 根据实际 Git 差异给出模块及验证建议，默认只显示每组少量文件；未知路径明确列为人工核对。命令输出有界，不读取源码正文或 vendor bundle。详细流程见 docs/UPDATE_WORKFLOW.md。
 
