@@ -74,7 +74,7 @@ const server = http.createServer(async (req,res)=>{
     if(await academic(req,res,url))return;
     if(['/grades','/grades/','/study','/study/'].includes(url.pathname))url.pathname='/academic/index.html';
     url.pathname=decodeURIComponent(url.pathname);
-    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"1.4.3.1"});
+    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"1.4.3.2"});
     if(url.pathname.startsWith('/sub/')) {
       if(req.method!=='GET') return json(res,405,{message:'Method not allowed'});
       const sub=connections.subscription(url.pathname.slice(5));
@@ -175,7 +175,7 @@ const server = http.createServer(async (req,res)=>{
     if(/^\/useful\/(image-eraser|markdown-viewer|pdf-gray)(?:\/|\/index.html)?$/.test(url.pathname)){
       if(!await identity(req))return redirectLogin(url.pathname+url.search);
       if(!url.pathname.endsWith('/')&&!url.pathname.endsWith('.html')){res.writeHead(302,{Location:url.pathname+'/'});return res.end();}
-      res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; worker-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'");
+      res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; worker-src 'self' blob:; connect-src 'self'; media-src 'self' https://*.r2.cloudflarestorage.com; object-src 'none'; base-uri 'none'");
     }
     if(['/totp','/totp/','/totp/index.html'].includes(url.pathname)){if(!await identity(req)){return redirectLogin(url.pathname+url.search);}if(url.pathname==='/totp'){res.writeHead(302,{Location:'/totp/'});return res.end();}}
     if(url.pathname==='/lab' || url.pathname==='/lab/' || url.pathname==='/lab/index.html' || url.pathname==='/access' || url.pathname==='/access/' || url.pathname==='/access/index.html') {

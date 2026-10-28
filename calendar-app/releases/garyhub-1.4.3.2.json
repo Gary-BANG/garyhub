@@ -1,0 +1,16 @@
+{
+  "version": "garyhub-1.4.3.2",
+  "date": "2026-10-28",
+  "notes": [
+    {
+      "scope": "lab",
+      "title": "ECE 470 题面公式排版",
+      "body": "题干与解析支持 LaTeX，并自动排版既有题包中的常见 ASCII 数学记法；切换题目、运行及提交后保持排版。无法识别的公式保留原文，答案和解析仍在首次提交后显示。"
+    },
+    {
+      "scope": "tools",
+      "title": "五个工具页加入 Play Music",
+      "body": "成绩规划、学习中心、图片局部消除、Markdown Viewer 和 PDF 浅灰打印加入音乐播放按钮，沿用现有选曲、进度及多标签页协调；这些页面不显示 Music Library 入口。"
+    }
+  ]
+}

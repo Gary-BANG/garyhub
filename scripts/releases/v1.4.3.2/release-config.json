@@ -1,0 +1,99 @@
+{
+  "version": "1.4.3.2",
+  "requires_release": "1.4.3.1",
+  "installer_build": "v1.4.3.2-r1",
+  "reviewed_base_commit": "2b3d597e3f000b9340356aed6191af81970368cb",
+  "baseline_adapter": "scripts/releases/v1.4.3.1",
+  "source_subject": "Render ECE 470 formulas and add music playback to five tools",
+  "updated_features": [
+    "lab_math_release",
+    "tool_music_release"
+  ],
+  "summary": "ECE 470 formulas and Play Music in Grade Planner, Study Hub and three useful tools. Current records and host integrations retained.",
+  "asset_checksums": [
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/academic/index.html",
+      "sha256": "c835bff42816dd1baf71e9ec49991a72727b709f14e2583d0eb2446a133ef9b2"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/ambient-music.js",
+      "sha256": "85445514e452cb345d8bb49a616e2b94e7c7873861354b0e31c6e89da3f2fca8"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/ambient-music.css",
+      "sha256": "b3dacbfb8b06de463fdb6d24b8b0789aff9a4217ee58dfdbed26a16dd7701d3a"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/lab/app.js",
+      "sha256": "7f24bb5a79776c13816cf6efeba727825e4d9fe92e450de32c04c435880d09b8"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/lab/math-markdown.mjs",
+      "sha256": "9e673096a84e07c55b2e9068902dbacf5d6b3a2af4d789559e97f53673b5fce3"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/lab/style.css",
+      "sha256": "7e8112b30e64a1a15223699b0518c369840882d0e1e784a6086936eab196db7b"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/useful/tool-shell.js",
+      "sha256": "ea2f1192d4647aaeef6a2feaecfe9c272d444c9925fc449798c94d6be22baf9f"
+    }
+  ],
+  "protected_asset_checksums": [
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/lab/index.html",
+      "sha256": "9cec4b1c01ea4c5611939513977d8497ac11b9a199fbab970748813550b4d13f",
+      "service": "garyhub-lab",
+      "file": "/lab/public/lab/index.html"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/useful/image-eraser/index.html",
+      "sha256": "351063933bb67b994ad40aee709b016bf8b6ce03fc18dd190d31f1af1b05bc0a",
+      "service": "garyhub-lab",
+      "file": "/lab/public/useful/image-eraser/index.html"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/useful/markdown-viewer/index.html",
+      "sha256": "ce561c30770bd81a045ceae93fbe1e1940ce7404fcefc5f76efad891a540237c",
+      "service": "garyhub-lab",
+      "file": "/lab/public/useful/markdown-viewer/index.html"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/useful/pdf-gray/index.html",
+      "sha256": "cf81b97cc6312acd81624014e39284906bfd605fc7ea12e25a8eecae5c9d32f5",
+      "service": "garyhub-lab",
+      "file": "/lab/public/useful/pdf-gray/index.html"
+    }
+  ],
+  "isolation_checks": [
+    "useful-http.cjs",
+    "study-http.cjs",
+    "asset-response.cjs",
+    "music-http.cjs"
+  ],
+  "test_inputs": {
+    "seed.cjs": "scripts/releases/v1.4.3.0/tests/seed.cjs",
+    "seed-base.cjs": "scripts/releases/v1.3.6.0/tests/seed.cjs",
+    "useful-http.cjs": "scripts/releases/v1.3.6.1/tests/useful-http.cjs",
+    "study-http.cjs": "scripts/releases/v1.4.3.1/tests/study-http.cjs",
+    "study-fixture.cjs": "scripts/releases/v1.4.3.1/tests/study-fixture.cjs",
+    "asset-response.cjs": "scripts/releases/v1.4.3.1/tests/asset-response.cjs",
+    "asset-checks.json": "scripts/releases/v1.4.3.2/release-config.json",
+    "music-http.cjs": "scripts/releases/v1.4.3.2/tests/music-http.cjs"
+  },
+  "isolation_environment": {
+    "TRUSTED_ORIGINS": "https://garyhub.uk,https://calendar.garyhub.uk,https://tools.garyhub.uk,https://lab.garyhub.uk,http://calendar-check:3000"
+  }
+}

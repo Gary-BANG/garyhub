@@ -32,10 +32,10 @@ python -m unittest discover -s scripts/updater/tests -p 'test_*.py'
 `releases/current.json` 是源码版本入口；`releases/<version>.json` 记录基础版本、能力组合、适配器、必要保护及验证记录路径。它们不保存生产凭据，也不代替服务器现场状态。
 
 ```bash
-python scripts/updater/manage.py build --release 1.4.3.1 --output <ZIP绝对路径>
+python scripts/updater/manage.py build --release 1.4.3.2 --output <ZIP绝对路径>
 ```
 
-统一入口验证清单并调用该版本自己的已审阅适配器。当前 v1.4.3.1 使用独立 release-config.json 与共享 build_overlay.py、deploy_runtime.py；历史适配器保留原状。未来发布须注册自己的清单和小型适配器，明确审阅基础提交、实际基础版本、能力组合和必要检查。禁止仅换版本号后运行旧部署器；修改共享实现须保留既有保护测试并验证兼容性。
+统一入口验证清单并调用该版本自己的已审阅适配器。当前 v1.4.3.2 使用独立 release-config.json 与共享 build_overlay.py、deploy_runtime.py；历史适配器保留原状。未来发布须注册自己的清单和小型适配器，明确审阅基础提交、实际基础版本、能力组合和必要检查。禁止仅换版本号后运行旧部署器；修改共享实现须保留既有保护测试并验证兼容性。
 
 生成 ZIP 的内容仍为：Windows 安装入口、回滚入口、校验清单、应用变更、源码同步和说明。每包独立可用，用户无需保留旧包。打包前完成必要验证，生成最终包后校验一次内容及哈希；只有内容变化时才重建。
 
