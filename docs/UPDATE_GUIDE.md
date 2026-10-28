@@ -1,6 +1,8 @@
-# 升级、验证与回滚指南
+# 历史升级、验证与回滚记录
 
-最后核对：2026-09-30 UTC（InterServer、Calendar v1.3.1.2）
+> 当前更新请使用[固定更新流程](UPDATE_WORKFLOW.md)、[项目档案](PROJECT_CONTEXT.md)和[根 README](../README.md)。以下主体记录 2026-09-30 的部署，具体镜像、Compose 与数据路径均是历史证据，不能直接作为当前运行配置。
+
+历史核对：2026-09-30 UTC（InterServer、Calendar v1.3.1.2）
 
 统一 Calendar 已正式切换；旧 Study 页面和 API 返回 410。正式 Web 与提醒 worker 共享新服务器上的 `/opt/garyhub-cutover-20260927-203135/data`，此目录含正式 SQLite 和私密 Outlook 授权文件。旧 Vultr 实例已删除，无法直接切回旧主机。
 

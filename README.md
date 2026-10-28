@@ -1,123 +1,80 @@
-# Gary Hub — 服务器维护总览
+# GaryHub
 
-> AI 更新入口：[项目档案](docs/PROJECT_CONTEXT.md) · [固定更新流程](docs/UPDATE_WORKFLOW.md) · `python scripts/updater/manage.py context`。下文含历史部署记录，当前生产配置以有效部署索引和现场证据为准。
+GaryHub 是使用统一账号的个人工作空间，包含日历与私人记录、账本、待办、学习工具和服务器工具。仓库保存应用源码、脱敏文档与可复现更新器；正式服务通过经过验证的升级包部署，GitHub 合并不会自动更新服务器。
 
-最后核对：2026-09-30 UTC（InterServer、Calendar v1.3.1.2）
-正式服务器：InterServer `vps3666849`，IPv4 `162.35.168.17`
+**当前源码版本：v1.4.3.1。** 本次升级基于已合并 PR #21 的 v1.4.3.0（`903f47778d3f8bf1d6efb99b1b21c10764b1cdae`），新增学习中心侧栏控制、讲义直达 Markdown Viewer、章节折叠和目录导航。源码准备、本地测试、GitHub 合并、生产上线分别记录；当前版本的生产完成情况须以安装输出为证。
 
-本仓库保存源码与脱敏维护文档；正式服务运行在新服务器的 `/opt/my-services`，该目录不是 Git working tree。修改 Docker、Caddy、应用代码或数据前，请先阅读本文档及 `docs/` 中的说明。
+当前安装器为 **v1.4.3.1-r3**。r2 保留受保护 HTML 的正确校验；r3 修正回滚后 Compose 路径与部署索引不一致的问题，仅在完整证据吻合时对齐已知 r1 遗留索引。应用功能和版本保持不变，修订包上线结果仍待现场输出。
 
-## 当前正式服务
+维护日期：2026-10-27（America/Chicago）。
 
-| 地址 | 容器 | 功能 |
+## 应用入口
+
+| 入口 | 功能 | 源码 |
 |---|---|---|
-| `garyhub.uk` | `caddy` | 个人主页；Others 只有 Projects 和 GitHub |
-| `calendar.garyhub.uk` | `calendar-app` | 账号、统一日历与事项、分类、邮件提醒 |
-| 无公网地址 | `garyhub-reminder-production-20260927-203135` | 邮件提醒 worker |
-| `kuma.garyhub.uk` | `uptime-kuma` | 服务状态监控 |
-| `rss.garyhub.uk` | `miniflux` | RSS 阅读器 |
-| `files.garyhub.uk` | `filebrowser` | 文件管理 |
-| 仅 Docker 内部 | `miniflux-db` | Miniflux 的 PostgreSQL 数据库 |
-| `127.0.0.1:19999` | `netdata` | 服务器监控 |
+| [GaryHub](https://garyhub.uk) | 个人主页、统一账号与站内通知 | `lab-service/public/homepage.html`、`calendar-app/` |
+| [Calendar](https://calendar.garyhub.uk) | 日历事项、日记、健康记录、私人账本、固定开支、Todo、Research Dictionary、个人音乐库 | `calendar-app/` |
+| [Tools](https://tools.garyhub.uk) | 可搜索工具图标与 Dock；学习中心、成绩规划、Markdown Viewer、PDF 浅灰转换、图片局部消除、Reading、服务器监控及权限控制工具 | `lab-service/` |
+| [ECE 470 Lab](https://lab.garyhub.uk/lab/) | 机器人学练习、题库导入、代码运行、个人进度与作业分发 | `lab-service/public/lab/` |
 
-Caddy 对公网提供 80/443；独立的 Xray systemd 服务监听 TCP 8080。Cloudflare 的五条网站 A 记录均指向 `162.35.168.17`，保持 DNS only。
+Calendar 使用 Node.js 20、Express 与 SQLite；Tools/Lab 使用 Node 原生 HTTP，浏览器端运行文档处理和 Python/WASM。应用依赖已包含在既有生产镜像和本地静态资源中；升级器基于现场镜像离线构建，无需在生产服务器在线安装 npm 包。
 
-## 当前重要状态
+## 当前功能与使用边界
 
-- 新个人主页已上线：`/opt/my-services/site/index.html`
-- 正式 Calendar Web 与提醒 worker 镜像：`garyhub-calendar:6cd3102`，镜像 ID `sha256:45c2b8d289bbec765d28f2313f030c8630d9b3c8ea750551eed7ef9820da1202`。对应功能分支提交 `6cd3102`；GitHub 是否已合并以实际状态为准。
-- 正式 Web 与提醒 worker 共用 `/opt/garyhub-cutover-20260927-203135/data`，挂载至 `/app/data`。其中的 Outlook 授权文件是密钥。
-- 正式 Compose override：`/opt/garyhub-cutover-20260927-203135/override.yml`，含密钥，不可提交 Git。
-- 主 Compose 必须同时加载 `/opt/my-services/docker-compose.yml`、`docker-compose.override.yml` 和 `docker-compose.migration.yml`；第三个文件将 Filebrowser 的实际数据库固定挂载在 `/opt/my-services/filebrowser/database`。
-- 提醒 worker 使用 `/opt/my-services/reminder-compose.json` 独立启动；此文件含正式环境变量，权限为 `0600`，不可提交 Git。
-- 备份使用 Restic/B2；每日 03:20 UTC 运行主服务备份，每日 05:00 UTC 运行状态备份，周日 04:10 UTC 执行 prune。备份和恢复见 [数据与备份](docs/DATA_AND_BACKUP.md)。
-- 旧 Vultr `LA-VPN` 实例（`45.32.84.89`）已在数据切换和恢复测试后删除；不能再以旧服务器作为回滚目标。
-- 切换时保留 5 个用户；依用户选择，22 条旧 Calendar 事项和 45 条旧 Study 任务没有迁入新统一事项表。
-- 旧 Study 容器、镜像标签、源码、数据目录和专用回滚目录已移除。旧 `/study/*` 和 `/api/study/*` 在源站返回 HTTP 410；主页和 Calendar 健康检查为 200。
-- 旧 Study 专用文件曾导出到用户电脑；旧 Vultr 上的历史目录不应视作新服务器本地存在。部分历史快照仍在 Restic 仓库；不能提交 Git。
+- 学习中心按账号保存课程、讲次、进度与配图，支持 Markdown、文件夹、ZIP 和 GitHub 导入。课程／讲次左栏可用图标收起；Lecture Notes 可在新标签页直接打开当前讲义的 Markdown Viewer。
+- Markdown Viewer 支持源码编辑、公式、表格及 ZIP 内配图。章节默认收起，可逐节或全部展开；左侧层级目录默认收起，点击标题自动展开并定位。普通本地文件在浏览器处理；学习中心讲义通过既有登录接口读取，账号变化后清除已打开的私人讲义。Viewer 编辑仅留在本次页面，不写回原讲义或文件。
+- 普通账号最多保存 5 项固定开支、5 条 Todo、每条 10 个 points；订阅用户和管理员保留现有 300 项／条和每条 100 points 上限。已有超额内容保留，已完成／停用内容仍计数。
+- 订阅用户和管理员可上传个人 MP3：每人最多 10 首、单首 20 MiB、合计 100 MiB；应用管理的 R2 音乐对象总上限为 8 GiB。选曲随账号保存，降级后使用默认音乐，原文件保留。默认音乐不要求配置 R2；个人音乐需要管理员完成私有桶配置。
+- Research Dictionary、账本、讲义与练习数据按账号隔离；管理员身份不额外授予读取他人私人内容的权限。界面支持中文、英文和日夜主题。
 
-## 文档入口
+ZIP 阅读支持普通未加密 stored／DEFLATE ZIP，不支持 RAR、7z、多卷或 ZIP64；只加载允许的本地位图。完整格式与大小限制见[项目档案](docs/PROJECT_CONTEXT.md)。
 
-Calendar 对外版本 v1.3.1.2 已上线：每用户每日一篇可修改的日记、同日多条可编辑删除的体重记录、锻炼记录、可收起面板、事项日期联合筛选，以及含备注的提醒邮件。当时的 5 个账号各收到一条站内升级通知。`calendar-app/package.json` 的 `2.0.0` 是 Node 包版本，与对外发布号分别管理。服务器版本仍应以实际镜像与 Compose 现场检查为准。
+## 从这里维护项目
 
-- [系统架构](docs/ARCHITECTURE.md)
-- [数据与备份](docs/DATA_AND_BACKUP.md)
-- [升级与回滚](docs/UPDATE_GUIDE.md)
-- [服务器迁移记录](docs/SERVER_MIGRATION_20260930.md)
-- [统一 Calendar 隔离开发](docs/ISOLATED_DEVELOPMENT.md)
-- [Outlook 邮件配置](docs/OUTLOOK_MAIL.md)
+**AI 或维护者开始更新前，先读 [AGENTS.md](AGENTS.md)、[项目档案](docs/PROJECT_CONTEXT.md) 和[固定更新流程](docs/UPDATE_WORKFLOW.md)。**
 
-## 正式配置与代码位置
+```bash
+python scripts/updater/manage.py context
+python scripts/updater/manage.py plan --base <实际审阅的基础提交>
+python scripts/updater/manage.py check
+```
 
-| 内容 | 位置 |
+用独立分支开发，按实际行为变化选择测试；同步 README、项目档案、发布清单、版本说明与验证记录，再通过统一入口生成 upgrade ZIP。每次发布都必须检查根 README 的版本、功能、文档链接和状态表述；长期规则以 `docs/UPDATE_WORKFLOW.md` 为准。
+
+## v1.4.3.1 安装与回滚
+
+1. 安装前，Calendar 与 Tools/Lab 必须均实际运行 v1.4.3.0。源码版本不能代替现场版本证据；版本或源码不匹配时安装器会停止。
+2. 完整解压 upgrade ZIP，在 Windows 双击 `RUN-UPDATE.cmd`，使用已有 OpenSSH 与 SSH 密钥。安装器执行源码／配置核对、离线构建、合成数据隔离验证、一致性备份、切换、HTTPS 与资源校验。
+3. 部署健康后，向全部已批准且启用的账号（含管理员）发布未读站内通知，并核对人数和去重。执行输出用于确认生产是否完成。
+4. `ROLLBACK.cmd` 恢复本次安装前的 v1.4.3.0 应用和有效配置，保留当前用户记录。若已有后续部署或配置变化，回滚会停止等待核对。
+5. `PUSH-TO-GITHUB.cmd` 使用独立工作目录准备并推送审查分支，保留原工作区，不强推、不自动合并 `main`。
+
+构建入口：
+
+```bash
+python scripts/updater/manage.py build --release 1.4.3.1 --output <新的ZIP绝对路径>
+```
+
+详见 [v1.4.3.1 说明](docs/GARYHUB_V1_4_3_1.md)、[验证记录](docs/GARYHUB_V1_4_3_1_TESTS.md)及[发布通知规则](docs/RELEASE_POLICY.md)。
+
+## 部署与私密数据
+
+正式运行目录为 `/opt/my-services`，不是 Git working tree。**有效配置以 `/opt/my-services/garyhub-active-deployment.json`、实际容器镜像和挂载为准。** 不要直接套用旧文档的 Compose 路径或在服务器执行未经验证的 `git pull`。
+
+Calendar 数据挂载 `/app/data`，Lab 数据挂载 `/data`，实际宿主路径须现场核对。保留现有共享登录 Cookie、明确 Origin、CSRF、TOTP 能力组合、R2 只读配置挂载和 Reading／监控／VPN 集成。Caddy 是 HTTPS 入口；相关外部服务与网络配置不因本次阅读界面更新而改变。
+
+不得提交 `.env`、私有 Compose、数据库、会话、密钥、邮件授权、生产备份、`homepage-protected.json` 或 `profile-private.json`。GitHub 不是数据库备份；恢复数据库前必须评估备份之后的用户操作。
+
+## 文档导航
+
+| 文档 | 用途 |
 |---|---|
-| 主 Compose 配置 | `/opt/my-services/docker-compose.yml` |
-| 主 Compose 附加文件 | `/opt/my-services/docker-compose.override.yml`、`docker-compose.migration.yml` |
-| Calendar Compose 基础文件 | `/opt/my-services/calendar-app/docker-compose.yml` |
-| Calendar 正式 override | `/opt/garyhub-cutover-20260927-203135/override.yml`（敏感） |
-| 提醒 worker Compose | `/opt/my-services/reminder-compose.json`（敏感） |
-| Caddy 路由 | `/opt/my-services/caddy/Caddyfile` |
-| 个人主页 | `/opt/my-services/site/index.html` |
-| Calendar 正式数据 | `/opt/garyhub-cutover-20260927-203135/data`（敏感） |
-| 旧 Calendar 数据和源码 | `/opt/my-services/calendar-app`（历史；不是当前数据挂载） |
+| [项目档案](docs/PROJECT_CONTEXT.md) | 当前源码、已知生产证据、模块定位与数据边界 |
+| [固定更新流程](docs/UPDATE_WORKFLOW.md) | 每次更新必须遵循的开发、验证、文档与交付流程 |
+| [统一更新器](scripts/updater/README.md) | context／plan／check／build 与源码同步工具 |
+| [当前版本清单](releases/current.json) | 源码版本及对应发布清单 |
+| [v1.4.3.0](docs/GARYHUB_V1_4_3_0.md)／[R2 配置说明](docs/GARYHUB_V1_4_3_0_CLOUDFLARE.md) | 本版继承的订阅额度与音乐存储规则 |
+| [架构](docs/ARCHITECTURE.md)／[数据与备份](docs/DATA_AND_BACKUP.md) | 系统背景与备份原则；历史路径须现场复核 |
+| [历史升级与回滚记录](docs/UPDATE_GUIDE.md) | 早期部署记录，不作为当前有效 Compose 的依据 |
 
-本文档只记录密钥的位置和用途，绝不记录密码、Cookie、会话密钥、API Token、私钥或数据库内容。
-
-## Git 版本控制
-
-- Private repository: `https://github.com/Gary-BANG/garyhub`
-- Default branch: `main`
-- Initial import commit: `1246ea5`
-- Maintainer: Guyang Pan
-- Local working copy: `D:\Codes\Own_Project\garyhub-repo`
-
-GitHub 保存经过脱敏的源码、配置示例和维护文档，不保存正式数据库、任务数据、密码、Cookie、Session Secret、邮件令牌、TLS 私钥或备份。
-
-当前 `/opt/my-services` 是正式运行目录，不是 Git working tree。GitHub 推送不会自动修改服务器，服务器也不应直接执行未经测试的 `git pull`。私人记录功能已在正式镜像中上线；操作前仍需核对实际镜像、Compose 和数据挂载。
-
-## Tools and ECE 470 Lab (2026-10-07)
-
-- Tools: https://tools.garyhub.uk
-- Lab: https://lab.garyhub.uk/lab/
-- Source: `lab-service/`. Calendar accounts, separate site sessions, per-user persisted workspaces.
-- [Deployment record](docs/DEPLOYMENT_20261007.md)
-- [Backup and restore verification](docs/BACKUP_VERIFICATION_20261007.md)
-- GitHub updates do not automatically deploy to the server.
-
-
-<!-- GARYHUB_RELEASE_POLICY_20261011 -->
-Every user-visible production update must publish unread in-app release notes to all approved, enabled accounts, including administrators. Follow docs/RELEASE_POLICY.md and verify recipient counts and idempotency. Deployment state and current effective Compose paths are recorded in /opt/my-services/garyhub-active-deployment.json. Never commit private Compose files, runtime data or server backups.
-
-## v1.3.4.2 开发与升级包
-
-新增服务端加密的 TOTP 工具、管理员限时授权及订阅用户首页资料规则。详见 [v1.3.4.2 安装与权限说明](docs/GARYHUB_V1_3_4_2.md) 和 [验证记录](docs/GARYHUB_V1_3_4_2_TESTS.md)。安装器及可复现打包脚本保存在 `scripts/releases/v1.3.4.2/`。正式服务器是否已升级，以现场 `deployment-state.json` 与有效部署索引为准。
-
-## v1.3.5.0 update package
-
-Chinese / English UI, generic protected-profile placeholders, and sortable personal Todos. Supports the reviewed deployed v1.3.4.1 and v1.3.4.2 bases; actual installation is verified by the updater. See [update instructions](docs/GARYHUB_V1_3_5_0.md) and [validation](docs/GARYHUB_V1_3_5_0_TESTS.md).
-
-## v1.3.5.2 update package
-
-Central GaryHub sign-in with safe return links and independent monthly/yearly fixed expense estimates. Manual payment recording preserves actual-ledger history and prevents duplicates. See [instructions](docs/GARYHUB_V1_3_5_2.md) and [validation](docs/GARYHUB_V1_3_5_2_TESTS.md). The effective deployment index remains authoritative.
-
-## v1.3.5.3 review fixes
-
-Fixes complete GitHub origin validation, excludes private environment files from every packaging path, and preserves approved index.html login destinations. Install on deployed v1.3.5.2. See [instructions](docs/GARYHUB_V1_3_5_3.md) and [validation](docs/GARYHUB_V1_3_5_3_TESTS.md). This follow-up builds on merged PR #11.
-
-## v1.3.5.4 Todo import and AI prompts
-
-Preview and append Todos and points from pasted or uploaded JSON; copy a schema-matched AI prompt. Identical content is skipped by default. Existing drafts, ordering, completion states, per-account ownership and revision checks are preserved. Install on deployed v1.3.5.3. See [instructions](docs/GARYHUB_V1_3_5_4.md) and [validation](docs/GARYHUB_V1_3_5_4_TESTS.md).
-
-## v1.4.0.0 Tools icon navigation
-
-Searchable bilingual SVG icon grid and single-row Dock, with smooth proximity magnification, descriptions, saved layout, keyboard and touch support. Requires deployed v1.3.6.1. See [instructions](docs/GARYHUB_V1_4_0_0.md) and [validation and outstanding visual acceptance](docs/GARYHUB_V1_4_0_0_TESTS.md). Source preparation and production deployment are recorded separately.
-
-## v1.4.0.1 mouse hover fix
-
-Fix Tools hover on touch-primary or misclassified input devices: actual mouse entry triggers selection, descriptions and magnification without click or Tab. Retains touch filtering, reduced-motion and keyboard support. Requires deployed v1.4.0.0. See [repair instructions](docs/GARYHUB_V1_4_0_1.md) and [validation](docs/GARYHUB_V1_4_0_1_TESTS.md).
-
-## v1.4.1.0 Research Dictionary upgrade
-
-Adds per-Research bilingual terminology, manual term editing, contextual AI Prompt downloads, reviewed JSON import/merge and export, bilingual search, tags and import undo. The two-row header sits above a narrow term list and wide detail pane. Uses existing GaryHub sign-in and private per-user SQLite data.
-
-Install on actual v1.4.0.1 with the existing checked updater. See [instructions](docs/GARYHUB_V1_4_1_0.md) and [validation](docs/GARYHUB_V1_4_1_0_TESTS.md). Source is prepared and locally validated; production completion requires server evidence.
+旧服务器迁移、已退役 Study 服务及早期版本说明保留在 `docs/`，历史记录不代表当前部署状态。仓库地址：[Gary-BANG/garyhub](https://github.com/Gary-BANG/garyhub)，默认分支 `main`。

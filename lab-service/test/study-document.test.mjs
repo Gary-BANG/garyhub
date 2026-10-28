@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {studySelection,readStudyDocument} from '../public/useful/markdown-viewer/study-document.mjs';
+const selection={account:'2',course:'course-a',lecture:'lecture-a'};
+const data=()=>({user:{id:2},state:{courses:[{id:'course-a',lectures:[{id:'lecture-a',title:'私有讲义',path:'notes/01.md',content:'# One'}],assets:[{path:'img/p.png',data:'data:image/png;base64,aGVsbG8='},{path:'bad.svg',data:'data:image/svg+xml;base64,aGVsbG8='},{path:'../bad.png',data:'data:image/png;base64,aGVsbG8='}]}]}});
+const fetcher=value=>async(url,options)=>{assert.equal(url,'/api/academic/state');assert.equal(options.cache,'no-store');assert.equal(options.credentials,'same-origin');return {ok:true,json:async()=>value};};
+test('plain local viewer has no lecture selection; malformed links are rejected',()=>{assert.equal(studySelection(''),null);assert.deepEqual(studySelection('?studyAccount=2&studyCourse=course-a&studyLecture=lecture-a'),selection);assert.throws(()=>studySelection('?studyLecture=../other'));});
+test('loads only the selected note and allowed relative images',async()=>{const archive=await readStudyDocument(selection,fetcher(data()));assert.equal(archive.path,'notes/01.md');assert.equal(archive.documents.size,1);assert.equal(archive.documents.get(archive.path),'# One');assert.deepEqual([...archive.images.keys()],['img/p.png']);assert.equal(archive.images.get('img/p.png').type,'image/png');});
+test('a changed account never opens another account’s note',async()=>{const value=data();value.user.id=3;await assert.rejects(readStudyDocument(selection,fetcher(value)),/账号已变化/);});
+test('expired/disabled sessions and missing courses or notes stop',async()=>{await assert.rejects(readStudyDocument(selection,async()=>({ok:false})),/登录/);for(const key of ['course','lecture'])await assert.rejects(readStudyDocument({...selection,[key]:'missing'},fetcher(data())),/讲义不存在/);});
+test('the Markdown byte limit also applies to imported study notes',async()=>{const value=data();value.state.courses[0].lectures[0].content='中'.repeat(1500000);await assert.rejects(readStudyDocument(selection,fetcher(value)),/4 MB/);});

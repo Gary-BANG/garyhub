@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_version": "1.4.3.0",
-  "manifest": "releases/1.4.3.0.json",
-  "production_status": "r1_stopped_during_isolation_before_cutover"
+  "source_version": "1.4.3.1",
+  "manifest": "releases/1.4.3.1.json",
+  "production_status": "r2_stopped_before_build_on_rollback_compose_index_mismatch"
 }

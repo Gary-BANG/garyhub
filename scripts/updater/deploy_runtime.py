@@ -167,7 +167,17 @@ def restore(s,manual=False):
  say('Restoring prior application images; keeping current records and existing credentials...')
  for key in ['calendar-app','garyhub-lab']:old_up(s['services'][key]);health(key)
  # This release never changes Caddy; preserve its current mounted inode and content.
- if s['old_active_exists']:shutil.copy2(Path(s['backup'],'active.json'),ACTIVE)
+ if s['old_active_exists']:
+  restored=json.loads((Path(s['backup'])/'active.json').read_text());lives={}
+  # old_up uses our pinned backup Compose file. Docker records that exact path
+  # in its labels, so copying the prior index verbatim would leave a stale path.
+  for name,c in s['services'].items():
+   live=image(name);labels=live['Config'].get('Labels')or{}
+   if live['Image']!=c['old_image_id'] or not live['State']['Running'] or labels.get('com.docker.compose.project')!=c['project'] or labels.get('com.docker.compose.service')!=c['service'] or labels.get('com.docker.compose.project.config_files','').split(',')!=[c['old_config']]:raise RuntimeError('Restored container does not match the recorded rollback configuration: '+name)
+   entry=restored.setdefault('services',{}).setdefault(name,{})
+   entry.update(project=c['project'],service=c['service'],new_config=c['old_config'],new_image_id=c['old_image_id'])
+   lives[name]=live
+  write(ACTIVE,restored);_check_active(restored,lives);s['rollback_active_sha']=sha(ACTIVE)
  elif ACTIVE.exists():ACTIVE.unlink()
  s['status']='rolled-back';write(STATE,s);say('Rollback complete to v'+REQUIRES+'. All current records and credentials were retained.')
 def https(host,route):return run(['curl','--silent','--show-error','--fail','--max-time','20','--resolve',host+':443:127.0.0.1','https://'+host+route]).stdout
@@ -201,14 +211,18 @@ def finish(s):
  s['status']='complete';write(STATE,s)
  say('8/8 COMPLETE GaryHub v'+VERSION+'. Update notices verified for '+str(s['publication']['recipients'])+' accounts.')
  say(CONFIG['summary']);say('SOURCE_BASELINE='+s['base_version'])
-def check_active(lives):
- if not ACTIVE.is_file():raise RuntimeError('Current active-deployment index is missing; no deployment performed')
- active=json.loads(ACTIVE.read_text())
+def _check_active(active,lives):
  for name,live in lives.items():
   entry=active.get('services',{}).get(name,{})
   if entry.get('new_image_id')!=live['Image'] or not Path(entry.get('new_config','/not-found')).is_file():raise RuntimeError('Active deployment index does not match '+name+'; review required')
   files=(live['Config'].get('Labels')or{}).get('com.docker.compose.project.config_files','').split(',')
   if entry['new_config'] not in files:raise RuntimeError('Effective Compose does not match active deployment index')
+def check_active(lives):
+ if not ACTIVE.is_file():raise RuntimeError('Current active-deployment index is missing; no deployment performed')
+ try:_check_active(json.loads(ACTIVE.read_text()),lives)
+ except RuntimeError:
+  if hook('reconcile_active',lives) is not True:raise
+  _check_active(json.loads(ACTIVE.read_text()),lives)
 def backup_totp_key(service,data,backup):
  env=service.get('environment',{})
  if not isinstance(env,dict):raise RuntimeError('Unexpected environment format')

@@ -1,3 +1,5 @@
+import {mountSections} from './sections.mjs';
+import {studySelection, readStudyDocument} from './study-document.mjs';
 import {readZip, relativeImagePath, decodeMarkdown, LIMITS} from './zip-reader.mjs';
 
 (() => {
@@ -8,6 +10,13 @@ import {readZip, relativeImagePath, decodeMarkdown, LIMITS} from './zip-reader.m
   const overlay = $('overlay'), drop = $('drop');
   let dragDepth = 0, formulas = [], archive=null, currentPath='', generation=0, missingImages=0;
   const urls=new Map(), drafts=new Map();
+  let sections=null, selection=null, checking=false;
+  function updateExpand(){ToolUI.text('expandBtn',sections?.allOpen()?'全部收起':'全部展开');$('expandBtn').disabled=!sections?.count;}
+  $('expandBtn').addEventListener('click',()=>sections?.setAll(!sections.allOpen()));
+  $('outlineBtn').addEventListener('click',()=>{const open=$('workspace').classList.toggle('outline-open');$('outlinePanel').hidden=!open;$('outlineBtn').setAttribute('aria-expanded',String(open));updateOutlineLabel();});
+  function updateOutlineLabel(){const label=ToolUI.string($('workspace').classList.contains('outline-open')?'收起目录':'展开目录');$('outlineBtn').title=label;$('outlineBtn').setAttribute('aria-label',label);}
+  function resetSections(){sections=null;$('outlineItems').replaceChildren();$('outlineEmpty').hidden=false;updateExpand();}
+
   const message=(source, values={})=>{delete status.dataset.errorSource;ToolUI.text(status,source,values);};
   function releaseImages(){for(const url of urls.values()) URL.revokeObjectURL(url);urls.clear();}
   function localImage(reference){
@@ -105,15 +114,17 @@ import {readZip, relativeImagePath, decodeMarkdown, LIMITS} from './zip-reader.m
     }
   }
   function render() {
-    const source=editor.value;
+    const source=editor.value, previous=sections?.snapshot();
     ToolUI.text(count,'{count} 字符',{count:source.length.toLocaleString(GaryHubI18n.intlLocale)});
     if(new TextEncoder().encode(source).length>LIMITS.markdown){message('文件过大，Markdown 最多支持 4 MB');status.classList.add('error');return;}
     releaseImages();missingImages=0;
-    if(!source.trim()) {preview.replaceChildren();const p=document.createElement('p');p.className='empty';preview.append(p);ToolUI.text(p,'预览会显示在这里');message('预览已更新');return;}
+    if(!source.trim()) {resetSections();preview.replaceChildren();const p=document.createElement('p');p.className='empty';preview.append(p);ToolUI.text(p,'预览会显示在这里');message('预览已更新');return;}
     try {
       formulas=[];preview.innerHTML=sanitize(marked.parse(source,{gfm:true,breaks:false,async:false}));renderMath();
+      sections=mountSections(preview,$('outlineItems'),previous,updateExpand);updateExpand();
+      $('outlineEmpty').hidden=sections.count>0;
       message(missingImages?'预览已更新 · {count} 张图片缺失或不支持':'预览已更新',{count:missingImages});status.classList.remove('error');
-    } catch(error) {preview.textContent=ToolUI.string('渲染失败：{error}',{error:error.message});message('渲染失败：{error}',{error:error.message});status.classList.add('error');}
+    } catch(error) {resetSections();preview.textContent=ToolUI.string('渲染失败：{error}',{error:error.message});message('渲染失败：{error}',{error:error.message});status.classList.add('error');}
   }
   $('sourceBtn').addEventListener('click',()=>{
     const open=$('workspace').classList.toggle('source-open');ToolUI.text('sourceBtn',open?'收起源码':'展开源码');$('sourceBtn').setAttribute('aria-expanded',String(open));
@@ -121,7 +132,7 @@ import {readZip, relativeImagePath, decodeMarkdown, LIMITS} from './zip-reader.m
   function info(name,size,path){ToolUI.text(fileInfo,path?'{name} · {path}':'{name} · {size} KB',{name,size:(size/1024).toFixed(1),path});fileInfo.title=path||name;}
   function selectDocument(path){
     if(currentPath) drafts.set(currentPath,editor.value);
-    currentPath=path;editor.value=drafts.get(path)??archive.documents.get(path);
+    resetSections();currentPath=path;editor.value=drafts.get(path)??archive.documents.get(path);
     $('documentSelect').value=path;info(archive.name,0,path);render();
   }
   $('documentSelect').addEventListener('change',e=>selectDocument(e.target.value));
@@ -139,7 +150,7 @@ import {readZip, relativeImagePath, decodeMarkdown, LIMITS} from './zip-reader.m
         message('正在读取文档…');value=decodeMarkdown(new Uint8Array(await file.arrayBuffer()));
       }
       if(ticket!==generation)return;
-      releaseImages();archive=nextArchive;drafts.clear();currentPath='';
+      selection=null;releaseImages();resetSections();archive=nextArchive;drafts.clear();currentPath='';
       const select=$('documentSelect');select.replaceChildren();$('documentPicker').hidden=!archive;
       if(archive){
         const paths=[...archive.documents.keys()].sort((a,b)=>a.localeCompare(b,'en'));
@@ -155,6 +166,26 @@ import {readZip, relativeImagePath, decodeMarkdown, LIMITS} from './zip-reader.m
       status.dataset.errorSource=error.message;
     }
   }
+  function clearStudy(error){
+    ++generation;selection=null;releaseImages();resetSections();archive=null;drafts.clear();currentPath='';editor.value='';preview.replaceChildren();fileInfo.textContent='';fileInfo.removeAttribute('title');$('documentSelect').replaceChildren();$('documentPicker').hidden=true;ToolUI.text(count,'{count} 字符',{count:'0'});message(error);status.classList.add('error');
+  }
+  async function checkStudy(){
+    if(!selection||checking||document.hidden)return;
+    checking=true;
+    try{const response=await fetch('/api/me',{cache:'no-store',credentials:'same-origin'});if(!response.ok)throw Error('请使用原账号登录后重新打开讲义');const value=await response.json();if(value.user?.mustChangePassword||String(value.user?.id)!==selection?.account)throw Error('登录账号已变化，请从学习中心重新打开讲义');}
+    catch(error){if(selection)clearStudy(error.message);}
+    finally{checking=false;}
+  }
+  addEventListener('focus',checkStudy);document.addEventListener('visibilitychange',checkStudy);setInterval(checkStudy,10000);
+  async function openStudy(){
+    let chosen;
+    try{chosen=studySelection(location.search);}catch(error){clearStudy(error.message);return;}
+    if(!chosen)return;
+    const ticket=++generation;selection=chosen;message('正在读取讲义…');
+    try{const next=await readStudyDocument(chosen);if(ticket!==generation)return;archive=next;drafts.clear();resetSections();currentPath='';selectDocument(next.path);$('documentPicker').hidden=true;}
+    catch(error){if(ticket===generation)clearStudy(error.message);}
+  }
+  updateOutlineLabel();updateExpand();openStudy();
   let timer;
   editor.addEventListener('input',()=>{
     clearTimeout(timer);
@@ -162,6 +193,7 @@ import {readZip, relativeImagePath, decodeMarkdown, LIMITS} from './zip-reader.m
     timer=setTimeout(render,120);
   });
   document.addEventListener('garyhub:language',()=>{
+    updateOutlineLabel();
     ToolUI.text(count,'{count} 字符',{count:editor.value.length.toLocaleString(GaryHubI18n.intlLocale)});
     if(status.classList.contains('error')&&status.dataset.errorSource){const source=status.dataset.errorSource;message('读取文件失败：{error}',{error:ToolUI.string(source)});status.dataset.errorSource=source;}
   });

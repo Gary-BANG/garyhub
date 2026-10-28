@@ -77,6 +77,8 @@
     '此 PDF 受密码保护，请先解锁后再转换。':'This PDF is password-protected. Unlock it before converting.',
     '处理失败：':'Processing failed: ',
     '选择或拖入文件，立即查看排版与公式':'Choose or drop a document or ZIP to preview layouts and equations',
+    '全部展开':'Expand all', '全部收起':'Collapse all', '展开目录':'Show outline', '收起目录':'Hide outline', '文档目录':'Document outline', '标题导航':'Heading navigation', '暂无标题':'No headings',
+    '正在读取讲义…':'Loading lecture…', '讲义链接无效':'Invalid lecture link', '请使用原账号登录后重新打开讲义':'Sign in with the original account and reopen the lecture', '登录账号已变化，请从学习中心重新打开讲义':'Your account changed. Reopen the lecture from Study Hub.', '讲义不存在，请从学习中心重新打开':'Lecture not found. Reopen it from Study Hub.', '讲义配图过大':'Lecture images are too large',
     '展开源码':'Show source', '收起源码':'Hide source', '选择 Markdown / ZIP':'Open Markdown / ZIP',
     '拖入或选择 Markdown / ZIP 文件':'Drop or choose a Markdown / ZIP file',
     '将 Markdown 或 ZIP 拖到这里':'Drop a Markdown file or ZIP here',
