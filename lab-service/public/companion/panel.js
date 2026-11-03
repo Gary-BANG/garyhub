@@ -1,18 +1,28 @@
 /* Companion chat panel. Lives in a shadow root so site CSS and the i18n scanner leave it alone.
    The conversation exists only in this page's memory and is dropped when the account changes.
-   The avatar is a placeholder until the character artwork and motion layer arrive. */
+   Signed-in accounts talk to the AI assistant when an admin has enabled it; the local guide
+   answers guests and steps in whenever the assistant is unavailable. */
 (() => {
   'use strict';
   if (window.GaryHubCompanionChat) return;
   const brain = window.GaryHubCompanionBrain, voices = window.GaryHubCompanionVoices, knowledge = window.GaryHubCompanionKnowledge;
+  const assistant = window.GaryHubCompanionAssistant;
   if (!brain || !voices || !knowledge) return;
   const base = new URL('.', document.currentScript?.src || location.href).href;
   const asset = file => base + file + (window.GaryHubCompanionAssetVersion ? '?v=' + encodeURIComponent(window.GaryHubCompanionAssetVersion) : '');
   const ui = {
     zh:{subtitle:'站内工具向导', open:'打开', send:'发送', close:'关闭对话', more:'设置', picker:'选择伙伴', current:'当前', login:'登录后可用', input:'输入你的需求', log:'对话记录', launcher:name => `和${name}聊天`,
-      chips:['你能做什么', '学习相关', '文档与图片', '日常记录']},
+      chips:['你能做什么', '学习相关', '文档与图片', '日常记录'],
+      ai:{subtitle:'AI 日程助手', placeholder:'比如：明天下午三点开组会', chips:['今天有什么安排？', '这周有哪些事项？', '帮我加一个日程', '打开记账'], thinking:'正在想…',
+        disclosure:provider => `已接入 AI（${provider}）：我可以帮你查看、添加和删除日程。你的消息和相关日程会发给该服务处理；添加和删除都要你点“确认”才会生效。`,
+        add:'添加日程', remove:'删除日程', confirm:'确认', cancel:'取消', added:'已添加到日程 ✓', removed:'已删除 ✓', cancelled:'已取消',
+        reminder:time => `每天 ${time} 提醒`, remaining:count => `今天还能用 AI ${count} 次`, offline:'AI 暂时不可用，先用站内向导回答。'}},
     en:{subtitle:'Site tool guide', open:'Open', send:'Send', close:'Close chat', more:'Settings', picker:'Choose a companion', current:'Current', login:'Sign in to use', input:'Describe what you need', log:'Conversation', launcher:name => `Chat with ${name}`,
-      chips:['What can you do?', 'Study', 'Documents & images', 'Everyday records']}
+      chips:['What can you do?', 'Study', 'Documents & images', 'Everyday records'],
+      ai:{subtitle:'AI schedule assistant', placeholder:'e.g. Group meeting tomorrow at 3 pm', chips:['What is on today?', 'What is on this week?', 'Add something to my calendar', 'Open the ledger'], thinking:'Thinking…',
+        disclosure:provider => `AI is on (${provider}): I can show, add and delete calendar items. Your messages and the related items are sent to that service; nothing is added or deleted until you press Confirm.`,
+        add:'Add to calendar', remove:'Delete from calendar', confirm:'Confirm', cancel:'Cancel', added:'Added to your calendar ✓', removed:'Deleted ✓', cancelled:'Cancelled',
+        reminder:time => `Daily reminder at ${time}`, remaining:count => `${count} AI messages left today`, offline:'The AI is unavailable right now, so here is the site guide.'}}
   };
   // Only links from the knowledge file are rendered, and only to GaryHub over HTTPS.
   const safeUrl = value => { try { const url = new URL(value); return url.protocol === 'https:' && (url.hostname === 'garyhub.uk' || url.hostname.endsWith('.garyhub.uk')) ? url.href : null; } catch { return null; } };
@@ -39,20 +49,23 @@
     const panel = $('.panel'), log = $('.log'), input = $('input'), launcher = $('.launcher');
     let lang = window.GaryHubI18n?.language === 'en' ? 'en' : 'zh';
     let user = window.GaryHubIdentity?.user || null, memory = {}, menuItems = [], pickerSpec = null;
+    // ai: the server's assistant status for this account; history: recent AI turns sent back as context.
+    let ai = null, history = [], busy = false, disclosed = false, statusTicket = 0;
     const more = $('.more'), menu = $('.menu'), picker = $('.picker');
 
     const say = (key, replyLang, vars) => voices.line(character, replyLang, key, vars);
     const scrollDown = () => { log.scrollTop = log.scrollHeight; };
+    const aiOn = () => !!(assistant && user && ai?.enabled);
     function chrome() {
       const t = ui[lang], who = voices.get(character);
       host.style.setProperty('--companion-accent', who.accent);
       for (const avatar of root.querySelectorAll('.avatar')) avatar.textContent = who.name[lang].slice(0, 1);
-      $('.name').textContent = who.name[lang]; $('.subtitle').textContent = t.subtitle;
+      $('.name').textContent = who.name[lang]; $('.subtitle').textContent = aiOn() ? t.ai.subtitle : t.subtitle;
       $('.close').setAttribute('aria-label', t.close); $('.send').textContent = t.send;
-      input.placeholder = say('placeholder', lang); input.setAttribute('aria-label', t.input);
+      input.placeholder = aiOn() ? t.ai.placeholder : say('placeholder', lang); input.setAttribute('aria-label', t.input);
       log.setAttribute('aria-label', t.log); panel.setAttribute('aria-label', t.launcher(who.name[lang]));
       launcher.setAttribute('aria-label', t.launcher(who.name[lang])); launcher.title = launcher.getAttribute('aria-label');
-      $('.chips').replaceChildren(...t.chips.map(text => chip(text)));
+      $('.chips').replaceChildren(...(aiOn() ? t.ai.chips : t.chips).map(text => chip(text)));
       more.setAttribute('aria-label', t.more); more.title = t.more;
       renderMenu(); renderPicker();
     }
@@ -128,17 +141,80 @@
       scrollDown();
       handlers.onReply?.(result);
     }
-    function ask(text) {
-      const message = String(text).trim();
-      if (!message) return;
-      bubble('user', message);
+    function guide(message) {
       const result = brain.reply(message, {lang, user, memory});
       memory = result.memory;
       answer(result);
     }
+    function ask(text) {
+      const message = String(text).trim();
+      if (!message || busy) return;
+      bubble('user', message);
+      if (aiOn()) askAI(message); else guide(message);
+    }
+    const day = (value, replyLang) => new Intl.DateTimeFormat(replyLang === 'en' ? 'en-US' : 'zh-CN', {month:'short', day:'numeric', weekday:'short', timeZone:'UTC'}).format(new Date(value + 'T00:00:00Z'));
+    // A prepared change: nothing is written until the owner presses Confirm here.
+    function actionCard(action, replyLang) {
+      const t = ui[replyLang].ai, s = action.summary || {}, node = el('article', 'card action');
+      const when = s.start_date === s.end_date ? day(s.start_date, replyLang) : `${day(s.start_date, replyLang)} – ${day(s.end_date, replyLang)}`;
+      node.append(el('span', 'card-kind', action.kind === 'add_task' ? t.add : t.remove), el('strong', 'card-name', s.title || ''),
+        el('p', 'card-copy', [when, s.category, s.reminder_time && t.reminder(s.reminder_time)].filter(Boolean).join(' · ')));
+      if (s.note) node.append(el('p', 'card-copy', s.note));
+      const row = el('div', 'card-row'), no = el('button', 'card-cancel', t.cancel), yes = el('button', 'card-open', t.confirm);
+      no.type = yes.type = 'button';
+      async function settle(verb) {
+        no.disabled = yes.disabled = true;
+        try {
+          await assistant[verb](action.id);
+          row.replaceChildren(el('span', 'card-done', verb === 'cancel' ? t.cancelled : action.kind === 'add_task' ? t.added : t.removed));
+          if (verb === 'confirm') { document.dispatchEvent(new CustomEvent('garyhub:records-changed', {detail:{kind:'tasks'}})); handlers.onReply?.({kind:'thanks', tools:[], lang:replyLang}); }
+        } catch (error) { row.replaceChildren(el('span', 'card-note', error.message || ui[replyLang].ai.offline)); }
+      }
+      no.addEventListener('click', () => settle('cancel')); yes.addEventListener('click', () => settle('confirm'));
+      row.append(no, yes); node.append(row);
+      return node;
+    }
+    async function askAI(message) {
+      const replyLang = lang, t = ui[replyLang].ai, account = user;
+      busy = true; input.disabled = true;
+      const wait = bubble('bot', t.thinking); wait.classList.add('waiting'); scrollDown();
+      try {
+        const data = await assistant.chat({message, history, lang:replyLang, character});
+        if (account !== user) return;
+        history = [...history, {role:'user', text:message}, {role:'assistant', text:data.reply}].slice(-8);
+        const node = bubble('bot', data.reply);
+        const cards = [...(data.pages || []).map(id => card(id, replyLang)), ...(data.actions || []).map(action => actionCard(action, replyLang))].filter(Boolean);
+        if (cards.length) { const list = el('div', 'cards'); list.append(...cards); node.append(list); }
+        if (typeof data.remaining === 'number' && data.remaining <= 5) node.append(el('p', 'quota', t.remaining(data.remaining)));
+        handlers.onReply?.({kind:data.actions?.length ? 'clarify' : 'recommend', tools:data.pages || [], lang:replyLang});
+      } catch (error) {
+        if (account !== user) return;
+        // Signed out, switched off or out of quota: say why once, then let the local guide answer.
+        if ([401, 503].includes(error.status)) { ai = null; chrome(); }
+        bubble('bot', error.message || t.offline).classList.add('notice');
+        guide(message);
+      } finally {
+        wait.remove(); busy = false; input.disabled = false;
+        if (!panel.hidden) input.focus({preventScroll:true});
+        scrollDown();
+      }
+    }
+    function disclose() {
+      if (disclosed || !aiOn() || panel.hidden) return;
+      disclosed = true; bubble('bot', ui[lang].ai.disclosure(ai.provider)).classList.add('notice'); scrollDown();
+    }
+    // Ask whether the assistant is on for this account; a later identity change wins over a slow answer.
+    async function refreshAI() {
+      const ticket = ++statusTicket;
+      let next = null;
+      if (assistant && user) { try { next = await assistant.status(); } catch {} }
+      if (ticket !== statusTicket) return;
+      ai = next; chrome(); disclose();
+    }
     function open() {
       panel.hidden = false; launcher.setAttribute('aria-expanded', 'true'); host.dataset.open = '';
       if (!log.childElementCount) { bubble('bot', say('greet', lang)); scrollDown(); }
+      disclose();
       input.focus({preventScroll:true});
     }
     function close() {
@@ -156,7 +232,11 @@
       Object.assign(host.style, {left:left + 'px', right:'auto', top:'auto', bottom:bottom + 'px'});
       host.style.setProperty('--panel-room', viewHeight - bottom - 8 + 'px');
     }
-    function reset() { log.replaceChildren(); memory = {}; if (!panel.hidden) { bubble('bot', say('greet', lang)); scrollDown(); } }
+    function reset() {
+      log.replaceChildren(); memory = {}; history = []; disclosed = false; ai = null; chrome();
+      if (!panel.hidden) { bubble('bot', say('greet', lang)); scrollDown(); }
+      refreshAI();
+    }
 
     launcher.addEventListener('click', () => panel.hidden ? open() : close());
     $('.close').addEventListener('click', close);
@@ -175,9 +255,9 @@
     document.addEventListener('garyhub:identity', event => setUser(event.detail?.user || null));
     new MutationObserver(theme).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme', 'class'], subtree:false});
     if (document.body) new MutationObserver(theme).observe(document.body, {attributes:true, attributeFilter:['class']});
-    addEventListener('pagehide', () => { memory = {}; });
+    addEventListener('pagehide', () => { memory = {}; history = []; });
 
-    chrome(); theme(); target.append(host);
+    chrome(); theme(); target.append(host); refreshAI();
     return {
       element:host, open, close, ask, place, setUser,
       get isOpen() { return !panel.hidden; },
