@@ -1,0 +1,59 @@
+/* Loaded inside the companion's shadow root. Tokens follow hub.css. */
+:host{--bg:#f7f4ee;--paper:#fffdf8;--ink:#332e27;--muted:#857b6f;--line:#dfd7ca;--shadow:0 14px 40px #4a3a2626;--companion-accent:#6f8fd0;
+  position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:60;
+  font:14px/1.5 system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink)}
+:host([data-theme=dark]){--bg:#1e2020;--paper:#272929;--ink:#ece6db;--muted:#aaa294;--line:#45453f;--shadow:0 14px 40px #0008}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+.avatar{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--companion-accent);color:#fff;font-weight:600;font-size:17px;flex:none}
+.launcher{display:grid;place-items:center;width:58px;height:58px;padding:0;border:0;border-radius:50%;background:var(--paper);box-shadow:var(--shadow);cursor:pointer;margin-left:auto}
+.launcher .avatar{width:48px;height:48px;font-size:20px}
+.launcher:focus-visible,.close:focus-visible,.chip:focus-visible,.send:focus-visible,.card-open:focus-visible{outline:2px solid var(--companion-accent);outline-offset:2px}
+:host([data-launcher=off]) .launcher{display:none}
+:host([data-launcher=off]) .panel{margin-bottom:0}
+.panel{display:flex;flex-direction:column;width:340px;height:min(520px,var(--panel-room,calc(100vh - 110px)));margin-bottom:12px;background:var(--paper);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.panel[hidden]{display:none}
+header{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 14px;border-bottom:1px solid var(--line)}
+.who{display:flex;flex-direction:column;min-width:0;flex:1}
+.name{font-size:15px}
+.subtitle{color:var(--muted);font-size:12px}
+.close{width:32px;height:32px;border:0;border-radius:8px;background:transparent;font-size:22px;line-height:1;cursor:pointer;color:var(--muted)}
+.close:hover,.more:hover,.more[aria-expanded=true]{background:var(--bg)}
+.more{width:32px;height:32px;border:0;border-radius:8px;background:transparent;font-size:18px;line-height:1;cursor:pointer;color:var(--muted)}
+.more[hidden]{display:none}
+.more:focus-visible,.menu-item:focus-visible{outline:2px solid var(--companion-accent);outline-offset:2px}
+.menu{display:flex;flex-direction:column;padding:6px;border-bottom:1px solid var(--line);background:var(--bg)}
+.menu[hidden]{display:none}
+.menu-item{padding:8px 10px;border:0;border-radius:8px;background:transparent;text-align:left;cursor:pointer}
+.menu-item:hover{background:var(--paper)}
+.log{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
+.msg{max-width:88%;display:flex;flex-direction:column;gap:8px}
+.msg .text{margin:0;padding:8px 12px;border-radius:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.bot{align-self:flex-start}
+.msg.bot .text{background:var(--bg);border-top-left-radius:4px}
+.msg.bot .howto{background:transparent;border:1px dashed var(--line)}
+.msg.user{align-self:flex-end}
+.msg.user .text{background:var(--companion-accent);color:#fff;border-top-right-radius:4px}
+.cards{display:flex;flex-direction:column;gap:8px}
+.card{padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
+.card-name{display:block}
+.card-copy{margin:2px 0 8px;color:var(--muted);font-size:13px}
+.card-row{display:flex;align-items:center;justify-content:flex-end;gap:10px}
+.card-note{margin-right:auto;color:var(--muted);font-size:12px}
+.card-open{padding:4px 14px;border-radius:999px;background:var(--companion-accent);color:#fff;text-decoration:none;font-weight:600;font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 10px}
+.chips.inline{padding:0}
+.chip{padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:var(--paper);cursor:pointer;font-size:13px}
+.chip:hover{border-color:var(--companion-accent)}
+.composer{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
+.composer input{flex:1;min-width:0;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:var(--bg);outline:none}
+.composer input:focus{border-color:var(--companion-accent)}
+.send{padding:0 14px;border:0;border-radius:999px;background:var(--companion-accent);color:#fff;font-weight:600;cursor:pointer}
+@media (max-width:600px){
+  :host{left:0;right:0;bottom:0}
+  .launcher{width:48px;height:48px;margin:0 max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) auto}
+  .launcher .avatar{width:40px;height:40px;font-size:17px}
+  :host([data-open]) .launcher{display:none}
+  .panel{width:100%;height:min(70vh,560px);margin:0;border-radius:16px 16px 0 0;border-bottom:0;padding-bottom:env(safe-area-inset-bottom)}
+}
+@media (prefers-reduced-motion:no-preference){.launcher{transition:transform .15s}.launcher:hover{transform:translateY(-2px)}}

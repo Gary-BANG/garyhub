@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Companion demo</title>
+<!-- Local development page only; production serves lab-service/public. Run a static server from lab-service/ and open /test/companion-demo.html. -->
+<style>
+  :root{--bg:#f7f4ee;--paper:#fffdf8;--ink:#332e27;--muted:#857b6f;--line:#dfd7ca}
+  body{margin:0;padding:24px 16px 120px;background:var(--bg);color:var(--ink);font:15px/1.5 Georgia,serif}
+  body.dark{--bg:#1e2020;--paper:#272929;--ink:#ece6db;--muted:#aaa294;--line:#45453f}
+  main{max-width:860px;margin:0 auto}
+  fieldset{display:flex;flex-wrap:wrap;gap:12px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:12px 16px;background:var(--paper)}
+  label{display:flex;gap:6px;align-items:center}
+  select,button{font:inherit;padding:4px 8px}
+  #summary{font-weight:600}
+  .scroll{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;margin-top:12px;font:13px/1.4 system-ui,sans-serif}
+  td{overflow-wrap:anywhere}
+  td,th{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:top}
+  tr.fail td{background:#e5484d22}
+</style>
+</head>
+<body>
+<main>
+  <h1>Companion demo</h1>
+  <fieldset>
+    <label>Voice <select id="character"></select></label>
+    <label>Placement <select id="mode"><option value="free">Free</option><option value="gravity">Gravity</option></select></label>
+    <button id="drop" type="button">Drop from 400px</button>
+    <button id="reset" type="button">Reset position</button>
+    <label>Account <select id="account"><option value="">Guest</option><option value="member">Member</option><option value="subscriber">Subscriber</option><option value="admin">Admin</option></select></label>
+    <button id="language" type="button">English</button>
+    <button id="theme" type="button">Dark</button>
+    <button id="run" type="button">Run regression set</button>
+    <span id="summary"></span>
+  </fieldset>
+  <div class="scroll"><table id="results" hidden><thead><tr><th>Message</th><th>Expected</th><th>Got</th></tr></thead><tbody></tbody></table></div>
+</main>
+<script>window.GaryHubI18n={language:'zh'};window.GaryHubIdentity={user:null};
+// ?timer-frames drives animation with timers, for automated checks in a window that is not on screen.
+if(new URLSearchParams(location.search).has('timer-frames')){window.requestAnimationFrame=cb=>setTimeout(()=>cb(performance.now()),16);window.cancelAnimationFrame=clearTimeout;}</script>
+<script src="../public/tools-catalog.js"></script>
+<script src="../public/companion/knowledge.js"></script>
+<script src="../public/companion/brain.js"></script>
+<script src="../public/companion/voices.js"></script>
+<script src="../public/companion/panel.js"></script>
+<script src="../public/companion/characters.js"></script>
+<script src="../public/companion/pet.js"></script>
+<script src="companion-cases.cjs"></script>
+<script>
+(() => {
+  const pet = window.companionPet = GaryHubCompanionPet.mount(), chat = pet.chat;
+  const $ = id => document.getElementById(id);
+  $('mode').value = pet.mode;
+  $('mode').onchange = () => pet.setMode($('mode').value);
+  $('drop').onclick = () => { pet.setMode('gravity'); $('mode').value = 'gravity'; pet.lift(400); };
+  $('reset').onclick = () => pet.reset();
+  for (const id of GaryHubCompanionVoices.ids) $('character').append(new Option(GaryHubCompanionVoices.characters[id].name.zh + ' ' + GaryHubCompanionVoices.characters[id].name.en, id));
+  $('character').onchange = () => chat.setCharacter($('character').value);
+  const accounts = {member:{id:2, role:'user', accountTier:'standard'}, subscriber:{id:3, role:'user', accountTier:'subscriber'}, admin:{id:1, role:'admin'}};
+  $('account').onchange = () => { GaryHubIdentity = {user:accounts[$('account').value] || null}; document.dispatchEvent(new CustomEvent('garyhub:identity', {detail:GaryHubIdentity})); };
+  $('language').onclick = () => {
+    const language = GaryHubI18n.language === 'zh' ? 'en' : 'zh';
+    GaryHubI18n.language = language; $('language').textContent = language === 'zh' ? 'English' : '中文';
+    document.dispatchEvent(new CustomEvent('garyhub:language', {detail:{language}}));
+  };
+  $('theme').onclick = () => { document.body.classList.toggle('dark'); $('theme').textContent = document.body.classList.contains('dark') ? 'Light' : 'Dark'; };
+
+  // Same rules as test/companion-brain.test.cjs, for machines without Node.
+  function check(result, expected, previous) {
+    const want = typeof expected === 'string' ? {kind:'recommend', only:expected} : expected, problems = [];
+    if (result.kind !== want.kind) problems.push(`kind ${result.kind}`);
+    if (want.only && (result.tools.length !== 1 || result.tools[0] !== want.only)) problems.push(`tools ${result.tools}`);
+    if (want.includes && !result.tools.includes(want.includes)) problems.push(`missing ${want.includes}`);
+    if (want.excludes && result.tools.includes(want.excludes)) problems.push(`unexpected ${want.excludes}`);
+    if (want.lang && result.lang !== want.lang) problems.push(`lang ${result.lang}`);
+    if (want.from && result.tools[0] !== previous.memory[want.from][want.index]) problems.push('wrong pick');
+    return problems;
+  }
+  window.runCompanionCases = () => {
+    const rows = [], {single, flows} = GaryHubCompanionCases;
+    for (const [message, expected, context = {}] of single) {
+      const result = GaryHubCompanionBrain.reply(message, context);
+      rows.push({message:message + (context.user ? ` [${context.user.role === 'admin' ? 'admin' : context.user.accountTier}]` : ''), expected, result, problems:check(result, expected)});
+    }
+    for (const flow of flows) {
+      let memory = {}, previous = null;
+      for (const [message, expected] of flow.steps) {
+        const result = GaryHubCompanionBrain.reply(message, {memory});
+        rows.push({message:`${flow.name} → ${message}`, expected, result, problems:check(result, expected, previous)});
+        previous = result; memory = result.memory;
+      }
+    }
+    const failed = rows.filter(row => row.problems.length);
+    $('summary').textContent = `${rows.length - failed.length} / ${rows.length} passed`;
+    $('results').hidden = false;
+    $('results').tBodies[0].replaceChildren(...rows.map(row => {
+      const tr = document.createElement('tr'); if (row.problems.length) tr.className = 'fail';
+      for (const text of [row.message, JSON.stringify(row.expected), `${row.result.kind} ${row.result.tools.join(',')} ${row.result.lang}${row.problems.length ? ' — ' + row.problems.join('; ') : ''}`]) tr.append(Object.assign(document.createElement('td'), {textContent:text}));
+      return tr;
+    }));
+    return {total:rows.length, failed:failed.map(row => ({message:row.message, expected:row.expected, got:[row.result.kind, row.result.tools, row.result.lang], problems:row.problems}))};
+  };
+  $('run').onclick = window.runCompanionCases;
+})();
+</script>
+</body>
+</html>

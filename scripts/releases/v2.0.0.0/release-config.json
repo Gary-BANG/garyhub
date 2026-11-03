@@ -1,0 +1,57 @@
+{
+  "version": "2.0.0.0",
+  "requires_release": "1.4.3.2",
+  "installer_build": "v2.0.0.0-r2",
+  "reviewed_base_commit": "aec0312513de5b86cbcd17e10cc35af568c7dbcb",
+  "baseline_adapter": "scripts/releases/v1.4.3.2",
+  "source_subject": "Add Milu, the website companion and site tool guide",
+  "updated_features": [
+    "companion_release"
+  ],
+  "summary": "Milu, the draggable website companion with a local bilingual tool guide, on Home, Tools, Lab and Calendar. Current records and host integrations retained.",
+  "asset_checksums": [
+    {"host": "tools.garyhub.uk", "route": "/", "sha256": "ba8f85c63bc631905ae865f1ce437b22912f9934995424ddf56b094d54d90b32"},
+    {"host": "tools.garyhub.uk", "route": "/companion/boot.js", "sha256": "f4c2eff58e6204da25962889aea6dc293cbf9dd6cf6d3ff8bb2ade07e1326434"},
+    {"host": "tools.garyhub.uk", "route": "/companion/knowledge.js", "sha256": "e4f441c2119c3127fd982c2d393e295573e498965eb33b3ff29a05958824b2ad"},
+    {"host": "tools.garyhub.uk", "route": "/companion/brain.js", "sha256": "757474c18de94406ab1aa7c082113485b7b6207350cba5f3fa87203f18358777"},
+    {"host": "tools.garyhub.uk", "route": "/companion/voices.js", "sha256": "c9230f637899ce53b5e9d96d4c6ffdf2e5fb10b9f9c3f1fe2277bb9c39783032"},
+    {"host": "tools.garyhub.uk", "route": "/companion/panel.js", "sha256": "8853424f6fbdbf07f8e8eb5c079cd11460882bbc84c488244feb03405b27aa53"},
+    {"host": "tools.garyhub.uk", "route": "/companion/panel.css", "sha256": "6d46b6b9d378ee668fe32c21246676a10ed0cf152ac547c29af9243cd1d020e0"},
+    {"host": "tools.garyhub.uk", "route": "/companion/characters.js", "sha256": "a0da2ba0e16a72908e8f4550bdbc6cca38c92d16fe005fa068abd4c46b34e2bc"},
+    {"host": "tools.garyhub.uk", "route": "/companion/pet.js", "sha256": "ba397c1d93e68383ff15233cfddb2f4a5db9fbb16d852595c8675e9de7e3a19d"},
+    {"host": "tools.garyhub.uk", "route": "/companion/pet.css", "sha256": "89967ac30174ef3d0f0332f753de3a422810a3d9dc47b2695b21d664e73c6e59"},
+    {"host": "tools.garyhub.uk", "route": "/companion/characters/milu/rig.svg", "sha256": "fc3775c60e5e1acf089d67df08bb4e2db4fb630f4c685f25f77df8d0c00eda31"},
+    {"host": "garyhub.uk", "route": "/companion/boot.js", "sha256": "f4c2eff58e6204da25962889aea6dc293cbf9dd6cf6d3ff8bb2ade07e1326434"},
+    {"host": "garyhub.uk", "route": "/tools-catalog.js", "sha256": "bf81ca5f232e862539aa4fb7855259285e82871983f7cf4c7828f068ab496b68"},
+    {"host": "calendar.garyhub.uk", "route": "/companion/boot.js", "sha256": "f4c2eff58e6204da25962889aea6dc293cbf9dd6cf6d3ff8bb2ade07e1326434"},
+    {"host": "calendar.garyhub.uk", "route": "/companion/characters/milu/rig.svg", "sha256": "fc3775c60e5e1acf089d67df08bb4e2db4fb630f4c685f25f77df8d0c00eda31"},
+    {"host": "calendar.garyhub.uk", "route": "/tools-catalog.js", "sha256": "bf81ca5f232e862539aa4fb7855259285e82871983f7cf4c7828f068ab496b68"}
+  ],
+  "protected_asset_checksums": [
+    {"host": "tools.garyhub.uk", "route": "/lab/index.html", "sha256": "3b4f6bd81449e269594a9873398cb2e9521a3687a0567a1517abb44cd754eada", "service": "garyhub-lab", "file": "/lab/public/lab/index.html"},
+    {"host": "tools.garyhub.uk", "route": "/useful/image-eraser/index.html", "sha256": "351063933bb67b994ad40aee709b016bf8b6ce03fc18dd190d31f1af1b05bc0a", "service": "garyhub-lab", "file": "/lab/public/useful/image-eraser/index.html"},
+    {"host": "tools.garyhub.uk", "route": "/useful/markdown-viewer/index.html", "sha256": "ce561c30770bd81a045ceae93fbe1e1940ce7404fcefc5f76efad891a540237c", "service": "garyhub-lab", "file": "/lab/public/useful/markdown-viewer/index.html"},
+    {"host": "tools.garyhub.uk", "route": "/useful/pdf-gray/index.html", "sha256": "cf81b97cc6312acd81624014e39284906bfd605fc7ea12e25a8eecae5c9d32f5", "service": "garyhub-lab", "file": "/lab/public/useful/pdf-gray/index.html"}
+  ],
+  "isolation_checks": [
+    "useful-http.cjs",
+    "study-http.cjs",
+    "asset-response.cjs",
+    "music-http.cjs",
+    "companion-http.cjs"
+  ],
+  "test_inputs": {
+    "seed.cjs": "scripts/releases/v1.4.3.0/tests/seed.cjs",
+    "seed-base.cjs": "scripts/releases/v1.3.6.0/tests/seed.cjs",
+    "useful-http.cjs": "scripts/releases/v1.3.6.1/tests/useful-http.cjs",
+    "study-http.cjs": "scripts/releases/v1.4.3.1/tests/study-http.cjs",
+    "study-fixture.cjs": "scripts/releases/v1.4.3.1/tests/study-fixture.cjs",
+    "asset-response.cjs": "scripts/releases/v1.4.3.1/tests/asset-response.cjs",
+    "asset-checks.json": "scripts/releases/v2.0.0.0/release-config.json",
+    "music-http.cjs": "scripts/releases/v1.4.3.2/tests/music-http.cjs",
+    "companion-http.cjs": "scripts/releases/v2.0.0.0/tests/companion-http.cjs"
+  },
+  "isolation_environment": {
+    "TRUSTED_ORIGINS": "https://garyhub.uk,https://calendar.garyhub.uk,https://tools.garyhub.uk,https://lab.garyhub.uk,http://calendar-check:3000"
+  }
+}

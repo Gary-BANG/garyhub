@@ -2,11 +2,11 @@
 
 GaryHub 是使用统一账号的个人工作空间，包含日历与私人记录、账本、待办、学习工具和服务器工具。仓库保存应用源码、脱敏文档与可复现更新器；正式服务通过经过验证的升级包部署，GitHub 合并不会自动更新服务器。
 
-**当前源码版本：v1.4.3.2。** 基于已合并 PR #22 的 v1.4.3.1（`2b3d597e3f000b9340356aed6191af81970368cb`），修复 ECE 470 题面公式排版，并在成绩规划、学习中心、图片局部消除、Markdown Viewer 和 PDF 浅灰打印加入 Play Music，不增加 Music Library 入口。
+**当前源码版本：v2.0.0.0。** 基于已合并 PR #23 的 v1.4.3.2（`aec0312513de5b86cbcd17e10cc35af568c7dbcb`），加入网站伙伴米露：可拖动的布偶猫，带本地中英文站内工具向导。
 
-当前安装器为 **v1.4.3.2-r1**。源码准备、本地验证、GitHub 合并和生产上线分别记录。本次源码尚未推送／合并；生产状态和通知人数须以现场安装输出为证。安装器严格要求 Calendar 与 Tools/Lab 均实际运行 v1.4.3.1。
+当前安装器为 **v2.0.0.0-r2**（r1 在隔离检查阶段停止，生产未改动）。源码准备、本地验证、GitHub 合并和生产上线分别记录。本次源码在审查分支准备，尚未推送／合并；生产状态和通知人数须以现场安装输出为证。安装器严格要求 Calendar 与 Tools/Lab 均实际运行 v1.4.3.2。
 
-维护日期：2026-10-28（America/Chicago）。
+维护日期：2026-11-03（America/Chicago）。
 
 ## 应用入口
 
@@ -21,6 +21,7 @@ Calendar 使用 Node.js 20、Express 与 SQLite；Tools/Lab 使用 Node 原生 H
 
 ## 当前功能与使用边界
 
+- 网站伙伴米露：首页与 Tools 显示可拖动的米露，默认松手即停；设置中可切换重力模式，从高处松手会开伞落地。Lab 和 Calendar 的日历、账本、固定支出、待办、日记、健康记录、科研词典、音乐页面默认显示收起的小米露；窄屏同样默认收起。点击米露可用中英文描述需求，浏览器内本地匹配推荐站内工具，只推荐当前账号可打开的工具，对话只保存在当前页面内存，不调用外部模型。收起／关闭／重力模式保存在 `.garyhub.uk` 偏好 Cookie，位置按子站保存在浏览器。源码在 `lab-service/public/companion/`，Calendar 的 `calendar-app/public/companion/` 是逐字节相同的副本。
 - ECE 470 Lab 题干与解析支持 `$...$`、`$$...$$`、`\(...\)`、`\[...\]`，常见旧式 ASCII 数学记法可自动排版。题目切换、运行与提交后保持排版；无法解析的内容显示原文。转换只影响显示，首次提交前仍隐藏公式答案与解析。
 - 学习中心按账号保存课程、讲次、进度与配图，支持 Markdown、文件夹、ZIP 和 GitHub 导入。课程／讲次左栏可用图标收起；Lecture Notes 可在新标签页直接打开当前讲义的 Markdown Viewer。
 - Markdown Viewer 支持源码编辑、公式、表格及 ZIP 内配图。章节默认收起，可逐节或全部展开；左侧层级目录默认收起，点击标题自动展开并定位。普通本地文件在浏览器处理；学习中心讲义通过既有登录接口读取，账号变化后清除已打开的私人讲义。Viewer 编辑仅留在本次页面，不写回原讲义或文件。
@@ -43,21 +44,23 @@ python scripts/updater/manage.py check
 
 用独立分支开发，按实际行为变化选择测试；同步 README、项目档案、发布清单、版本说明与验证记录，再通过统一入口生成 upgrade ZIP。每次发布都必须检查根 README 的版本、功能、文档链接和状态表述；长期规则以 `docs/UPDATE_WORKFLOW.md` 为准。
 
-## v1.4.3.2 安装与回滚
+## v2.0.0.0 安装与回滚
 
-1. 安装前，Calendar 与 Tools/Lab 必须均实际运行 v1.4.3.1。源码版本不能代替现场版本证据；版本或源码不匹配时安装器会停止。
+1. 安装前，Calendar 与 Tools/Lab 必须均实际运行 v1.4.3.2。源码版本不能代替现场版本证据；版本或源码不匹配时安装器会停止。
 2. 完整解压 upgrade ZIP，在 Windows 双击 `RUN-UPDATE.cmd`，使用已有 OpenSSH 与 SSH 密钥。安装器执行源码／配置核对、离线构建、合成数据隔离验证、一致性备份、切换、HTTPS 与资源校验。
 3. 部署健康后，向全部已批准且启用的账号（含管理员）发布未读站内通知，并核对人数和去重。执行输出用于确认生产是否完成。
-4. `ROLLBACK.cmd` 恢复本次安装前的 v1.4.3.1 应用和有效配置，保留当前用户记录。若已有后续部署或配置变化，回滚会停止等待核对。
+4. `ROLLBACK.cmd` 恢复本次安装前的 v1.4.3.2 应用和有效配置，保留当前用户记录。若已有后续部署或配置变化，回滚会停止等待核对。
 5. `PUSH-TO-GITHUB.cmd` 使用独立工作目录准备并推送审查分支，保留原工作区，不强推、不自动合并 `main`。
 
 构建入口：
 
 ```bash
-python scripts/updater/manage.py build --release 1.4.3.2 --output <新的ZIP绝对路径>
+python scripts/updater/manage.py build --release 2.0.0.0 --output <新的ZIP绝对路径>
 ```
 
-详见 [v1.4.3.2 说明](docs/GARYHUB_V1_4_3_2.md)、[验证记录](docs/GARYHUB_V1_4_3_2_TESTS.md)及[发布通知规则](docs/RELEASE_POLICY.md)。
+Windows 工作区若启用 `core.autocrlf`，请在 `core.autocrlf=false` 的独立 worktree 中构建，使包内文件与资源哈希都使用仓库中的 LF 字节。
+
+详见 [v2.0.0.0 说明](docs/GARYHUB_V2_0_0_0.md)、[验证记录](docs/GARYHUB_V2_0_0_0_TESTS.md)及[发布通知规则](docs/RELEASE_POLICY.md)。
 
 ## 部署与私密数据
 
@@ -75,6 +78,7 @@ Calendar 数据挂载 `/app/data`，Lab 数据挂载 `/data`，实际宿主路�
 | [固定更新流程](docs/UPDATE_WORKFLOW.md) | 每次更新必须遵循的开发、验证、文档与交付流程 |
 | [统一更新器](scripts/updater/README.md) | context／plan／check／build 与源码同步工具 |
 | [当前版本清单](releases/current.json) | 源码版本及对应发布清单 |
+| [v1.4.3.2](docs/GARYHUB_V1_4_3_2.md) | 本版继承的 Lab 公式排版与工具页音乐 |
 | [v1.4.3.0](docs/GARYHUB_V1_4_3_0.md)／[R2 配置说明](docs/GARYHUB_V1_4_3_0_CLOUDFLARE.md) | 本版继承的订阅额度与音乐存储规则 |
 | [架构](docs/ARCHITECTURE.md)／[数据与备份](docs/DATA_AND_BACKUP.md) | 系统背景与备份原则；历史路径须现场复核 |
 | [历史升级与回滚记录](docs/UPDATE_GUIDE.md) | 早期部署记录，不作为当前有效 Compose 的依据 |
