@@ -1,6 +1,9 @@
-/* Companion pet: draws the character rig and handles dragging, free placement, gravity,
-   the parachute and landing. A frame loop runs only while something moves; idle motion is
-   throttled and stops after a quiet spell. If anything fails, the plain chat launcher is used. */
+/* Companion pet: draws one character and handles dragging, free placement, gravity,
+   the parachute and landing. 'rig' characters animate layers of a single SVG; 'frames'
+   characters swap whole pose images and move the body. A frame loop runs only while
+   something moves; idle motion is throttled and stops after a quiet spell. If the artwork
+   fails, the plain chat launcher is used. destroy() releases everything, so the page can
+   switch characters while keeping one chat panel. */
 (() => {
   'use strict';
   if (window.GaryHubCompanionPet) return;
@@ -22,9 +25,12 @@
   const reduced = matchMedia('(prefers-reduced-motion: reduce)'), compact = matchMedia('(max-width: 600px)');
   const unsafe = doc => doc.querySelector('parsererror, script, foreignObject, image, iframe') ||
     [...doc.querySelectorAll('*')].some(node => [...node.attributes].some(attr => /^on/i.test(attr.name) || /href$/i.test(attr.name) && !attr.value.startsWith('#')));
+  // Which whole-pose image a 'frames' character shows in each state.
+  const FRAME_FOR = {drag:'held', fall:'fall', chute:'parachute', land:'land', recover:'land'};
+  const GESTURE_FRAME = {wave:'wave', tilt:'curious', shake:'decline'};
 
-  // Harness and parachute, drawn in the rig's units around the ring. They sit behind the
-  // actor, so the straps only show above the head and the canopy lines converge on the ring.
+  // Harness and parachute for 'rig' characters, drawn in the rig's units around the ring. They sit
+  // behind the actor, so the straps only show above the head and the canopy lines meet at the ring.
   function propsMarkup(spec) {
     const [rx, ry] = spec.ring, {strap, canopy, line} = spec.props;
     const L = rx - 540, R = rx + 540, B = ry - 380, T = ry - 910, xs = [R, rx + 270, rx, rx - 270, L];
@@ -55,10 +61,13 @@
 
   // presence: on = full pet, min = small and still in the corner, off = hidden.
   // When onModeChange is given, the caller stores the mode instead of this page's localStorage.
-  function mount({character = rigs.fallback, target = document.body, mode: initialMode, presence: initialPresence = 'on', onModeChange} = {}) {
+  // Pass an existing chat (from GaryHubCompanionChat.mount) to keep one conversation across characters.
+  function mount({character = rigs.fallback, target = document.body, mode: initialMode, presence: initialPresence = 'on', onModeChange, chat: sharedChat} = {}) {
     const id = rigs.characters[character]?.available ? character : rigs.fallback, spec = rigs.characters[id];
+    const frames = spec.kind === 'frames';
+    const life = new AbortController(), on = (source, type, handler, options = {}) => source.addEventListener(type, handler, {...options, signal:life.signal});
     const host = document.createElement('div');
-    host.id = 'gh-companion-pet'; host.setAttribute('data-i18n-ignore', ''); host.hidden = true;
+    host.id = 'gh-companion-pet'; host.setAttribute('data-i18n-ignore', ''); host.hidden = true; host.dataset.character = id;
     const root = host.attachShadow({mode:'open'});
     root.innerHTML = `<link rel="stylesheet" href="${asset('pet.css')}"><div class="art"></div><button class="hit" type="button" aria-haspopup="dialog" aria-expanded="false"></button>`;
     const art = root.querySelector('.art'), hit = root.querySelector('.hit');
@@ -70,12 +79,16 @@
     let state = 'idle', phaseStart = 0, willChute = false, fallFrom = 0;
     let drag = null, pointer = null, gesture = null, twitch = null;
     let eyes = 'open', mouth = 'smile', parts = {}, pose = null, chuteNode = null, harness = null;
+    let images = {}, shown = null;
     let raf = 0, last = 0, lastRender = 0, lastActive = performance.now(), blinkTimer = 0;
-    const chat = chatApi.mount({character:id, target, launcher:false,
+    const handlers = {
       onClose:() => { hit.setAttribute('aria-expanded', 'false'); hit.focus({preventScroll:true}); },
-      onReply:result => react(result.kind)});
+      onReply:result => react(result.kind)
+    };
+    const chat = sharedChat || chatApi.mount({character:id, target, launcher:false});
+    chat.setHandlers(handlers); chat.setCharacter(id);
 
-    // Rig units → CSS pixels inside the pet box.
+    // Character units → CSS pixels inside the pet box.
     const px = value => (value - spec.viewBox[0]) * k, py = value => (value - spec.viewBox[1]) * k;
     const ground = () => height - (compact.matches ? 8 : 12);
     const range = () => ({minX:EDGE - px(spec.bounds[0]), maxX:width - EDGE - px(spec.bounds[2]), minY:EDGE - py(spec.bounds[1]), maxY:ground() - py(spec.feet[1])});
@@ -88,6 +101,7 @@
       host.style.setProperty('--size', size + 'px');
       const [x0, y0, x1, y1] = spec.bounds;
       Object.assign(hit.style, {left:px(x0) + 'px', top:py(y0) + 'px', width:(x1 - x0) * k + 'px', height:(y1 - y0) * k + 'px'});
+      for (const {img, rect: [fx, fy, fw, fh]} of Object.values(images)) Object.assign(img.style, {left:px(fx) + 'px', top:py(fy) + 'px', width:fw * k + 'px', height:fh * k + 'px'});
     }
     function place(saved = store.get(KEY.position)) {
       const r = range();
@@ -103,16 +117,18 @@
       store.set(KEY.position, {rx:r.maxX > r.minX ? (x - r.minX) / (r.maxX - r.minX) : 1, ry:r.maxY > r.minY ? (y - r.minY) / (r.maxY - r.minY) : 1});
     }
 
+    // Expressions exist only on 'rig' characters; 'frames' poses carry their own faces.
     function setEyes(value) {
       eyes = value;
-      for (const [name, part] of Object.entries(spec.eyes)) parts[part]?.setAttribute('display', name === value ? 'inline' : 'none');
+      for (const [name, part] of Object.entries(spec.eyes || {})) parts[part]?.setAttribute('display', name === value ? 'inline' : 'none');
     }
     function setMouth(value) {
       mouth = value;
-      for (const [name, part] of Object.entries(spec.mouth)) parts[part]?.setAttribute('display', name === value ? 'inline' : 'none');
+      for (const [name, part] of Object.entries(spec.mouth || {})) parts[part]?.setAttribute('display', name === value ? 'inline' : 'none');
     }
     function blink() {
       clearTimeout(blinkTimer);
+      if (frames) return;
       if (!document.hidden && !reduced.matches && state === 'idle' && eyes === 'open') {
         setEyes('closed'); setTimeout(() => { if (eyes === 'closed' && state === 'idle') setEyes('open'); }, 130);
       }
@@ -188,6 +204,14 @@
       return busy || !!gesture;
     }
 
+    // Gesture progress 0..1, or null once it has finished.
+    function gestureProgress(t) {
+      if (!gesture) return null;
+      const p = (t - gesture.start) / gesture.duration;
+      if (p < 1) return p;
+      gesture = null; if (state === 'idle') setEyes('open');
+      return null;
+    }
     function partAngles(t, dt) {
       const seconds = t / 1000, a = {head:0, 'ear-l':0, 'ear-r':0, tail:0, 'paw-r':0};
       if (!reduced.matches) {
@@ -199,26 +223,30 @@
         }
         look += (target - look) * Math.min(1, dt * 6); a.head = look;
         if (state === 'recover') { const p = (t - phaseStart) / 820; a.head = 4 * Math.sin(p * Math.PI * 4) * (1 - p); }
-        if (twitch && t < twitch.until) a[twitch.ear] = Math.sin((twitch.until - t) / 25) ;
+        if (twitch && t < twitch.until) a[twitch.ear] = Math.sin((twitch.until - t) / 25);
         else if (state === 'idle' && Math.random() < dt * .08) twitch = {ear:Math.random() < .5 ? 'ear-l' : 'ear-r', until:t + 160};
       }
-      if (gesture) {
-        const p = (t - gesture.start) / gesture.duration;
-        if (p >= 1) { gesture = null; if (state === 'idle') setEyes('open'); }
-        else if (!reduced.matches) {
-          if (gesture.type === 'wave') a['paw-r'] = 7 * Math.sin(p * Math.PI * 6);
-          if (gesture.type === 'tilt') a.head = 4 * Math.min(1, p * 4, (1 - p) * 4);
-          if (gesture.type === 'shake') a.head = 4 * Math.sin(p * Math.PI * 4) * (1 - p);
-        }
+      const p = gestureProgress(t);
+      if (p !== null && !reduced.matches) {
+        if (gesture.type === 'wave') a['paw-r'] = 7 * Math.sin(p * Math.PI * 6);
+        if (gesture.type === 'tilt') a.head = 4 * Math.min(1, p * 4, (1 - p) * 4);
+        if (gesture.type === 'shake') a.head = 4 * Math.sin(p * Math.PI * 4) * (1 - p);
       }
       for (const part of Object.keys(a)) a[part] = clamp(a[part], -spec.limits[part], spec.limits[part]);
       return a;
+    }
+    // 'frames' characters show reactions with a pose image when they have one, else a body tilt.
+    function showFrame(name) {
+      const pick = images[name]?.ready ? name : 'idle';
+      if (pick === shown) return;
+      for (const [frame, {img}] of Object.entries(images)) img.hidden = frame !== pick;
+      shown = pick;
     }
 
     function render(t, dt) {
       host.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`;
       const [rx, ry] = spec.ring, [fx, fy] = spec.feet, calm = reduced.matches;
-      let sx = 1, sy = 1, lift = 0;
+      let sx = 1, sy = 1, lift = 0, turn = 0;
       const p = (t - phaseStart) / ({land:240, recover:820, settle:300}[state] || 1), wave = Math.sin(Math.PI * clamp(p, 0, 1));
       if (!calm) {
         if (state === 'settle') { sx = 1 + .05 * wave; sy = 1 - .07 * wave; }
@@ -226,6 +254,19 @@
         if (state === 'recover') lift = -10 / k * Math.sin(Math.PI * clamp((p - .1) / .35, 0, 1));
         if (state === 'fall') { sx = .96; sy = 1.05; }
         if (state === 'idle') sy = 1 + .006 * Math.sin(t / 1000 * 2 * Math.PI / 3.6);
+      }
+      if (frames) {
+        const g = gestureProgress(t), framed = g !== null && images[GESTURE_FRAME[gesture.type]]?.ready;
+        if (g !== null && !framed && !calm) {
+          if (gesture.type === 'tilt') turn = 4 * Math.min(1, g * 4, (1 - g) * 4);
+          if (gesture.type === 'shake') turn = 3 * Math.sin(g * Math.PI * 4) * (1 - g);
+          if (gesture.type === 'wave') lift = -8 / k * Math.abs(Math.sin(g * Math.PI * 2));
+        }
+        showFrame(FRAME_FOR[state] || (framed ? GESTURE_FRAME[gesture.type] : 'idle'));
+        const [rpx, rpy, fpx, fpy] = [px(rx), py(ry), px(fx), py(fy)];
+        const degrees = angle * 180 / Math.PI;
+        pose.style.transform = `translate(${rpx.toFixed(1)}px,${rpy.toFixed(1)}px) rotate(${degrees.toFixed(2)}deg) translate(${(-rpx).toFixed(1)}px,${(-rpy).toFixed(1)}px) translate(0px,${(lift * k).toFixed(1)}px) translate(${fpx.toFixed(1)}px,${fpy.toFixed(1)}px) rotate(${turn.toFixed(2)}deg) scale(${sx.toFixed(3)},${sy.toFixed(3)}) translate(${(-fpx).toFixed(1)}px,${(-fpy).toFixed(1)}px)`;
+        return;
       }
       pose.setAttribute('transform', `rotate(${(angle * 180 / Math.PI).toFixed(2)} ${rx} ${ry}) translate(0 ${lift.toFixed(1)}) translate(${fx} ${fy}) scale(${sx.toFixed(3)} ${sy.toFixed(3)}) translate(${-fx} ${-fy})`);
       harness.setAttribute('display', ['drag', 'fall', 'chute'].includes(state) || state === 'land' && chute > .1 ? 'inline' : 'none');
@@ -245,21 +286,21 @@
       if (busy || t - lastRender >= 40) { render(t, dt); lastRender = t; }
       if (busy || awake) schedule(); else last = 0;
     }
-    const schedule = () => { if (!raf && !document.hidden && pose) raf = requestAnimationFrame(frame); };
+    const schedule = () => { if (!raf && !document.hidden && pose && !life.signal.aborted) raf = requestAnimationFrame(frame); };
     const wake = () => { lastActive = now(); schedule(); };
 
     function toggleChat() {
       if (chatOpen()) { chat.close(); return; }
       hit.setAttribute('aria-expanded', 'true'); chat.open(); chat.place(rect());
     }
-    hit.addEventListener('pointerdown', event => {
+    on(hit, 'pointerdown', event => {
       if (event.button !== 0 || drag) return;
       event.preventDefault(); hit.setPointerCapture(event.pointerId);
       const ringX = x + px(spec.ring[0]), ringY = y + py(spec.ring[1]);
       drag = {id:event.pointerId, startX:event.clientX, startY:event.clientY, x:event.clientX, y:event.clientY, ox:event.clientX - ringX, oy:event.clientY - ringY, moved:false};
       wake();
     });
-    hit.addEventListener('pointermove', event => {
+    on(hit, 'pointermove', event => {
       if (!drag || event.pointerId !== drag.id) return;
       drag.x = event.clientX; drag.y = event.clientY;
       // The small parked pet is a button only; expanding it brings dragging back.
@@ -272,27 +313,27 @@
       if (hit.hasPointerCapture(event.pointerId)) hit.releasePointerCapture(event.pointerId);
       if (moved) release(); else if (!cancelled) toggleChat();
     };
-    hit.addEventListener('pointerup', event => finishDrag(event, false));
-    hit.addEventListener('pointercancel', event => finishDrag(event, true));
+    on(hit, 'pointerup', event => finishDrag(event, false));
+    on(hit, 'pointercancel', event => finishDrag(event, true));
     // Keyboard and assistive technology activate the button with a detail-0 click.
-    hit.addEventListener('click', event => { if (event.detail === 0) toggleChat(); });
-    hit.addEventListener('keydown', event => {
+    on(hit, 'click', event => { if (event.detail === 0) toggleChat(); });
+    on(hit, 'keydown', event => {
       const step = event.shiftKey ? 64 : 16, moves = {ArrowLeft:[-step, 0], ArrowRight:[step, 0], ArrowUp:[0, -step], ArrowDown:[0, step]};
       if (presence !== 'on') return;
       if (moves[event.key]) { event.preventDefault(); x += moves[event.key][0]; y += moves[event.key][1]; keepInside(); enter('settle'); }
       else if (event.key === 'Home') { event.preventDefault(); reset(); }
     });
-    document.addEventListener('pointermove', event => {
+    on(document, 'pointermove', event => {
       pointer = {x:event.clientX, y:event.clientY};
       if (!raf && state === 'idle' && presence === 'on') { const r = rect(); if (Math.hypot(pointer.x - (r.left + r.right) / 2, pointer.y - (r.top + r.bottom) / 2) < 420) wake(); }
     }, {passive:true});
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); });
-    document.addEventListener('garyhub:language', event => { lang = event.detail?.language === 'en' ? 'en' : 'zh'; label(); });
+    on(document, 'visibilitychange', () => { if (!document.hidden) wake(); });
+    on(document, 'garyhub:language', event => { lang = event.detail?.language === 'en' ? 'en' : 'zh'; label(); });
     let resizeFrame = 0;
-    const resized = () => { cancelAnimationFrame(resizeFrame); resizeFrame = requestAnimationFrame(() => { const saved = store.get(KEY.position); measure(); if (state === 'idle') place(saved); else keepInside(); render(now(), 0); if (chatOpen()) chat.place(rect()); }); };
-    addEventListener('resize', resized, {passive:true});
-    compact.addEventListener('change', resized);
-    reduced.addEventListener('change', () => { angle = spin = 0; wake(); });
+    const resized = () => { cancelAnimationFrame(resizeFrame); resizeFrame = requestAnimationFrame(() => { const saved = store.get(KEY.position); measure(); if (state === 'idle') place(saved); else keepInside(); if (pose) render(now(), 0); if (chatOpen()) chat.place(rect()); }); };
+    on(window, 'resize', resized, {passive:true});
+    on(compact, 'change', resized);
+    on(reduced, 'change', () => { angle = spin = 0; wake(); });
     const label = () => { const name = voices.get(id).name[lang]; hit.setAttribute('aria-label', text[lang].label(name)); hit.title = name; };
 
     function reset() { store.set(KEY.position, null); place(null); enter('settle'); }
@@ -313,30 +354,65 @@
       wake();
     }
 
+    async function loadArt() {
+      if (!frames) {
+        const svg = await loadRig(spec);
+        svg.removeAttribute('width'); svg.removeAttribute('height');
+        art.append(svg);
+        for (const part of [...Object.keys(spec.pivots), ...Object.values(spec.eyes), ...Object.values(spec.mouth)]) parts[part] = svg.querySelector('#' + CSS.escape(part));
+        const props = new DOMParser().parseFromString(propsMarkup(spec), 'image/svg+xml').documentElement;
+        svg.querySelector('defs').append(...props.querySelector('defs').children);
+        pose = document.createElementNS('http://www.w3.org/2000/svg', 'g'); pose.setAttribute('class', 'pose');
+        const actor = svg.querySelector('#actor');
+        actor.before(pose);
+        chuteNode = props.querySelector('.chute'); harness = props.querySelector('.harness');
+        pose.append(chuteNode, harness, actor);
+        return;
+      }
+      // Whole-pose images: the idle pose must load before the pet appears; the rest follow quietly.
+      const box = document.createElement('div'); box.className = 'pose';
+      const add = name => {
+        const [file, ...frameRect] = spec.frames[name], img = new Image();
+        img.alt = ''; img.decoding = 'async'; img.draggable = false; img.hidden = true; img.src = asset(file);
+        images[name] = {img, rect:frameRect, ready:false}; box.append(img);
+        // The load event, unlike decode(), also settles while the window is not being painted.
+        return new Promise((resolve, reject) => {
+          img.onload = () => { images[name].ready = true; resolve(); };
+          img.onerror = reject;
+        });
+      };
+      await add('idle');
+      art.append(box); pose = box;
+      for (const name of Object.keys(spec.frames)) if (name !== 'idle') add(name).catch(() => {});
+    }
+
     target.append(host);
     measure(); label();
-    const ready = loadRig(spec).then(svg => {
-      svg.removeAttribute('width'); svg.removeAttribute('height');
-      art.append(svg);
-      for (const part of [...Object.keys(spec.pivots), ...Object.values(spec.eyes), ...Object.values(spec.mouth)]) parts[part] = svg.querySelector('#' + CSS.escape(part));
-      const props = new DOMParser().parseFromString(propsMarkup(spec), 'image/svg+xml').documentElement;
-      svg.querySelector('defs').append(...props.querySelector('defs').children);
-      pose = document.createElementNS('http://www.w3.org/2000/svg', 'g'); pose.setAttribute('class', 'pose');
-      const actor = svg.querySelector('#actor');
-      actor.before(pose);
-      chuteNode = props.querySelector('.chute'); harness = props.querySelector('.harness');
-      pose.append(chuteNode, harness, actor);
+    // Resolves true once the pet is drawn, false when its artwork could not be used.
+    const ready = loadArt().then(() => {
+      if (life.signal.aborted) return false;
       setEyes('open'); setMouth('smile');
       measure(); place(); host.hidden = presence === 'off'; render(now(), 0); blink(); wake();
+      return true;
     }).catch(() => {
+      if (life.signal.aborted) return false;
       // Without the artwork the chat still works through its own launcher.
       host.remove(); chat.showLauncher();
+      return false;
     });
 
+    function destroy() {
+      life.abort(); cancelAnimationFrame(raf); raf = 0; clearTimeout(blinkTimer); host.remove();
+    }
     return {
-      element:host, chat, ready,
+      element:host, chat, ready, id,
       get mode() { return mode; }, get state() { return state; }, get presence() { return presence; },
-      setMode, setPresence, reset, react,
+      setMode, setPresence, reset, react, destroy,
+      // After a character switch this pet takes over the shared panel, which may already be open.
+      adoptChat() {
+        chat.setHandlers(handlers); chat.setCharacter(id);
+        if (chat.isOpen) { hit.setAttribute('aria-expanded', 'true'); chat.place(rect()); }
+      },
       // Lets the demo and a future "play" button start a fall from where the pet stands.
       fall() { if (state === 'idle' && pose && presence === 'on') { vx = 0; vy = 0; release(); } },
       lift(height) { if (state !== 'idle' || !pose || presence !== 'on') return; y = Math.max(range().minY, y - height); render(now(), 0); vx = vy = 0; release(); }

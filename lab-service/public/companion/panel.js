@@ -9,9 +9,9 @@
   const base = new URL('.', document.currentScript?.src || location.href).href;
   const asset = file => base + file + (window.GaryHubCompanionAssetVersion ? '?v=' + encodeURIComponent(window.GaryHubCompanionAssetVersion) : '');
   const ui = {
-    zh:{subtitle:'站内工具向导', open:'打开', send:'发送', close:'关闭对话', more:'设置', login:'登录后可用', input:'输入你的需求', log:'对话记录', launcher:name => `和${name}聊天`,
+    zh:{subtitle:'站内工具向导', open:'打开', send:'发送', close:'关闭对话', more:'设置', picker:'选择伙伴', current:'当前', login:'登录后可用', input:'输入你的需求', log:'对话记录', launcher:name => `和${name}聊天`,
       chips:['你能做什么', '学习相关', '文档与图片', '日常记录']},
-    en:{subtitle:'Site tool guide', open:'Open', send:'Send', close:'Close chat', more:'Settings', login:'Sign in to use', input:'Describe what you need', log:'Conversation', launcher:name => `Chat with ${name}`,
+    en:{subtitle:'Site tool guide', open:'Open', send:'Send', close:'Close chat', more:'Settings', picker:'Choose a companion', current:'Current', login:'Sign in to use', input:'Describe what you need', log:'Conversation', launcher:name => `Chat with ${name}`,
       chips:['What can you do?', 'Study', 'Documents & images', 'Everyday records']}
   };
   // Only links from the knowledge file are rendered, and only to GaryHub over HTTPS.
@@ -19,7 +19,9 @@
   const el = (tag, className, text) => { const node = document.createElement(tag); if (className) node.className = className; if (text != null) node.textContent = text; return node; };
 
   // launcher:false is used when the pet itself opens the panel; place() then anchors it beside the pet.
+  // onClose/onReply can be replaced with setHandlers() when another pet takes over the same panel.
   function mount({character = voices.fallback, target = document.body, launcher: ownLauncher = true, onClose, onReply} = {}) {
+    const handlers = {onClose, onReply};
     const host = el('div'); host.id = 'gh-companion'; host.setAttribute('data-i18n-ignore', '');
     if (!ownLauncher) host.dataset.launcher = 'off';
     const root = host.attachShadow({mode:'open'});
@@ -27,6 +29,7 @@
       <section class="panel" id="panel" role="dialog" hidden>
         <header><span class="avatar" aria-hidden="true"></span><div class="who"><strong class="name"></strong><span class="subtitle"></span></div><button class="more" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="menu" hidden>⋯</button><button class="close" type="button">×</button></header>
         <div class="menu" id="menu" role="menu" hidden></div>
+        <div class="picker" role="group" hidden><strong class="picker-title"></strong><div class="picker-grid"></div></div>
         <div class="log" role="log" aria-live="polite"></div>
         <div class="chips"></div>
         <form class="composer"><input type="text" maxlength="200" autocomplete="off" enterkeyhint="send"><button class="send" type="submit"></button></form>
@@ -35,8 +38,8 @@
     const $ = selector => root.querySelector(selector);
     const panel = $('.panel'), log = $('.log'), input = $('input'), launcher = $('.launcher');
     let lang = window.GaryHubI18n?.language === 'en' ? 'en' : 'zh';
-    let user = window.GaryHubIdentity?.user || null, memory = {}, menuItems = [];
-    const more = $('.more'), menu = $('.menu');
+    let user = window.GaryHubIdentity?.user || null, memory = {}, menuItems = [], pickerSpec = null;
+    const more = $('.more'), menu = $('.menu'), picker = $('.picker');
 
     const say = (key, replyLang, vars) => voices.line(character, replyLang, key, vars);
     const scrollDown = () => { log.scrollTop = log.scrollHeight; };
@@ -51,8 +54,28 @@
       launcher.setAttribute('aria-label', t.launcher(who.name[lang])); launcher.title = launcher.getAttribute('aria-label');
       $('.chips').replaceChildren(...t.chips.map(text => chip(text)));
       more.setAttribute('aria-label', t.more); more.title = t.more;
-      renderMenu();
+      renderMenu(); renderPicker();
     }
+    // Character picker: items [{id, name:{zh,en}, blurb:{zh,en}, thumb, locked, note:{zh,en}, current}].
+    function renderPicker() {
+      $('.picker-title').textContent = ui[lang].picker;
+      picker.setAttribute('aria-label', ui[lang].picker);
+      $('.picker-grid').replaceChildren(...(pickerSpec?.items || []).map(item => {
+        const button = el('button', 'pick'); button.type = 'button';
+        const image = el('img'); image.alt = ''; image.src = item.thumb; image.width = image.height = 56;
+        button.append(image, el('span', 'pick-name', item.name[lang]), el('span', 'pick-note', item.current ? ui[lang].current : item.locked ? item.note[lang] : item.blurb[lang]));
+        button.title = item.blurb[lang];
+        if (item.current) button.setAttribute('aria-current', 'true');
+        if (item.locked) { button.setAttribute('aria-disabled', 'true'); button.classList.add('locked'); }
+        button.addEventListener('click', () => { if (item.locked || item.current) return; hidePicker(); pickerSpec.onPick(item.id); });
+        return button;
+      }));
+    }
+    function showPicker(spec) {
+      pickerSpec = spec; toggleMenu(false); renderPicker(); picker.hidden = false;
+      (picker.querySelector('.pick:not(.locked):not([aria-current])') || picker.querySelector('.pick'))?.focus();
+    }
+    function hidePicker() { picker.hidden = true; }
     // Settings menu items come from the pet: [{label:{zh,en}, run}].
     function renderMenu() {
       more.hidden = !menuItems.length;
@@ -103,7 +126,7 @@
         node.append(row);
       }
       scrollDown();
-      onReply?.(result);
+      handlers.onReply?.(result);
     }
     function ask(text) {
       const message = String(text).trim();
@@ -120,9 +143,9 @@
     }
     function close() {
       if (panel.hidden) return;
-      toggleMenu(false);
+      toggleMenu(false); hidePicker();
       panel.hidden = true; launcher.setAttribute('aria-expanded', 'false'); delete host.dataset.open;
-      if (host.dataset.launcher === 'off') onClose?.(); else launcher.focus({preventScroll:true});
+      if (host.dataset.launcher === 'off') handlers.onClose?.(); else launcher.focus({preventScroll:true});
     }
     function place(anchor) {
       const sides = ['left', 'top', 'right', 'bottom'];
@@ -141,7 +164,7 @@
     root.addEventListener('keydown', event => {
       if (event.key !== 'Escape' || panel.hidden) return;
       event.stopPropagation();
-      if (!menu.hidden) { toggleMenu(false); more.focus(); } else close();
+      if (!menu.hidden) { toggleMenu(false); more.focus(); } else if (!picker.hidden) { hidePicker(); more.focus(); } else close();
     });
     $('.composer').addEventListener('submit', event => { event.preventDefault(); const text = input.value; input.value = ''; ask(text); });
     document.addEventListener('garyhub:language', event => { lang = event.detail?.language === 'en' ? 'en' : 'zh'; chrome(); });
@@ -159,9 +182,16 @@
       element:host, open, close, ask, place, setUser,
       get isOpen() { return !panel.hidden; },
       setMenu(items) { menuItems = items || []; renderMenu(); },
+      setHandlers(next) { Object.assign(handlers, next); },
+      showPicker, hidePicker,
       showLauncher() { delete host.dataset.launcher; place(null); },
       get character() { return character; },
-      setCharacter(id) { if (voices.characters[id]) { character = id; chrome(); } }
+      // A new character keeps the conversation and introduces itself if the panel is open.
+      setCharacter(id) {
+        if (!voices.characters[id] || id === character) return;
+        character = id; chrome();
+        if (!panel.hidden) { bubble('bot', say('greet', lang)); scrollDown(); }
+      }
     };
   }
   window.GaryHubCompanionChat = {mount};
