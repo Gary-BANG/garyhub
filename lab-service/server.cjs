@@ -64,6 +64,13 @@ const server = http.createServer(async (req,res)=>{
     const host=(req.headers.host||'').split(':')[0];
     const publicOrigin=['garyhub.uk','tools.garyhub.uk','lab.garyhub.uk'].includes(host)?'https://'+host:'https://tools.garyhub.uk';
     const redirectLogin=target=>{res.writeHead(302,{Location:auth.loginUrl(target,publicOrigin),'Cache-Control':'no-store'});res.end();};
+    // The Elsewhere host only serves its own static page; other hosts never expose /sites/.
+    if(host==='sites.garyhub.uk'){
+      const page=url.pathname==='/'?'/index.html':url.pathname;
+      if(!['GET','HEAD'].includes(req.method)||!/^\/(index\.html|sites\.(css|js)|thumbs\/[a-z0-9-]+\.webp)$/.test(page))return json(res,404,{message:'Not found'});
+      res.setHeader('Content-Security-Policy',"default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'");
+      url.pathname='/sites'+page;
+    }else if(/^\/sites(\/|$)/i.test(url.pathname))return json(res,404,{message:'Not found'});
     if(['/login','/login/','/login.html'].includes(url.pathname))return redirectLogin(url.searchParams.get('next')||(host==='garyhub.uk'?'/':'/lab/'));
 
     if(await readingProxy(req,res,url))return;
@@ -74,7 +81,7 @@ const server = http.createServer(async (req,res)=>{
     if(await academic(req,res,url))return;
     if(['/grades','/grades/','/study','/study/'].includes(url.pathname))url.pathname='/academic/index.html';
     url.pathname=decodeURIComponent(url.pathname);
-    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"2.0.1.0"});
+    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"2.1.0.0"});
     if(url.pathname.startsWith('/sub/')) {
       if(req.method!=='GET') return json(res,405,{message:'Method not allowed'});
       const sub=connections.subscription(url.pathname.slice(5));
@@ -198,7 +205,7 @@ const server = http.createServer(async (req,res)=>{
     const file=path.resolve(ROOT,'.'+name);
     if(!file.startsWith(ROOT+path.sep)) return json(res,404,{message:'Not found'});
     const stat=fs.statSync(file); if(!stat.isFile()) return json(res,404,{message:'Not found'});
-    res.writeHead(200,{'Content-Type':mime[path.extname(file)]||'application/octet-stream','Content-Length':stat.size,'Cache-Control':name.includes('/vendor/')||name.startsWith('/companion/')&&url.searchParams.has('v')?'public, max-age=86400':'no-store'});
+    res.writeHead(200,{'Content-Type':mime[path.extname(file)]||'application/octet-stream','Content-Length':stat.size,'Cache-Control':name.includes('/vendor/')||(name.startsWith('/companion/')||name.startsWith('/sites/'))&&url.searchParams.has('v')?'public, max-age=86400':'no-store'});
     if(req.method==='HEAD')return res.end();
     pipeline(fs.createReadStream(file),res,()=>{});
   } catch(e) {if(e.status===428&&!req.url.startsWith('/api/')){res.writeHead(302,{Location:'https://calendar.garyhub.uk/change-password/','Cache-Control':'no-store'});return res.end();}if(!res.headersSent)json(res,e.code==='ENOENT'?404:e.status||503,{message:e.code==='ENOENT'?'Not found':e.status?e.message:'服务暂时不可用，请稍后重试。'});else res.destroy();}

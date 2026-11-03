@@ -64,7 +64,14 @@
     ['服务器内存', {kind:'none', excludes:'server-monitor'}, {user:member}],
     ['rss 订阅', {kind:'none', excludes:'reading'}, {user:member}],
     ['rss 订阅', 'reading', {user:subscriber}],
-    ['how do i use the markdown viewer', {kind:'howto', includes:'markdown'}]
+    ['how do i use the markdown viewer', {kind:'howto', includes:'markdown'}],
+    ['有没有摄影课程的网站', 'sites'],
+    ['有没有PDF调浅的工具', 'pdf'],
+    ['不是 PDF，是图片去水印', 'eraser'],
+    ['你还有别的网站吗', 'sites'],
+    ['where is the photography course', 'sites'],
+    ['other sites by gary', 'sites'],
+    ['ECE 470 的作业题', 'lab']
   ];
   // Multi-turn conversations: each step is [message, expectation].
   const flows = [

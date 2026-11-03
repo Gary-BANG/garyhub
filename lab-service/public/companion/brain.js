@@ -32,7 +32,9 @@
     return found;
   }
   // "不是 PDF" or "not a pdf" should count against that tool, not for it.
-  const negated = (text, at) => /不|别|没|无需/.test(text.slice(Math.max(0, at - 2), at)) || /\b(not|don'?t|no|without|isn'?t)( an?| the)? $/.test(text.slice(Math.max(0, at - 14), at));
+  // A yes/no question ("有没有摄影", "是不是 PDF") asks for it instead.
+  const question = /(有没有|是不是|能不能|会不会|要不要|可不可以|有木有) ?$/;
+  const negated = (text, at) => !question.test(text.slice(Math.max(0, at - 5), at)) && /不|别|没|无需/.test(text.slice(Math.max(0, at - 3), at).trimEnd().slice(-2)) || /\b(not|don'?t|no|without|isn'?t)( an?| the)? $/.test(text.slice(Math.max(0, at - 14), at));
   const weight = phrase => CJK.test(phrase) ? STRONG + Math.floor(phrase.length / 4) : STRONG + phrase.split(' ').length - 1;
 
   function score(text, entry) {

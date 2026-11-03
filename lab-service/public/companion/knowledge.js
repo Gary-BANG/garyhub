@@ -98,7 +98,13 @@
       name:{zh:'音乐库',en:'Music Library'}, short:{zh:'上传与管理背景音乐',en:'Your background music'},
       zh:['音乐','歌','歌单','背景音乐','上传音乐','mp3'],
       en:['music','song','songs','playlist','background music','upload music','mp3'],
-      howto:{zh:'上传自己的 MP3，之后在各页面的播放器里就能选这些曲目。',en:'Upload your own MP3s and pick them from the player on other pages.'}}
+      howto:{zh:'上传自己的 MP3，之后在各页面的播放器里就能选这些曲目。',en:'Upload your own MP3s and pick them from the player on other pages.'}},
+    // Public sites outside GaryHub, listed on the Elsewhere page.
+    {id:'sites', url:'https://sites.garyhub.uk/', category:'study', access:'public',
+      name:{zh:'外站链接',en:'Elsewhere'}, short:{zh:'课程网站与作品',en:'Course sites & projects'},
+      zh:['外站','外部链接','其他网站','别的网站','课程网站','公开课程','摄影','拍照','摄影课','光影手记','作品集','motion notes'],
+      en:['elsewhere','external links','other sites','other websites','course site','course website','photography','photo course','field notes','portfolio','motion notes'],
+      howto:{zh:'这里汇总了 GaryHub 之外的公开网站，比如 ECE 470 机器人学笔记和摄影课程，点开即可浏览，不需要登录。',en:'A list of public sites outside GaryHub, such as the ECE 470 robotics notes and the photography course. Open any of them; no sign-in needed.'}}
   ];
   const categories = [
     {id:'study', name:{zh:'学习',en:'Study'}, zh:['学习','学业','上课','课程','考试','作业'], en:['study','school','class','course','exam','homework']},

@@ -52,7 +52,7 @@ def build(base, branch, output, subject, pr_body):
     (root/'PUSH-TO-GITHUB.cmd').write_bytes(cmd.replace('\n', '\r\n').encode())
     readme = '''# GaryHub GitHub push 包
 
-完整解压后双击 PUSH-TO-GITHUB.cmd。默认仓库为 D:\\Codes\\Own_Project\\garyhub-repo，沿用现有 GitHub 凭据。
+完整解压后双击 PUSH-TO-GITHUB.cmd。默认仓库为 D:\\Codes\\Own_Project\\garyhub，沿用现有 GitHub 凭据。
 
 程序获取最新 main，在独立工作目录检查并导入补丁、提交，普通 push 到审查分支，然后打开 GitHub PR 页面。请核对改动并创建、合并 PR。PR 正文可用 PR-DESCRIPTION.md。
 

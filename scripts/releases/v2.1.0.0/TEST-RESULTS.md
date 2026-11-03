@@ -1,0 +1,12 @@
+# GaryHub v2.1.0.0-r1 validation
+
+Run on Windows 11 with Python 3.10 (Pillow), Git 2.52, headless Edge for the previews and the Claude desktop browser (Chromium); updater tests and the package build ran in WSL Ubuntu. **Node.js was not installed on the build machine**, so no `node --test` suite and no local Calendar/Lab server ran.
+
+- Elsewhere page (served from `public/sites/` as its root, matching the server mapping): at 1440×900 the particle field, links, aurora, comet, click ripple and cursor lines render; the hovered row grows to 1.066 and its neighbour to 1.019; the preview card appears beside the list and follows the hovered row. The language switch updates text, title and `<html lang>` and writes the shared cookie. At 375×812 there is no horizontal scroll, URLs break only after the domain, and no preview is shown. No console errors.
+- Homepage: the Others menu lists "外站链接 ↗ / 课程网站与作品" linking to https://sites.garyhub.uk/.
+- Companion: the intent set passes 74 cases (the original 67 plus 7 new ones). Found and fixed during testing: "有没有…" questions were read as negation, and "不是 PDF" with a space was missed. Companion bundles and the i18n dictionary are byte-identical across both services.
+- The no-TOTP `server.cjs` override differs from the main file only in the original 7 TOTP lines.
+- Deploy hooks, run offline with fake Docker/Caddy/DNS (15 checks): the site block is appended once and is idempotent; a different or shared definition stops; missing or foreign DNS stops before any change; apply refuses a Caddyfile changed mid-install; rollback restores the original, repeats safely and stops if Caddy was edited afterwards.
+- `manage.py check` and the updater unit tests pass in a fresh WSL clone (2 push-integration tests skipped). The package verifies against SHA256SUMS and its payload manifest; both capability variants report 2.1.0.0 and carry the sites routing, only 1.3.4.2 has TOTP; 24 configured asset hashes (5 on sites.garyhub.uk) match the payload.
+
+Not run locally: the Node service suites, the isolated HTTP checks (including the new `sites-http.cjs`) and the phase-6 verifier. The deploy hooks (DNS check, Caddy validation, write, certificate wait and rollback restore) were reviewed and syntax-checked but not run against Docker or a real Caddy. The installer runs the isolated checks inside both new images before any switch and stops without deploying if one fails. Real certificate issuance, Safari/iOS and touch-device frame rates are not verified. No production connection or real GitHub push/merge is performed.
