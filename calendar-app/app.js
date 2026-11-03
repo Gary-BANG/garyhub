@@ -26,6 +26,7 @@ const {registerDailyQuote}=require("./daily-quote");
 const {migrateMusic,registerMusic}=require("./music-api");
 const { findLoginIdentity } = require("./login-identity");
 const { migratePasswordReset, registerPasswordReset } = require("./password-reset");
+const { migrateAssistant, registerAssistant } = require("./assistant-api");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -158,7 +159,7 @@ async function resolveTargetUserId(req) {
 }
 
 app.get("/health", (req, res) => {
-  res.json({ ok: true, hubVersion: "2.1.0.0" });
+  res.json({ ok: true, hubVersion: "2.2.0.0" });
 });
 
 // 登录
@@ -685,6 +686,7 @@ registerHubApi(app,{db:require("./db"),requireLogin,requireAdmin});
 registerTasksApi(app, { requireLogin, resolveTargetUserId });
 registerEmailApi(app, { requireLogin });
 registerPersonalApi(app, { requireLogin });
+registerAssistant(app, { requireLogin, requireAdmin });
 
 app.use((err,req,res,next)=>{if(res.headersSent)return next(err);res.status(err.status||500).json({message:err.status?err.message:"服务暂时不可用，请重试",...(err.name==='TodoImportError'?{code:err.code,path:err.path,details:err.details}:{})});});
 
@@ -701,6 +703,7 @@ initDb()
   .then(() => migrateToolAccess(require("./db")))
   .then(() => migrateMusic(require("./db")))
   .then(() => migratePasswordReset(require("./db")))
+  .then(() => migrateAssistant(require("./db")))
   .then(() => {
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Calendar app listening on port ${PORT}`);

@@ -66,6 +66,20 @@ async function taskWithDetails(id, userId) {
     WHERE t.id = ? AND t.user_id = ?`, [id, userId]);
 }
 
+// Shared by the task form and the companion assistant once the user has confirmed.
+async function createTask(userId, item) {
+  const id = randomUUID();
+  await run(`INSERT INTO tasks(id,user_id,title,start_date,end_date,category_id,status,completed_at,
+    reminder_enabled,note) VALUES(?,?,?,?,?,?,?,?,?,?)`, [id,userId,item.title,item.startDate,
+    item.endDate,item.categoryId,item.done ? "done" : "todo",
+    item.done ? new Date().toISOString() : null,Number(item.reminderEnabled),item.note]);
+  if (item.reminder) {
+    await run("INSERT INTO reminder_settings(task_id,frequency,time_1,time_2) VALUES(?,?,?,?)",
+      [id,item.reminder.frequency,item.reminder.time1,item.reminder.time2]);
+  }
+  return taskWithDetails(id, userId);
+}
+
 module.exports = function registerTasksApi(app, { requireLogin, resolveTargetUserId }) {
   function route(handler) {
     return async (req, res) => {
@@ -142,22 +156,16 @@ module.exports = function registerTasksApi(app, { requireLogin, resolveTargetUse
     const userId = await target(req);
     let item;
     try { item = validateTask(req.body); } catch (e) { return bad(e.message); }
-    const id = updating ? req.params.id : randomUUID();
+    const id = updating ? req.params.id : null;
     const existing = updating ? await taskWithDetails(id, userId) : null;
     if (updating && !existing) return res.status(404).json({ message: "事项不存在" });
     await ownedCategory(item.categoryId, userId);
-    if (updating) {
-      await run(`UPDATE tasks SET title=?,start_date=?,end_date=?,category_id=?,
-        status=?,completed_at=?,reminder_enabled=?,note=?,updated_at=CURRENT_TIMESTAMP
-        WHERE id=? AND user_id=?`, [item.title,item.startDate,item.endDate,item.categoryId,
-        item.done ? "done" : "todo",item.done ? (existing.completed_at || new Date().toISOString()) : null,
-        Number(item.reminderEnabled),item.note,id,userId]);
-    } else {
-      await run(`INSERT INTO tasks(id,user_id,title,start_date,end_date,category_id,status,completed_at,
-        reminder_enabled,note) VALUES(?,?,?,?,?,?,?,?,?,?)`, [id,userId,item.title,item.startDate,
-        item.endDate,item.categoryId,item.done ? "done" : "todo",
-        item.done ? new Date().toISOString() : null,Number(item.reminderEnabled),item.note]);
-    }
+    if (!updating) return res.status(201).json(await createTask(userId, item));
+    await run(`UPDATE tasks SET title=?,start_date=?,end_date=?,category_id=?,
+      status=?,completed_at=?,reminder_enabled=?,note=?,updated_at=CURRENT_TIMESTAMP
+      WHERE id=? AND user_id=?`, [item.title,item.startDate,item.endDate,item.categoryId,
+      item.done ? "done" : "todo",item.done ? (existing.completed_at || new Date().toISOString()) : null,
+      Number(item.reminderEnabled),item.note,id,userId]);
     if (item.reminder) {
       await run(`INSERT INTO reminder_settings(task_id,frequency,time_1,time_2) VALUES(?,?,?,?)
         ON CONFLICT(task_id) DO UPDATE SET frequency=excluded.frequency,time_1=excluded.time_1,
@@ -166,7 +174,7 @@ module.exports = function registerTasksApi(app, { requireLogin, resolveTargetUse
     } else {
       await run("DELETE FROM reminder_settings WHERE task_id=?", [id]);
     }
-    res.status(updating ? 200 : 201).json(await taskWithDetails(id, userId));
+    res.json(await taskWithDetails(id, userId));
   }
   app.post("/api/tasks", requireLogin, route((req,res) => saveTask(req,res,false)));
   app.put("/api/tasks/:id", requireLogin, route((req,res) => saveTask(req,res,true)));
@@ -191,3 +199,4 @@ module.exports = function registerTasksApi(app, { requireLogin, resolveTargetUse
 
 module.exports.validDate = validDate;
 module.exports.validateTask = validateTask;
+module.exports.createTask = createTask;

@@ -30,7 +30,7 @@ for (const flow of flows) test(`conversation: ${flow.name}`, () => {
 });
 
 test('restricted destinations never appear for guests, whatever is asked', () => {
-  const hidden = knowledge.entries.filter(entry => entry.access !== 'login').map(entry => entry.id);
+  const hidden = knowledge.entries.filter(entry => !knowledge.permitted(entry, null)).map(entry => entry.id);
   for (const entry of knowledge.entries) for (const phrase of [...entry.phrases.zh, ...entry.phrases.en]) {
     const {tools} = brain.reply(phrase);
     assert.ok(!tools.some(id => hidden.includes(id)), `${phrase} leaked ${tools}`);

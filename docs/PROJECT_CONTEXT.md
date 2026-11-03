@@ -4,7 +4,11 @@
 
 ## 当前源码与部署证据
 
-- **v2.1.0.0（当前源码）**：基础为已合并 main `d21eecd738ff22a400957e948b8f413337525f31`；开发分支 `feature/sites-portal`，清单 `releases/2.1.0.0.json`，适配器 `scripts/releases/v2.1.0.0/`（baseline_adapter v2.0.1.0），安装器 v2.1.0.0-r1，要求两服务实际运行 v2.0.1.0。新增外站链接页 `lab-service/public/sites/`（`index.html`、`sites.css`、`sites.js`、`thumbs/*.webp`），由 `server.cjs` 在主机 `sites.garyhub.uk` 上以严格 CSP 只提供这些文件，其他主机 `/sites/` 返回 404；主页“其他”菜单与伙伴 `knowledge.js`（`sites`，`access:'public'`）链接该页；`brain.js` 不再把“有没有／是不是…”问句和“不是 PDF”中的空格误判。部署钩子在改动前检查 DNS，验证并在切换后写入一个 Caddy 站点块（`reverse_proxy garyhub-lab:3000`），等待证书，回滚时恢复原 Caddyfile。预览图由 `scripts/sites/capture_thumbnails.py` 在维护者本机生成。安装器与 PUSH 脚本默认仓库改为 `D:\Codes\Own_Project\garyhub`。尚未推送／合并，生产未核验。详见 `docs/GARYHUB_V2_1_0_0.md`。
+- **v2.2.0.0（当前源码）**：基础为已合并 main `62f430a51afb019993871b2bd2f8594259670dd8`（PR #26）；开发分支 `feature/companion-assistant`，清单 `releases/2.2.0.0.json`，适配器 `scripts/releases/v2.2.0.0/`（baseline_adapter v2.1.0.0），安装器 v2.2.0.0-r2（r1 于 2026-11-03 在第 3 阶段 `sites-http.cjs` 停止：该检查要求外站页引用 `?v=<本次版本>`，r2 把 `sites/index.html` 的四处资源版本号改为 2.2.0.0；未部署），要求两服务实际运行 v2.1.0.0，不改 Caddy／DNS／Compose。新增伙伴 AI 日程助手：`calendar-app/assistant-api.js` 提供 `/api/assistant/{status,chat,actions/:id/confirm|cancel,admin/settings,admin/test}`，调用 OpenAI 兼容 chat completions（默认智谱 `https://open.bigmodel.cn/api/paas/v4/chat/completions`、`glm-4.7-flash`、`thinking` 关闭，可选 Z.ai），工具 `list_tasks`／`add_task`／`delete_task`／`open_page`；添加／删除只写入 `assistant_actions` 待确认记录，确认后经 `tasks-api.js` 新导出的 `createTask` 写入。新表 `assistant_settings`（单行，含 API Key）、`assistant_usage`（每人每天计数）、`assistant_actions`（15 分钟有效）；后两表无外键，已加入 `account-admin.js` 删除清单。`GARYHUB_ASSISTANT_ENDPOINT` 仅供隔离测试指向模拟服务。Tools/Lab `server.cjs` 转发上述路由（chat 与 test 超时 130 s，正文上限 16 KiB）；`assistant-admin.js` 与 `admin.html` 新卡片供管理员设置；伙伴 `assistant.js` + `panel.js` 在登录且启用时走 AI，并渲染确认卡片，确认后发出 `garyhub:records-changed`，`unified.js` 收到后刷新日历。修正 v2.1.0.0 遗留的 `companion-brain.test.cjs` 访问级别判断。尚未推送／合并，生产未核验。详见 `docs/GARYHUB_V2_2_0_0.md`。
+
+### v2.1.0.0（上一版本）
+
+- **v2.1.0.0**：基础为已合并 main `d21eecd738ff22a400957e948b8f413337525f31`；开发分支 `feature/sites-portal`，清单 `releases/2.1.0.0.json`，适配器 `scripts/releases/v2.1.0.0/`（baseline_adapter v2.0.1.0），安装器 v2.1.0.0-r1，要求两服务实际运行 v2.0.1.0。新增外站链接页 `lab-service/public/sites/`（`index.html`、`sites.css`、`sites.js`、`thumbs/*.webp`），由 `server.cjs` 在主机 `sites.garyhub.uk` 上以严格 CSP 只提供这些文件，其他主机 `/sites/` 返回 404；主页“其他”菜单与伙伴 `knowledge.js`（`sites`，`access:'public'`）链接该页；`brain.js` 不再把“有没有／是不是…”问句和“不是 PDF”中的空格误判。部署钩子在改动前检查 DNS，验证并在切换后写入一个 Caddy 站点块（`reverse_proxy garyhub-lab:3000`），等待证书，回滚时恢复原 Caddyfile。预览图由 `scripts/sites/capture_thumbnails.py` 在维护者本机生成。安装器与 PUSH 脚本默认仓库改为 `D:\Codes\Own_Project\garyhub`。PR #26 合并为 main `62f430a`；维护者 2026-11-03 报告已安装完成（安装输出未收录于本仓库）。详见 `docs/GARYHUB_V2_1_0_0.md`。
 
 ### v2.0.1.0（上一版本）
 
@@ -57,7 +61,7 @@ v1.4.3.1-r1 曾在受保护 HTML 的未登录正文哈希检查失败后回滚�
 | 三个本地实用工具 | lab-service/public/useful/，避免读取 vendor/ 的大文件 |
 | 外站链接 | lab-service/public/sites/；server.cjs 中 sites.garyhub.uk 分支；scripts/sites/capture_thumbnails.py |
 | 网站伙伴米露 | lab-service/public/companion/（Calendar 副本 calendar-app/public/companion/）；lab-service/test/companion-*.cjs；scripts/companion/slim_rig.py |
-| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v2.1.0.0/ |
+| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v2.2.0.0/ |
 
 Calendar 使用 Node.js、Express、SQLite；Lab 使用 Node 原生 HTTP，浏览器运行 Python/WASM。生产运行代码须保持 Node 20 兼容。浏览器依赖已本地打包，无需让生产服务器在线安装依赖。
 

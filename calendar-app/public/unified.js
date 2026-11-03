@@ -58,6 +58,11 @@ function contrastColor(hex) {
   return rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722 > 0.179 ? "#111827" : "#ffffff";
 }
 
+// The companion assistant changes tasks after the user confirms; show them without a reload.
+document.addEventListener("garyhub:records-changed", event => {
+  if (event.detail?.kind === "tasks") loadUnified().catch(() => {});
+});
+
 async function loadUnified() {
   const query = targetQuery();
   const [tasks, categories, notices, account] = await Promise.all([

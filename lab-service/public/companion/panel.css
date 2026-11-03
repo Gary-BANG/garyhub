@@ -53,7 +53,17 @@ header{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 14px;bord
 .card-copy{margin:2px 0 8px;color:var(--muted);font-size:13px}
 .card-row{display:flex;align-items:center;justify-content:flex-end;gap:10px}
 .card-note{margin-right:auto;color:var(--muted);font-size:12px}
-.card-open{padding:4px 14px;border-radius:999px;background:var(--companion-accent);color:#fff;text-decoration:none;font-weight:600;font-size:13px}
+.card-open{padding:4px 14px;border:0;border-radius:999px;background:var(--companion-accent);color:#fff;text-decoration:none;font-weight:600;font-size:13px;cursor:pointer}
+.card.action{border-color:var(--companion-accent)}
+.card-kind{display:block;color:var(--companion-accent);font-size:12px;font-weight:600}
+.card-cancel{padding:4px 12px;border:1px solid var(--line);border-radius:999px;background:transparent;font-size:13px;cursor:pointer}
+.card-open:disabled,.card-cancel:disabled{opacity:.55;cursor:default}
+.card-cancel:focus-visible{outline:2px solid var(--companion-accent);outline-offset:2px}
+.card-done{color:var(--muted);font-size:13px;font-weight:600}
+.msg.notice .text{background:transparent;border:1px dashed var(--line);color:var(--muted);font-size:13px}
+.msg.waiting .text{color:var(--muted)}
+.quota{margin:0;color:var(--muted);font-size:12px}
+.composer input:disabled{opacity:.6}
 .chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 10px}
 .chips.inline{padding:0}
 .chip{padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:var(--paper);cursor:pointer;font-size:13px}

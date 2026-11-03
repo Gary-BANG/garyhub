@@ -16,8 +16,8 @@ fs.mkdirSync(DATA, {recursive:true, mode:0o700});
 const access = createAccessStore(DATA);
 const connections=createConnections(access,process.env.ACCESS_RUNTIME_FILE||'/access-runtime/status.json',process.env.ACCESS_SUB_ORIGIN||ORIGIN);
 function json(res, status, value) { res.writeHead(status, {'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}); res.end(JSON.stringify(value)); }
-async function calendar(req, route, method='GET', body) {
-  return fetch(CALENDAR + route, {method, redirect:'manual', signal:AbortSignal.timeout(10000), headers:{
+async function calendar(req, route, method='GET', body, timeout=10000) {
+  return fetch(CALENDAR + route, {method, redirect:'manual', signal:AbortSignal.timeout(timeout), headers:{
     cookie:req.headers.cookie || '', 'content-type':'application/json',
     'x-forwarded-proto':'https', origin:req.headers.origin||'', 'x-forwarded-for':(req.headers['x-forwarded-for']||req.socket.remoteAddress||'').split(',').at(-1).trim(), 'x-csrf-token':req.headers['x-csrf-token'] || ''
   }, body});
@@ -33,7 +33,7 @@ async function identity(req) {
   return user;
 }
 async function body(req) {
-  const maxSize=req.url.startsWith('/api/lab/distribution')||req.url.startsWith('/api/access/')||req.url.startsWith('/api/hub/totp')||req.url.startsWith('/api/password-reset/')?8192:LIMIT;
+  const maxSize=req.url.startsWith('/api/lab/distribution')||req.url.startsWith('/api/access/')||req.url.startsWith('/api/hub/totp')||req.url.startsWith('/api/password-reset/')?8192:req.url.startsWith('/api/assistant/')?16384:LIMIT;
   let size=0; const chunks=[];
   for await (const chunk of req) { size+=chunk.length; if(size>maxSize) { const e=Error('Payload too large'); e.status=413; throw e; } chunks.push(chunk); }
   try {return JSON.parse(Buffer.concat(chunks).toString());} catch {const e=Error('Invalid JSON');e.status=400;throw e;}
@@ -81,7 +81,7 @@ const server = http.createServer(async (req,res)=>{
     if(await academic(req,res,url))return;
     if(['/grades','/grades/','/study','/study/'].includes(url.pathname))url.pathname='/academic/index.html';
     url.pathname=decodeURIComponent(url.pathname);
-    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"2.1.0.0"});
+    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"2.2.0.0"});
     if(url.pathname.startsWith('/sub/')) {
       if(req.method!=='GET') return json(res,405,{message:'Method not allowed'});
       const sub=connections.subscription(url.pathname.slice(5));
@@ -108,6 +108,14 @@ const server = http.createServer(async (req,res)=>{
         const payload=req.method==='GET'?undefined:JSON.stringify(await body(req));
         const upstream=await calendar(req,url.pathname+url.search,req.method,payload);
         const cookies=upstream.headers.getSetCookie();if(cookies.length)res.setHeader('Set-Cookie',cookies);
+        return json(res,upstream.status,await upstream.json());
+      }
+      // The companion assistant lives in Calendar; a model reply may take several rounds, so chat waits longer.
+      if(/^\/api\/assistant\/(?:status|chat|actions\/[0-9a-f-]{36}\/(?:confirm|cancel)|admin\/(?:settings|test))$/.test(url.pathname)){
+        if(!['GET','POST','PUT'].includes(req.method))return json(res,405,{message:'Method not allowed'});
+        const payload=req.method==='GET'?undefined:JSON.stringify(await body(req));
+        const slow=['/api/assistant/chat','/api/assistant/admin/test'].includes(url.pathname);
+        const upstream=await calendar(req,url.pathname,req.method,payload,slow?130000:10000);
         return json(res,upstream.status,await upstream.json());
       }
       if(/^\/api\/password-reset\/(request|verify|complete)$/.test(url.pathname)&&req.method==='POST'){

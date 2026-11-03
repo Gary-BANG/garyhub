@@ -1,0 +1,67 @@
+{
+  "version": "2.2.0.0",
+  "requires_release": "2.1.0.0",
+  "installer_build": "v2.2.0.0-r2",
+  "reviewed_base_commit": "62f430a51afb019993871b2bd2f8594259670dd8",
+  "baseline_adapter": "scripts/releases/v2.1.0.0",
+  "source_subject": "Add the companion AI schedule assistant",
+  "updated_features": [
+    "companion_assistant_release"
+  ],
+  "summary": "The companion can show, add and delete calendar items for signed-in accounts through the configured AI model; every change waits for the user to confirm. It stays off until an admin saves an API key at tools.garyhub.uk/admin/. Current records and host integrations retained.",
+  "asset_checksums": [
+    {"host": "tools.garyhub.uk", "route": "/", "sha256": "1485019e8951a62e3fb11b917473684495dc5bc9b02c140e1379fab2f8c0f434"},
+    {"host": "tools.garyhub.uk", "route": "/assistant-admin.js", "sha256": "15830b2d8b6613f03171e133671ca35321ff558386d86c0ac7bef140b9307ece"},
+    {"host": "tools.garyhub.uk", "route": "/companion/boot.js", "sha256": "9441a0a12a558405bcf562a8a807c1249ed130d56815d0a1d16b651b528d23e9"},
+    {"host": "tools.garyhub.uk", "route": "/companion/assistant.js", "sha256": "5dff0bee8358f0f5e5f6d76d627967b27a3adafbc4449f36067e999356ec11ac"},
+    {"host": "tools.garyhub.uk", "route": "/companion/panel.js", "sha256": "dc200c4c46fa53463fd86c0eb6dd6030d3521b641cfeadb06579d8be3c80e168"},
+    {"host": "tools.garyhub.uk", "route": "/companion/panel.css", "sha256": "230906127723d4e349c45311aab486eeb72529c36c7f628bb0a7739fb4d836af"},
+    {"host": "garyhub.uk", "route": "/companion/assistant.js", "sha256": "5dff0bee8358f0f5e5f6d76d627967b27a3adafbc4449f36067e999356ec11ac"},
+    {"host": "garyhub.uk", "route": "/companion/panel.js", "sha256": "dc200c4c46fa53463fd86c0eb6dd6030d3521b641cfeadb06579d8be3c80e168"},
+    {"host": "calendar.garyhub.uk", "route": "/companion/assistant.js", "sha256": "5dff0bee8358f0f5e5f6d76d627967b27a3adafbc4449f36067e999356ec11ac"},
+    {"host": "calendar.garyhub.uk", "route": "/companion/panel.js", "sha256": "dc200c4c46fa53463fd86c0eb6dd6030d3521b641cfeadb06579d8be3c80e168"}
+  ],
+  "sites_asset_checksums": [
+    {"host": "sites.garyhub.uk", "route": "/", "sha256": "76e4743950399dec93389ec66aa3bed0023c2ad805d0ab55931ffa1ffc7c4806"},
+    {"host": "sites.garyhub.uk", "route": "/sites.css", "sha256": "8525d4ba5225888b2508305e8a0bc05ac0b161775e61a0ec6fbe46b2c3c36507"},
+    {"host": "sites.garyhub.uk", "route": "/sites.js", "sha256": "a44ab7c293e379c7ecd31520a4cc8f0038fdd7528b3a8dea1c3208e1808e1be7"},
+    {"host": "sites.garyhub.uk", "route": "/thumbs/ece470.webp", "sha256": "b7294f62601879dd224aef6c6022840e2e3fafb93dda66074b3cc013d6bdcf27"},
+    {"host": "sites.garyhub.uk", "route": "/thumbs/photography.webp", "sha256": "2d0350bf5a396e1563043331700e7b05ad3725c32346866c07760da5d964a558"}
+  ],
+  "protected_asset_checksums": [
+    {"host": "tools.garyhub.uk", "route": "/lab/index.html", "sha256": "33baab25c31535514425732794c93d72ac6677047762d88db8e7ff684f585b8b", "service": "garyhub-lab", "file": "/lab/public/lab/index.html"},
+    {"host": "tools.garyhub.uk", "route": "/useful/image-eraser/index.html", "sha256": "351063933bb67b994ad40aee709b016bf8b6ce03fc18dd190d31f1af1b05bc0a", "service": "garyhub-lab", "file": "/lab/public/useful/image-eraser/index.html"},
+    {"host": "tools.garyhub.uk", "route": "/useful/markdown-viewer/index.html", "sha256": "ce561c30770bd81a045ceae93fbe1e1940ce7404fcefc5f76efad891a540237c", "service": "garyhub-lab", "file": "/lab/public/useful/markdown-viewer/index.html"},
+    {"host": "tools.garyhub.uk", "route": "/useful/pdf-gray/index.html", "sha256": "cf81b97cc6312acd81624014e39284906bfd605fc7ea12e25a8eecae5c9d32f5", "service": "garyhub-lab", "file": "/lab/public/useful/pdf-gray/index.html"}
+  ],
+  "isolation_checks": [
+    "useful-http.cjs",
+    "study-http.cjs",
+    "asset-response.cjs",
+    "music-http.cjs",
+    "companion-http.cjs",
+    "sites-http.cjs",
+    "assistant-http.cjs"
+  ],
+  "test_inputs": {
+    "seed.cjs": "scripts/releases/v1.4.3.0/tests/seed.cjs",
+    "seed-base.cjs": "scripts/releases/v1.3.6.0/tests/seed.cjs",
+    "useful-http.cjs": "scripts/releases/v1.3.6.1/tests/useful-http.cjs",
+    "study-http.cjs": "scripts/releases/v1.4.3.1/tests/study-http.cjs",
+    "study-fixture.cjs": "scripts/releases/v1.4.3.1/tests/study-fixture.cjs",
+    "asset-response.cjs": "scripts/releases/v1.4.3.1/tests/asset-response.cjs",
+    "asset-checks.json": "scripts/releases/v2.2.0.0/release-config.json",
+    "music-http.cjs": "scripts/releases/v1.4.3.2/tests/music-http.cjs",
+    "companion-http.cjs": "scripts/releases/v2.0.1.0/tests/companion-http.cjs",
+    "sites-http.cjs": "scripts/releases/v2.1.0.0/tests/sites-http.cjs",
+    "assistant-http.cjs": "scripts/releases/v2.2.0.0/tests/assistant-http.cjs"
+  },
+  "isolation_environment": {
+    "TRUSTED_ORIGINS": "https://garyhub.uk,https://calendar.garyhub.uk,https://tools.garyhub.uk,https://lab.garyhub.uk,http://calendar-check:3000"
+  },
+  "isolation_service_environment": {
+    "calendar-app": {
+      "GARYHUB_ASSISTANT_ENDPOINT": "http://127.0.0.1:4011/v4/chat/completions"
+    }
+  }
+}
