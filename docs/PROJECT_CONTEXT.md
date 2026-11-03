@@ -4,7 +4,11 @@
 
 ## 当前源码与部署证据
 
-- **v2.0.0.0（当前源码）**：基础为 main `aec0312513de5b86cbcd17e10cc35af568c7dbcb`（PR #23 合并的 v1.4.3.2）；开发分支 `feature/companion-guide`，清单 `releases/2.0.0.0.json`，适配器 `scripts/releases/v2.0.0.0/`（baseline_adapter v1.4.3.2），安装器 v2.0.0.0-r2。r1 于 2026-11-03 在服务器第 3 阶段停止（companion-http 对首页 `/admin.html` 错误期望 404，实际为既有登录跳转 302），未备份、未切换。尚未推送／合并，生产未核验；安装器要求两服务实际运行 v1.4.3.2。
+- **v2.0.1.0（当前源码）**：基础为 v2.0.0.0 `3a8f4f7060f2054ddd33cc994f1a7b4c63f62ddc`；清单 `releases/2.0.1.0.json`，适配器 `scripts/releases/v2.0.1.0/`（baseline_adapter v2.0.0.0），安装器 v2.0.1.0-r1，要求两服务实际运行 v2.0.0.0。新增栗栗、布丁（Step 1b 矢量姿态）与页芽、小航（Step 1c 设定图裁切 WebP 帧），`characters.js` 中 `kind:'frames'`；`tier` guest／member／subscriber 控制角色选择（访客米露，登录加栗栗，订阅／管理员五位），只是界面权益。`pet.js` 新增整张姿态渲染、`destroy()` 与共享聊天面板；`boot.js` 管理 `char` 偏好与权限回退；`server.cjs`（及 1.3.4.1 覆盖）新增 `.webp` MIME。尚未推送／合并，生产未核验。详见 `docs/GARYHUB_V2_0_1_0.md`。
+
+### v2.0.0.0（上一版本）
+
+- **v2.0.0.0**：基础为 main `aec0312513de5b86cbcd17e10cc35af568c7dbcb`（PR #23 合并的 v1.4.3.2）；开发分支 `feature/companion-guide`，清单 `releases/2.0.0.0.json`，适配器 `scripts/releases/v2.0.0.0/`（baseline_adapter v1.4.3.2），安装器 v2.0.0.0-r2。r1 于 2026-11-03 在服务器第 3 阶段停止（companion-http 对首页 `/admin.html` 错误期望 404，实际为既有登录跳转 302），未备份、未切换。尚未推送／合并，生产未核验；安装器要求两服务实际运行 v1.4.3.2。
 - 网站伙伴米露：`lab-service/public/companion/`（boot 加载器、knowledge/brain 本地意图匹配、voices 五角色台词、panel 聊天面板、characters 角色清单、pet 动作引擎、`characters/milu/rig.svg`）。Calendar 的 `calendar-app/public/companion/` 与 `tools-catalog.js` 为逐字节副本，由 `lab-service/test/companion-wiring.test.cjs` 检查。首页／Tools 为 `data-companion="open"`，Lab 与八个 Calendar 页面为 `quiet`；登录、注册、改密码、Reading 不加载。只用身份判断工具权限，不读取页面内容，不调用外部模型。
 - `lab-service/server.cjs` 首页白名单额外放行 `/companion/*` 与 `/tools-catalog.js`；带 `?v=` 的 `/companion/` 资源 `Cache-Control: public, max-age=86400`，其余仍 `no-store`。1.3.4.1 能力组合的 `server.cjs`／`app.js` 覆盖在 `scripts/releases/v2.0.0.0/variant-overrides/` 中做同样修改。无数据库迁移、新依赖或 Caddy 改动。
 - 角色素材来自 Milu_Rig_v2 2.1.1，用 `scripts/companion/slim_rig.py` 精简；其余四个角色仅有台词，`characters.js` 中标为不可用。
@@ -48,7 +52,7 @@ v1.4.3.1-r1 曾在受保护 HTML 的未登录正文哈希检查失败后回滚�
 | 作业题库分发 | lab-service/lab-distribution.cjs、public/lab/distribution.js、pack-validation.mjs |
 | 三个本地实用工具 | lab-service/public/useful/，避免读取 vendor/ 的大文件 |
 | 网站伙伴米露 | lab-service/public/companion/（Calendar 副本 calendar-app/public/companion/）；lab-service/test/companion-*.cjs；scripts/companion/slim_rig.py |
-| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v2.0.0.0/ |
+| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v2.0.1.0/ |
 
 Calendar 使用 Node.js、Express、SQLite；Lab 使用 Node 原生 HTTP，浏览器运行 Python/WASM。生产运行代码须保持 Node 20 兼容。浏览器依赖已本地打包，无需让生产服务器在线安装依赖。
 

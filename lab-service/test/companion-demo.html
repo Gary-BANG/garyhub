@@ -25,7 +25,7 @@
 <main>
   <h1>Companion demo</h1>
   <fieldset>
-    <label>Voice <select id="character"></select></label>
+    <label>Character <select id="character"></select></label>
     <label>Placement <select id="mode"><option value="free">Free</option><option value="gravity">Gravity</option></select></label>
     <button id="drop" type="button">Drop from 400px</button>
     <button id="reset" type="button">Reset position</button>
@@ -50,14 +50,19 @@ if(new URLSearchParams(location.search).has('timer-frames')){window.requestAnima
 <script src="companion-cases.cjs"></script>
 <script>
 (() => {
-  const pet = window.companionPet = GaryHubCompanionPet.mount(), chat = pet.chat;
+  let pet = window.companionPet = GaryHubCompanionPet.mount();
+  const chat = pet.chat;
   const $ = id => document.getElementById(id);
   $('mode').value = pet.mode;
   $('mode').onchange = () => pet.setMode($('mode').value);
   $('drop').onclick = () => { pet.setMode('gravity'); $('mode').value = 'gravity'; pet.lift(400); };
   $('reset').onclick = () => pet.reset();
   for (const id of GaryHubCompanionVoices.ids) $('character').append(new Option(GaryHubCompanionVoices.characters[id].name.zh + ' ' + GaryHubCompanionVoices.characters[id].name.en, id));
-  $('character').onchange = () => chat.setCharacter($('character').value);
+  // The demo ignores account tiers so every character can be checked.
+  $('character').onchange = async () => {
+    const next = GaryHubCompanionPet.mount({character:$('character').value, chat, mode:pet.mode});
+    if (await next.ready) { pet.destroy(); pet = window.companionPet = next; pet.adoptChat(); } else next.destroy();
+  };
   const accounts = {member:{id:2, role:'user', accountTier:'standard'}, subscriber:{id:3, role:'user', accountTier:'subscriber'}, admin:{id:1, role:'admin'}};
   $('account').onchange = () => { GaryHubIdentity = {user:accounts[$('account').value] || null}; document.dispatchEvent(new CustomEvent('garyhub:identity', {detail:GaryHubIdentity})); };
   $('language').onclick = () => {
