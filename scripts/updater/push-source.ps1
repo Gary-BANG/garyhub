@@ -1,6 +1,6 @@
 ﻿[CmdletBinding()]
 param(
- [string]$Repo='D:\Codes\Own_Project\garyhub-repo',
+ [string]$Repo='D:\Codes\Own_Project\garyhub',
  [string]$PackageRoot='',
  [switch]$PrepareOnly
 )

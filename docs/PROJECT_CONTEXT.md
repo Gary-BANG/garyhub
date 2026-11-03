@@ -4,7 +4,11 @@
 
 ## 当前源码与部署证据
 
-- **v2.0.1.0（当前源码）**：基础为 v2.0.0.0 `3a8f4f7060f2054ddd33cc994f1a7b4c63f62ddc`；清单 `releases/2.0.1.0.json`，适配器 `scripts/releases/v2.0.1.0/`（baseline_adapter v2.0.0.0），安装器 v2.0.1.0-r1，要求两服务实际运行 v2.0.0.0。新增栗栗、布丁（Step 1b 矢量姿态）与页芽、小航（Step 1c 设定图裁切 WebP 帧），`characters.js` 中 `kind:'frames'`；`tier` guest／member／subscriber 控制角色选择（访客米露，登录加栗栗，订阅／管理员五位），只是界面权益。`pet.js` 新增整张姿态渲染、`destroy()` 与共享聊天面板；`boot.js` 管理 `char` 偏好与权限回退；`server.cjs`（及 1.3.4.1 覆盖）新增 `.webp` MIME。尚未推送／合并，生产未核验。详见 `docs/GARYHUB_V2_0_1_0.md`。
+- **v2.1.0.0（当前源码）**：基础为已合并 main `d21eecd738ff22a400957e948b8f413337525f31`；开发分支 `feature/sites-portal`，清单 `releases/2.1.0.0.json`，适配器 `scripts/releases/v2.1.0.0/`（baseline_adapter v2.0.1.0），安装器 v2.1.0.0-r1，要求两服务实际运行 v2.0.1.0。新增外站链接页 `lab-service/public/sites/`（`index.html`、`sites.css`、`sites.js`、`thumbs/*.webp`），由 `server.cjs` 在主机 `sites.garyhub.uk` 上以严格 CSP 只提供这些文件，其他主机 `/sites/` 返回 404；主页“其他”菜单与伙伴 `knowledge.js`（`sites`，`access:'public'`）链接该页；`brain.js` 不再把“有没有／是不是…”问句和“不是 PDF”中的空格误判。部署钩子在改动前检查 DNS，验证并在切换后写入一个 Caddy 站点块（`reverse_proxy garyhub-lab:3000`），等待证书，回滚时恢复原 Caddyfile。预览图由 `scripts/sites/capture_thumbnails.py` 在维护者本机生成。安装器与 PUSH 脚本默认仓库改为 `D:\Codes\Own_Project\garyhub`。尚未推送／合并，生产未核验。详见 `docs/GARYHUB_V2_1_0_0.md`。
+
+### v2.0.1.0（上一版本）
+
+- **v2.0.1.0**：基础为 v2.0.0.0 `3a8f4f7060f2054ddd33cc994f1a7b4c63f62ddc`；清单 `releases/2.0.1.0.json`，适配器 `scripts/releases/v2.0.1.0/`（baseline_adapter v2.0.0.0），安装器 v2.0.1.0-r1，要求两服务实际运行 v2.0.0.0。新增栗栗、布丁（Step 1b 矢量姿态）与页芽、小航（Step 1c 设定图裁切 WebP 帧），`characters.js` 中 `kind:'frames'`；`tier` guest／member／subscriber 控制角色选择（访客米露，登录加栗栗，订阅／管理员五位），只是界面权益。`pet.js` 新增整张姿态渲染、`destroy()` 与共享聊天面板；`boot.js` 管理 `char` 偏好与权限回退；`server.cjs`（及 1.3.4.1 覆盖）新增 `.webp` MIME。PR #25 合并为 main `d21eecd`；2026-11-03 安装完成（8/8，8 个账号收到通知，两服务健康检查 2.0.1.0，线上 `characters.js` 与提交一致）。详见 `docs/GARYHUB_V2_0_1_0.md`。
 
 ### v2.0.0.0（上一版本）
 
@@ -51,8 +55,9 @@ v1.4.3.1-r1 曾在受保护 HTML 的未登录正文哈希检查失败后回滚�
 | ECE 470 Lab | lab-service/server.cjs、public/lab/app.js、math-markdown.mjs、cloud.js、core.js |
 | 作业题库分发 | lab-service/lab-distribution.cjs、public/lab/distribution.js、pack-validation.mjs |
 | 三个本地实用工具 | lab-service/public/useful/，避免读取 vendor/ 的大文件 |
+| 外站链接 | lab-service/public/sites/；server.cjs 中 sites.garyhub.uk 分支；scripts/sites/capture_thumbnails.py |
 | 网站伙伴米露 | lab-service/public/companion/（Calendar 副本 calendar-app/public/companion/）；lab-service/test/companion-*.cjs；scripts/companion/slim_rig.py |
-| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v2.0.1.0/ |
+| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v2.1.0.0/ |
 
 Calendar 使用 Node.js、Express、SQLite；Lab 使用 Node 原生 HTTP，浏览器运行 Python/WASM。生产运行代码须保持 Node 20 兼容。浏览器依赖已本地打包，无需让生产服务器在线安装依赖。
 
