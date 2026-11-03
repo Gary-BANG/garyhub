@@ -1,0 +1,7 @@
+/* Loaded inside the pet's shadow root. The host is moved with a transform; only the hit area takes pointer input. */
+:host{position:fixed;left:0;top:0;width:var(--size,120px);height:var(--size,120px);z-index:61;pointer-events:none;contain:layout style;will-change:transform}
+:host([hidden]){display:none}
+.art,.art svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.hit{position:absolute;padding:0;border:0;border-radius:40%;background:transparent;cursor:grab;pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent}
+:host([data-state=drag]) .hit{cursor:grabbing}
+.hit:focus-visible{outline:2px solid #6f8fd0;outline-offset:4px}

@@ -1,0 +1,9 @@
+Add Milu, a website companion visitors can drag around and ask for help. A local bilingual intent engine matches what people type against the existing tool catalogue plus Calendar sections, handles negation, clarification and follow-ups, and only suggests tools the signed-in account can open. Nothing is sent to a model or stored server-side.
+
+The motion layer drives a slimmed copy of the approved Milu rig: free placement by default, an optional gravity mode with a parachute for long drops, landing and recovery, idle blinking and chat reactions, keyboard control and reduced-motion handling. If the artwork fails to load, the plain chat launcher is used.
+
+A single-tag loader mounts it on Home and Tools (full) and on Lab and eight Calendar pages (small and still). Calendar ships a byte-identical copy of the bundle, checked by a test. The homepage host whitelist admits only `/companion/` and `/tools-catalog.js`; versioned companion assets may be cached for a day. Presence and gravity switches live in one `.garyhub.uk` cookie.
+
+Register the independent v2.0.0.0 adapter against reviewed v1.4.3.2 source with a matching no-TOTP variant, an isolated `companion-http.cjs` check and HTTPS checks for asset hashes, page tags, caching and the homepage whitelist. Update README, project context, release notes and validation records. Production verification remains pending installer output.
+
+Validation: the 67-case intent regression set, character, wiring and permission-leak checks were run in a browser against the shipped files, and the pages were exercised on static copies of both services. Node was not available on the build machine, so `node --test` and the existing service suites were not run locally; the installer runs the isolated HTTP checks inside the new images before switching. No production deployment is claimed.
