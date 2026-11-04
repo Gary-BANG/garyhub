@@ -1,0 +1,75 @@
+{
+  "version": "2.3.0.1",
+  "requires_release": "2.3.0.0",
+  "installer_build": "v2.3.0.1-r1",
+  "reviewed_base_commit": "e89fc65c5dad4011faf2089c2468fabe90f9f424",
+  "baseline_adapter": "scripts/releases/v2.3.0.0",
+  "source_subject": "Use reasoning_effort for models that always think",
+  "updated_features": [
+    "companion_assistant_reasoning_fix"
+  ],
+  "summary": "The companion assistant can use models that always think, such as glm-5.3-flash and glm-5.3-flashx: it sends reasoning_effort low instead of switching thinking off, and retries once that way when another model refuses the switch. Current records, settings and host integrations retained.",
+  "asset_checksums": [
+    {"host": "tools.garyhub.uk", "route": "/", "sha256": "3529fed6aae63a9837c4d8a09585cad398d78d8be5e3c0aeb3497fc301c090d4"},
+    {"host": "tools.garyhub.uk", "route": "/assistant-admin.js", "sha256": "6abe4eabf59e2aa30579af7bc6e3d8ae9d657fd8bb33eb5d790342e0745c89b9"},
+    {"host": "tools.garyhub.uk", "route": "/ai-logs/logs.js", "sha256": "086827cd19770bbee8e4b1c294206838ae29287cdbcdc0f26c3201f641cc5600"},
+    {"host": "tools.garyhub.uk", "route": "/ai-logs/logs.css", "sha256": "d1ae8a44f3bced66bb12ed223eef908de0ae4d3104f1baaa3093072f527ad4db"},
+    {"host": "tools.garyhub.uk", "route": "/tools-catalog.js", "sha256": "640a26c200969da424154c8093597cb50a9989097c63249c3650152ecc16e7dc"},
+    {"host": "tools.garyhub.uk", "route": "/companion/boot.js", "sha256": "9441a0a12a558405bcf562a8a807c1249ed130d56815d0a1d16b651b528d23e9"},
+    {"host": "tools.garyhub.uk", "route": "/companion/assistant.js", "sha256": "eac3731cdc481d937b817107f7b52f794d0e494eba861522a509458b639cb837"},
+    {"host": "tools.garyhub.uk", "route": "/companion/panel.js", "sha256": "8ab5a1d8ca5099c625ee3830631536c3865ffa48d34772235e204fc3204f21a7"},
+    {"host": "tools.garyhub.uk", "route": "/companion/panel.css", "sha256": "dedc559bc2bc9c86aaa7509e08058393e5c1c681f9adea3e308cb16067420f90"},
+    {"host": "tools.garyhub.uk", "route": "/companion/knowledge.js", "sha256": "7ed99cb1c1d39bd14d24bc6469a1cdd6db34c69ed9a8b56e3f8ef0e1568a898a"},
+    {"host": "garyhub.uk", "route": "/companion/assistant.js", "sha256": "eac3731cdc481d937b817107f7b52f794d0e494eba861522a509458b639cb837"},
+    {"host": "garyhub.uk", "route": "/companion/panel.js", "sha256": "8ab5a1d8ca5099c625ee3830631536c3865ffa48d34772235e204fc3204f21a7"},
+    {"host": "calendar.garyhub.uk", "route": "/companion/assistant.js", "sha256": "eac3731cdc481d937b817107f7b52f794d0e494eba861522a509458b639cb837"},
+    {"host": "calendar.garyhub.uk", "route": "/companion/panel.js", "sha256": "8ab5a1d8ca5099c625ee3830631536c3865ffa48d34772235e204fc3204f21a7"}
+  ],
+  "sites_asset_checksums": [
+    {"host": "sites.garyhub.uk", "route": "/", "sha256": "2387c85b95428f9e284035af3849d22deff979339db70bbf18543a517b79dbf4"},
+    {"host": "sites.garyhub.uk", "route": "/sites.css", "sha256": "8525d4ba5225888b2508305e8a0bc05ac0b161775e61a0ec6fbe46b2c3c36507"},
+    {"host": "sites.garyhub.uk", "route": "/sites.js", "sha256": "a44ab7c293e379c7ecd31520a4cc8f0038fdd7528b3a8dea1c3208e1808e1be7"},
+    {"host": "sites.garyhub.uk", "route": "/thumbs/ece470.webp", "sha256": "b7294f62601879dd224aef6c6022840e2e3fafb93dda66074b3cc013d6bdcf27"},
+    {"host": "sites.garyhub.uk", "route": "/thumbs/photography.webp", "sha256": "2d0350bf5a396e1563043331700e7b05ad3725c32346866c07760da5d964a558"}
+  ],
+  "protected_asset_checksums": [
+    {"host": "tools.garyhub.uk", "route": "/lab/index.html", "sha256": "00f1cae1ccf902192a985e96075d4b4fdf8acf6498d1f340091fef9f5296c72c", "service": "garyhub-lab", "file": "/lab/public/lab/index.html"},
+    {"host": "tools.garyhub.uk", "route": "/useful/image-eraser/index.html", "sha256": "351063933bb67b994ad40aee709b016bf8b6ce03fc18dd190d31f1af1b05bc0a", "service": "garyhub-lab", "file": "/lab/public/useful/image-eraser/index.html"},
+    {"host": "tools.garyhub.uk", "route": "/useful/markdown-viewer/index.html", "sha256": "ce561c30770bd81a045ceae93fbe1e1940ce7404fcefc5f76efad891a540237c", "service": "garyhub-lab", "file": "/lab/public/useful/markdown-viewer/index.html"},
+    {"host": "tools.garyhub.uk", "route": "/useful/pdf-gray/index.html", "sha256": "cf81b97cc6312acd81624014e39284906bfd605fc7ea12e25a8eecae5c9d32f5", "service": "garyhub-lab", "file": "/lab/public/useful/pdf-gray/index.html"}
+  ],
+  "admin_asset_checksums": [
+    {"host": "tools.garyhub.uk", "route": "/ai-logs/index.html", "sha256": "c18ee8c56375b67c0d1c66e5566edb613ad87c961966d4baa788d1fe14f713c3", "service": "garyhub-lab", "file": "/lab/public/ai-logs/index.html"}
+  ],
+  "isolation_checks": [
+    "useful-http.cjs",
+    "study-http.cjs",
+    "asset-response.cjs",
+    "music-http.cjs",
+    "companion-http.cjs",
+    "sites-http.cjs",
+    "assistant-http.cjs"
+  ],
+  "test_inputs": {
+    "seed.cjs": "scripts/releases/v1.4.3.0/tests/seed.cjs",
+    "seed-base.cjs": "scripts/releases/v1.3.6.0/tests/seed.cjs",
+    "useful-http.cjs": "scripts/releases/v1.3.6.1/tests/useful-http.cjs",
+    "study-http.cjs": "scripts/releases/v1.4.3.1/tests/study-http.cjs",
+    "study-fixture.cjs": "scripts/releases/v1.4.3.1/tests/study-fixture.cjs",
+    "asset-response.cjs": "scripts/releases/v1.4.3.1/tests/asset-response.cjs",
+    "asset-checks.json": "scripts/releases/v2.3.0.1/release-config.json",
+    "music-http.cjs": "scripts/releases/v1.4.3.2/tests/music-http.cjs",
+    "companion-http.cjs": "scripts/releases/v2.0.1.0/tests/companion-http.cjs",
+    "sites-http.cjs": "scripts/releases/v2.1.0.0/tests/sites-http.cjs",
+    "assistant-http.cjs": "scripts/releases/v2.3.0.0/tests/assistant-http.cjs"
+  },
+  "isolation_environment": {
+    "TRUSTED_ORIGINS": "https://garyhub.uk,https://calendar.garyhub.uk,https://tools.garyhub.uk,https://lab.garyhub.uk,http://calendar-check:3000"
+  },
+  "isolation_service_environment": {
+    "calendar-app": {
+      "GARYHUB_ASSISTANT_ENDPOINT": "http://127.0.0.1:4011/v4/chat/completions",
+      "GARYHUB_ASSISTANT_SEARCH_ENDPOINT": "http://127.0.0.1:4011/v4/web_search"
+    }
+  }
+}

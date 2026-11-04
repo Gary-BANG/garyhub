@@ -178,11 +178,27 @@ async function post(s, url, model, body, timeout) {
   }
   return data;
 }
-// One OpenAI-style chat completion with one model. Only GLM 4.5 and later understand `thinking`.
+// GLM 4.5 and later accept thinking:{type:'disabled'}. Models that always think (GLM-5.3) refuse it with
+// a 400 and take reasoning_effort low/high/max instead; another model that refuses it is remembered here.
+const ALWAYS_THINKS = /^glm-5\.3(?:-|$)/i, alwaysThinks = new Set();
+const thinksAlways = model => ALWAYS_THINKS.test(model) || alwaysThinks.has(model.toLowerCase());
+function reasoning(model, maxTokens) {
+  if (thinksAlways(model)) return {reasoning_effort:'low', max_tokens:maxTokens + 2048};
+  return {...(/^glm-(?:4\.[5-9]|[5-9])/i.test(model) ? {thinking:{type:'disabled'}} : {}), max_tokens:maxTokens};
+}
+// One OpenAI-style chat completion with one model.
 async function complete(s, model, messages, tools, maxTokens = 1024, timeout = ROUND_TIMEOUT) {
-  const data = await post(s, process.env.GARYHUB_ASSISTANT_ENDPOINT || provider(s).url, model,
-    {model, messages, ...(tools ? {tools, tool_choice:'auto'} : {}), ...(/^glm-(?:4\.[5-9]|[5-9])/i.test(model) ? {thinking:{type:'disabled'}} : {}),
-      max_tokens:maxTokens, temperature:0.3, stream:false}, timeout);
+  const url = process.env.GARYHUB_ASSISTANT_ENDPOINT || provider(s).url, started = Date.now();
+  const send = (wait) => post(s, url, model, {model, messages, ...(tools ? {tools, tool_choice:'auto'} : {}), ...reasoning(model, maxTokens),
+    temperature:0.3, stream:false}, wait);
+  let data;
+  try { data = await send(timeout); }
+  catch (error) {
+    const refused = error.upstream?.status === 400 && /思考|thinking|reasoning/i.test(error.upstream.detail) && !thinksAlways(model);
+    if (!refused || timeout - (Date.now() - started) < 3000) throw error;
+    alwaysThinks.add(model.toLowerCase());
+    data = await send(timeout - (Date.now() - started));
+  }
   const message = data?.choices?.[0]?.message;
   if (!message || typeof message !== 'object') throw upstream(s, model, 502, 'bad_response', 'no choices[0].message');
   return {message, usage:data.usage || {}};

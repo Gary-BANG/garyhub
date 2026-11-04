@@ -4,7 +4,8 @@
 
 ## 当前源码与部署证据
 
-- **v2.3.0.0（当前源码）**：基础为已合并 main `a75a1e35b1d8ff6f81ff794a4080ccccacd22aa2`（PR #27，树与 v2.2.0.0-r2 提交 f98eac4 相同）；开发分支 `feature/assistant-tiers`，清单 `releases/2.3.0.0.json`，适配器 `scripts/releases/v2.3.0.0/`（baseline_adapter v2.2.0.0），安装器 v2.3.0.0-r1，要求两服务实际运行 v2.2.0.0，不改 Caddy／DNS／Compose。`assistant-api.js` 改为：
+- **v2.3.0.1（当前源码）**：基础为 v2.3.0.0 提交 `e89fc65c5dad4011faf2089c2468fabe90f9f424`（同一分支 `feature/assistant-tiers`，两者均未推送／合并）；清单 `releases/2.3.0.1.json`，适配器 `scripts/releases/v2.3.0.1/`（baseline_adapter v2.3.0.0，隔离检查沿用 v2.3.0.0 的 7 项），安装器 v2.3.0.1-r1，要求两服务实际运行 v2.3.0.0。起因：维护者把主模型设为 `glm-5.3-flash` 后“测试连接”返回 HTTP 400、错误码 1210“该模型始终思考，不支持关闭思考；请使用 low、high 或 max”。`assistant-api.js` 的 `complete()` 改为：名称匹配 `glm-5.3` 的模型不发 `thinking`，改发 `reasoning_effort:'low'`，`max_tokens` 加 2048 留给思考；GLM 4.5+ 其他模型仍发 `thinking:{type:'disabled'}`；若某模型以 400 且说明含“思考／thinking／reasoning”拒绝，则在同一请求预算内改用 `reasoning_effort` 重试一次，并在进程内记住该模型（不计入错误日志、不触发备用模型）。无数据库结构变化。GitHub：v2.3.0.0 的推送包以 main `a75a1e3` 为基础；合并后 main 不含 `e89fc65` 本身，v2.3.0.1 的源码同步需在合并后按树相同核对另行准备。
+- **v2.3.0.0**：维护者 2026-11-03 发回的管理页“测试连接”三项结果（主模型／备用模型／联网搜索）只在 v2.3.0.0 出现，说明已在运行；安装输出未收录。以下为当时记录：基础为已合并 main `a75a1e35b1d8ff6f81ff794a4080ccccacd22aa2`（PR #27，树与 v2.2.0.0-r2 提交 f98eac4 相同）；开发分支 `feature/assistant-tiers`，清单 `releases/2.3.0.0.json`，适配器 `scripts/releases/v2.3.0.0/`（baseline_adapter v2.2.0.0），安装器 v2.3.0.0-r1，要求两服务实际运行 v2.2.0.0，不改 Caddy／DNS／Compose。`assistant-api.js` 改为：
   - `assistant_settings` 原地新增 `fallback_model`（默认 `glm-4-flashx-250414`）、`search_enabled`、`quotas`（JSON，按 chat／data／search × standard／subscriber／admin，默认 200/200/500、30/50/200、5/30/100；`daily_limit` 列保留但不再使用）。
   - 新表 `assistant_quota`（每人每天每类计数）、`assistant_memory`（每人最近 5 轮）、`assistant_calls`（每条消息元数据）、`assistant_errors`（服务商／服务器错误，`recovered` 表示备用模型已完成）；均无外键，已加入 `account-admin.js` 删除清单；日志保留 30 天。
   - 等级每次从数据库读取（`role`／`account_tier`）。对话次数在调用前计入；日程工具和 `web_search` 在消息首次使用时各计 1 次（会话内互斥：搜索后拒绝日程工具，反之亦然）；上游失败时全部退回，搜索失败只退回搜索次数。
@@ -74,7 +75,7 @@ v1.4.3.1-r1 曾在受保护 HTML 的未登录正文哈希检查失败后回滚�
 | 三个本地实用工具 | lab-service/public/useful/，避免读取 vendor/ 的大文件 |
 | 外站链接 | lab-service/public/sites/；server.cjs 中 sites.garyhub.uk 分支；scripts/sites/capture_thumbnails.py |
 | 网站伙伴米露 | lab-service/public/companion/（Calendar 副本 calendar-app/public/companion/）；lab-service/test/companion-*.cjs；scripts/companion/slim_rig.py |
-| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v2.3.0.0/ |
+| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v2.3.0.1/ |
 
 Calendar 使用 Node.js、Express、SQLite；Lab 使用 Node 原生 HTTP，浏览器运行 Python/WASM。生产运行代码须保持 Node 20 兼容。浏览器依赖已本地打包，无需让生产服务器在线安装依赖。
 
