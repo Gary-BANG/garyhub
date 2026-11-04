@@ -86,7 +86,7 @@
   }
 
   async function start() {
-    const files = [...(window.GaryHubTools ? [] : [siteRoot + 'tools-catalog.js']), ...['knowledge.js', 'brain.js', 'voices.js', 'assistant.js', 'panel.js', 'characters.js', 'pet.js'].map(file => base + file)];
+    const files = [...(window.GaryHubTools ? [] : [siteRoot + 'tools-catalog.js']), ...['knowledge.js', 'brain.js', 'voices.js', 'assistant.js', 'panel.js', 'characters.js', 'puppet.js', 'pet.js'].map(file => base + file)];
     for (const file of files) await load(file);
     const {GaryHubCompanionPet: pets, GaryHubCompanionChat: chats, GaryHubCompanionCharacters: rigs, GaryHubCompanionVoices: voices} = window;
     if (!pets || !chats || !rigs || !voices) return;
