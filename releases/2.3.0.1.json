@@ -22,6 +22,6 @@
     "assistant_failed_messages_not_counted",
     "assistant_logs_exclude_conversation_text"
   ],
-  "production_verified": false,
+  "production_verified": true,
   "installer_revision": "r1"
 }

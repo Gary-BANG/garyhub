@@ -1,6 +1,13 @@
 # GaryHub v2.3.0.1 验证记录
 
-维护日期：2026-11-03（America/Chicago）。状态：源码已准备、本地已验证；未推送、未合并、生产未核验。环境与 v2.3.0.0 相同（WSL Ubuntu 22.04，官方 Node v20.20.2 与 v22.23.4）。
+维护日期：2026-11-03（America/Chicago）。状态：本地已验证；**生产已安装并由安装输出核验**；未推送、未合并。环境与 v2.3.0.0 相同（WSL Ubuntu 22.04，官方 Node v20.20.2 与 v22.23.4）。
+
+## 生产安装（2026-11-03，维护者发回的安装输出）
+
+- 安装器 v2.3.0.1-r1 依次完成 1/8–8/8：第 1 阶段核对通过，说明两服务当时实际运行 v2.3.0.0；第 3 阶段隔离检查全部通过；“8/8 COMPLETE GaryHub v2.3.0.1. Update notices verified for 8 accounts.”
+- `SOURCE_BASELINE=1.3.4.2`（有 TOTP 的组合）。
+- 本地源码同步按预期停止：“Remote main does not contain the reviewed base; no patch applied.”——v2.3.0.0 尚未推送／合并，main 不含基础提交 `e89fc65`。服务器更新不受影响。
+- 真实 GLM-5.3 调用结果待维护者在管理页测试后补充。
 
 ## 已执行
 
