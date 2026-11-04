@@ -45,7 +45,7 @@ for (const id of rigs.roster) test(`${id}: geometry sits inside its view box and
     return;
   }
   assert.equal(spec.kind, 'frames');
-  // The engine needs these five; wave/curious/decline are optional reactions.
+  // The engine needs these five; wave/curious/decline (reactions) and touchdown/squash/rise (landing) are optional.
   for (const name of ['idle', 'held', 'fall', 'parachute', 'land']) assert.ok(spec.frames[name], `${id} needs ${name}`);
   for (const [name, [file, , , w, h]] of Object.entries(spec.frames)) {
     assert.ok(w > 0 && h > 0, `${id}/${name} size`);

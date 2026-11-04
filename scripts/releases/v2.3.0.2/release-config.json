@@ -1,0 +1,85 @@
+{
+  "version": "2.3.0.2",
+  "requires_release": "2.3.0.1",
+  "installer_build": "v2.3.0.2-r1",
+  "reviewed_base_commit": "5a45333942b7d2602f4645f328d6caea535a49b2",
+  "baseline_adapter": "scripts/releases/v2.3.0.1",
+  "source_subject": "Rig Lili and steady the companion landing",
+  "updated_features": [
+    "companion_lili_rig",
+    "companion_landing_settle"
+  ],
+  "summary": "Lili becomes a layered vector rig like Milu: she blinks, swings her tail, waves, and changes expression while falling, landing and standing up. Every companion eases its parachute sway before touchdown, so the feet no longer slide after landing. Current records, settings and host integrations retained.",
+  "asset_checksums": [
+    {"host": "tools.garyhub.uk", "route": "/", "sha256": "f884da96b0de088f60ab3d432620921374d733f2cc619ec24fbd2b2e9e56c800"},
+    {"host": "tools.garyhub.uk", "route": "/assistant-admin.js", "sha256": "6abe4eabf59e2aa30579af7bc6e3d8ae9d657fd8bb33eb5d790342e0745c89b9"},
+    {"host": "tools.garyhub.uk", "route": "/ai-logs/logs.js", "sha256": "086827cd19770bbee8e4b1c294206838ae29287cdbcdc0f26c3201f641cc5600"},
+    {"host": "tools.garyhub.uk", "route": "/ai-logs/logs.css", "sha256": "d1ae8a44f3bced66bb12ed223eef908de0ae4d3104f1baaa3093072f527ad4db"},
+    {"host": "tools.garyhub.uk", "route": "/tools-catalog.js", "sha256": "640a26c200969da424154c8093597cb50a9989097c63249c3650152ecc16e7dc"},
+    {"host": "tools.garyhub.uk", "route": "/companion/boot.js", "sha256": "9441a0a12a558405bcf562a8a807c1249ed130d56815d0a1d16b651b528d23e9"},
+    {"host": "tools.garyhub.uk", "route": "/companion/assistant.js", "sha256": "eac3731cdc481d937b817107f7b52f794d0e494eba861522a509458b639cb837"},
+    {"host": "tools.garyhub.uk", "route": "/companion/panel.js", "sha256": "8ab5a1d8ca5099c625ee3830631536c3865ffa48d34772235e204fc3204f21a7"},
+    {"host": "tools.garyhub.uk", "route": "/companion/panel.css", "sha256": "dedc559bc2bc9c86aaa7509e08058393e5c1c681f9adea3e308cb16067420f90"},
+    {"host": "tools.garyhub.uk", "route": "/companion/knowledge.js", "sha256": "7ed99cb1c1d39bd14d24bc6469a1cdd6db34c69ed9a8b56e3f8ef0e1568a898a"},
+    {"host": "garyhub.uk", "route": "/companion/assistant.js", "sha256": "eac3731cdc481d937b817107f7b52f794d0e494eba861522a509458b639cb837"},
+    {"host": "garyhub.uk", "route": "/companion/panel.js", "sha256": "8ab5a1d8ca5099c625ee3830631536c3865ffa48d34772235e204fc3204f21a7"},
+    {"host": "calendar.garyhub.uk", "route": "/companion/assistant.js", "sha256": "eac3731cdc481d937b817107f7b52f794d0e494eba861522a509458b639cb837"},
+    {"host": "calendar.garyhub.uk", "route": "/companion/panel.js", "sha256": "8ab5a1d8ca5099c625ee3830631536c3865ffa48d34772235e204fc3204f21a7"},
+    {"host": "tools.garyhub.uk", "route": "/companion/pet.js", "sha256": "b931a43954d0ce11d0ca4ecdf9debb1bea9dd45eddd8063d79697dd60d067c8d"},
+    {"host": "tools.garyhub.uk", "route": "/companion/characters.js", "sha256": "74037a45258a17d60418c1b73ce0f587dec90b041ef6ae3fab100379b2448ff0"},
+    {"host": "tools.garyhub.uk", "route": "/companion/characters/lili/rig.svg", "sha256": "5ca0e3369ed665201b6a23d86d58769a43ce571a9102670c4e9a8d85e3570cd3"},
+    {"host": "garyhub.uk", "route": "/companion/pet.js", "sha256": "b931a43954d0ce11d0ca4ecdf9debb1bea9dd45eddd8063d79697dd60d067c8d"},
+    {"host": "garyhub.uk", "route": "/companion/characters.js", "sha256": "74037a45258a17d60418c1b73ce0f587dec90b041ef6ae3fab100379b2448ff0"},
+    {"host": "garyhub.uk", "route": "/companion/characters/lili/rig.svg", "sha256": "5ca0e3369ed665201b6a23d86d58769a43ce571a9102670c4e9a8d85e3570cd3"},
+    {"host": "calendar.garyhub.uk", "route": "/companion/pet.js", "sha256": "b931a43954d0ce11d0ca4ecdf9debb1bea9dd45eddd8063d79697dd60d067c8d"},
+    {"host": "calendar.garyhub.uk", "route": "/companion/characters.js", "sha256": "74037a45258a17d60418c1b73ce0f587dec90b041ef6ae3fab100379b2448ff0"},
+    {"host": "calendar.garyhub.uk", "route": "/companion/characters/lili/rig.svg", "sha256": "5ca0e3369ed665201b6a23d86d58769a43ce571a9102670c4e9a8d85e3570cd3"}
+  ],
+  "sites_asset_checksums": [
+    {"host": "sites.garyhub.uk", "route": "/", "sha256": "0d37f2de87e6559af61895d357ae948408377ab6c88fc031154e573435ae7861"},
+    {"host": "sites.garyhub.uk", "route": "/sites.css", "sha256": "8525d4ba5225888b2508305e8a0bc05ac0b161775e61a0ec6fbe46b2c3c36507"},
+    {"host": "sites.garyhub.uk", "route": "/sites.js", "sha256": "a44ab7c293e379c7ecd31520a4cc8f0038fdd7528b3a8dea1c3208e1808e1be7"},
+    {"host": "sites.garyhub.uk", "route": "/thumbs/ece470.webp", "sha256": "b7294f62601879dd224aef6c6022840e2e3fafb93dda66074b3cc013d6bdcf27"},
+    {"host": "sites.garyhub.uk", "route": "/thumbs/photography.webp", "sha256": "2d0350bf5a396e1563043331700e7b05ad3725c32346866c07760da5d964a558"}
+  ],
+  "protected_asset_checksums": [
+    {"host": "tools.garyhub.uk", "route": "/lab/index.html", "sha256": "343656f335bbedf49f8c55efd0e6581ffc84c14242ce512d3a0e576fc91683af", "service": "garyhub-lab", "file": "/lab/public/lab/index.html"},
+    {"host": "tools.garyhub.uk", "route": "/useful/image-eraser/index.html", "sha256": "351063933bb67b994ad40aee709b016bf8b6ce03fc18dd190d31f1af1b05bc0a", "service": "garyhub-lab", "file": "/lab/public/useful/image-eraser/index.html"},
+    {"host": "tools.garyhub.uk", "route": "/useful/markdown-viewer/index.html", "sha256": "ce561c30770bd81a045ceae93fbe1e1940ce7404fcefc5f76efad891a540237c", "service": "garyhub-lab", "file": "/lab/public/useful/markdown-viewer/index.html"},
+    {"host": "tools.garyhub.uk", "route": "/useful/pdf-gray/index.html", "sha256": "cf81b97cc6312acd81624014e39284906bfd605fc7ea12e25a8eecae5c9d32f5", "service": "garyhub-lab", "file": "/lab/public/useful/pdf-gray/index.html"}
+  ],
+  "admin_asset_checksums": [
+    {"host": "tools.garyhub.uk", "route": "/ai-logs/index.html", "sha256": "bee18e48ddd706b80e2e81537ef0115b76644fb968433c0b20b1face5884b06d", "service": "garyhub-lab", "file": "/lab/public/ai-logs/index.html"}
+  ],
+  "isolation_checks": [
+    "useful-http.cjs",
+    "study-http.cjs",
+    "asset-response.cjs",
+    "music-http.cjs",
+    "companion-http.cjs",
+    "sites-http.cjs",
+    "assistant-http.cjs"
+  ],
+  "test_inputs": {
+    "seed.cjs": "scripts/releases/v1.4.3.0/tests/seed.cjs",
+    "seed-base.cjs": "scripts/releases/v1.3.6.0/tests/seed.cjs",
+    "useful-http.cjs": "scripts/releases/v1.3.6.1/tests/useful-http.cjs",
+    "study-http.cjs": "scripts/releases/v1.4.3.1/tests/study-http.cjs",
+    "study-fixture.cjs": "scripts/releases/v1.4.3.1/tests/study-fixture.cjs",
+    "asset-response.cjs": "scripts/releases/v1.4.3.1/tests/asset-response.cjs",
+    "asset-checks.json": "scripts/releases/v2.3.0.2/release-config.json",
+    "music-http.cjs": "scripts/releases/v1.4.3.2/tests/music-http.cjs",
+    "companion-http.cjs": "scripts/releases/v2.0.1.0/tests/companion-http.cjs",
+    "sites-http.cjs": "scripts/releases/v2.1.0.0/tests/sites-http.cjs",
+    "assistant-http.cjs": "scripts/releases/v2.3.0.0/tests/assistant-http.cjs"
+  },
+  "isolation_environment": {
+    "TRUSTED_ORIGINS": "https://garyhub.uk,https://calendar.garyhub.uk,https://tools.garyhub.uk,https://lab.garyhub.uk,http://calendar-check:3000"
+  },
+  "isolation_service_environment": {
+    "calendar-app": {
+      "GARYHUB_ASSISTANT_ENDPOINT": "http://127.0.0.1:4011/v4/chat/completions",
+      "GARYHUB_ASSISTANT_SEARCH_ENDPOINT": "http://127.0.0.1:4011/v4/web_search"
+    }
+  }
+}
