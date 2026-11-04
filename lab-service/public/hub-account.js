@@ -12,7 +12,15 @@
  function conceal(){window.GaryHubIdentity={user:null};document.dispatchEvent(new CustomEvent("garyhub:identity",{detail:window.GaryHubIdentity}));const p=document.querySelector('[data-academics]');if(p&&!document.getElementById('profileUnlock')){p.replaceChildren(el('span','该部分已隐藏','gh-masked'));p.setAttribute('aria-label','该部分已隐藏');}}
  function resetPrivate(){conceal();panel.hidden=true;panel.replaceChildren();items=[];bell.textContent='🔔';bell.setAttribute('aria-expanded','false');}
  function render(){panel.replaceChildren(el('h3',scope==='all'?'全部更新':'Network Access 更新'));if(!items.length)panel.append(el('p','暂无通知'));
-  for(const n of items){const row=el('article',undefined,'gh-notice'+(!n.read_at?' gh-unread':''));row.append(el('small',`${labels[n.scope]||n.scope} · ${n.created_at}`),el('strong',n.title),el('p',n.body));if(!n.read_at){const read=el('button','标为已读','gh-button');read.type='button';read.onclick=async()=>{read.disabled=true;try{await mutate(`/api/hub/notifications/${n.id}/read`);await notices();}catch(e){message.textContent=e.message;read.disabled=false;}};row.append(read);}else row.append(el('small','已读'));panel.append(row);}
+  panel.append(el('p','普通通知保留 14 天；账号验证等必要通知保留。'));
+  const actions=el('div',undefined,'gh-notice-actions');
+  for(const [action,label] of [['read-all','一键已读'],['delete-all','一键删除']]){
+   const button=el('button',label,'gh-button');button.type='button';
+   button.onclick=async()=>{const userId=user?.id;for(const b of actions.children)b.disabled=true;try{await mutate('/api/hub/notifications/'+action,'POST',{scope,userId});await notices();}catch(e){message.textContent=e.message;for(const b of actions.children)b.disabled=false;}};
+   actions.append(button);
+  }
+  panel.append(actions);
+  for(const n of items){const row=el('article',undefined,'gh-notice'+(!n.read_at?' gh-unread':''));row.append(el('small',`${labels[n.scope]||n.scope} · ${n.created_at}`),el('strong',n.title),el('p',n.body));if(n.required)row.append(el('small','必要通知 · 不自动清理'));if(!n.read_at){const read=el('button','标为已读','gh-button');read.type='button';read.onclick=async()=>{read.disabled=true;try{await mutate(`/api/hub/notifications/${n.id}/read`);await notices();}catch(e){message.textContent=e.message;read.disabled=false;}};row.append(read);}else row.append(el('small','已读'));panel.append(row);}
   if(nextBefore){const more=el('button','加载更早通知','gh-button');more.type='button';more.onclick=()=>notices(true).catch(e=>message.textContent=e.message);panel.append(more);}
  }
  async function notices(more=false){if(!user||!scope)return;const id=user.id;const r=await api('/api/hub/notifications?scope='+scope+(more&&nextBefore?'&before='+nextBefore:''));if(user?.id!==id)return;items=more?[...items,...r.items]:r.items;nextBefore=r.nextBefore;bell.textContent='🔔'+(r.unread?' '+r.unread:'');bell.setAttribute('aria-label',`更新通知，${r.unread} 条未读`);render();}

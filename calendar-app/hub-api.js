@@ -1,4 +1,5 @@
 'use strict';
+const {PROTECTED_SQL,ORDINARY_SQL,VISIBLE_SQL,pruneNotifications}=require('./notification-policy');
 const SCOPES = new Set(['home','calendar','tools','access','lab']);
 const route=fn=>(req,res,next)=>Promise.resolve(fn(req,res)).catch(next);
 async function migrateHub(db){
@@ -33,9 +34,21 @@ function registerHubApi(app,{db,requireLogin,requireAdmin}){
     const filter=scope==='all'?'':' AND scope=?',params=[req.session.user.id,...(scope==='all'?[]:[scope])];
     const before=req.query.before?Number(req.query.before):null;
     if(before!==null&&(!Number.isSafeInteger(before)||before<1))return res.status(400).json({message:'分页参数无效'});
-    const items=await all(`SELECT id,type,scope,title,body,read_at,created_at FROM notifications WHERE user_id=?${filter}${before?' AND id<?':''} ORDER BY id DESC LIMIT 51`,[...params,...(before?[before]:[])]);
-    const count=await get(`SELECT COUNT(*) AS n FROM notifications WHERE user_id=?${filter} AND read_at IS NULL`,params);
+    await pruneNotifications(db);
+    const items=await all(`SELECT id,type,scope,title,body,read_at,created_at,${PROTECTED_SQL} AS required FROM notifications WHERE user_id=? AND ${VISIBLE_SQL}${filter}${before?' AND id<?':''} ORDER BY id DESC LIMIT 51`,[...params,...(before?[before]:[])]);
+    const count=await get(`SELECT COUNT(*) AS n FROM notifications WHERE user_id=? AND ${VISIBLE_SQL}${filter} AND read_at IS NULL`,params);
     res.json({items:items.slice(0,50),unread:count.n,nextBefore:items.length>50?items[49].id:null});
+  }));
+  for(const action of ['read-all','delete-all'])app.post('/api/hub/notifications/'+action,requireLogin,route(async(req,res)=>{
+    if(req.body.userId!==req.session.user.id)return res.status(409).json({message:'登录账号已变化，请刷新页面'});
+    const scope=req.body.scope||'all';
+    if(scope!=='all'&&!SCOPES.has(scope))return res.status(400).json({message:'通知分类无效'});
+    const filter=scope==='all'?'':' AND scope=?';
+    const params=[req.session.user.id,...(scope==='all'?[]:[scope])];
+    const sql=action==='delete-all'?'DELETE FROM notifications':
+      'UPDATE notifications SET read_at=COALESCE(read_at,CURRENT_TIMESTAMP)';
+    const result=await run(`${sql} WHERE user_id=? AND ${ORDINARY_SQL}${filter}`,params);
+    res.json({ok:true,changed:result.changes});
   }));
   app.post('/api/hub/notifications/:id/read',requireLogin,route(async(req,res)=>{
     const id=Number(req.params.id);
