@@ -28,6 +28,9 @@
   // Which whole-pose image a 'frames' character shows in each state.
   const FRAME_FOR = {drag:'held', fall:'fall', chute:'parachute', land:'land', recover:'land'};
   const GESTURE_FRAME = {wave:'wave', tilt:'curious', shake:'decline'};
+  // Characters with landing poses step through touchdown → squash → rise by phase progress;
+  // the others hold 'land'.
+  const LANDING_FRAME = {land:p => p < .5 ? 'touchdown' : 'squash', recover:p => p < .4 ? 'squash' : 'rise'};
 
   // Harness and parachute for 'rig' characters, drawn in the rig's units around the ring. They sit
   // behind the actor, so the straps only show above the head and the canopy lines meet at the ring.
@@ -138,8 +141,8 @@
     }
 
     function enter(next) {
-      // Touching down and standing back up dissolve between poses instead of cutting.
-      if (frames && (next === 'land' || next === 'idle' && state === 'recover')) fadeNext = true;
+      // Standing back up dissolves into idle instead of cutting (poses inside the landing always do).
+      if (frames && next === 'idle' && state === 'recover') fadeNext = true;
       state = next; phaseStart = now(); host.dataset.state = next;
       if (next === 'drag') { setMouth('o'); setEyes('open'); chuteTarget = 0; gesture = null; }
       if (next === 'fall') setMouth('o');
@@ -245,7 +248,7 @@
     function showFrame(name, t) {
       const pick = images[name]?.ready ? name : 'idle';
       if (pick !== shown) {
-        const old = images[shown]?.img, fade = fadeNext && old && !reduced.matches;
+        const old = images[shown]?.img, fade = (fadeNext || state === 'land' || state === 'recover') && old && !reduced.matches;
         fadeNext = false;
         if (fading) { fading.img.style.opacity = fading.img.style.zIndex = ''; fading = null; }
         for (const [frame, {img}] of Object.entries(images)) img.hidden = frame !== pick && !(fade && img === old);
@@ -278,7 +281,8 @@
           if (gesture.type === 'shake') turn = 3 * Math.sin(g * Math.PI * 4) * (1 - g);
           if (gesture.type === 'wave') lift = -8 / k * Math.abs(Math.sin(g * Math.PI * 2));
         }
-        showFrame(FRAME_FOR[state] || (framed ? GESTURE_FRAME[gesture.type] : 'idle'), t);
+        const landing = LANDING_FRAME[state]?.(p);
+        showFrame(images[landing]?.ready ? landing : FRAME_FOR[state] || (framed ? GESTURE_FRAME[gesture.type] : 'idle'), t);
         const [rpx, rpy, fpx, fpy] = [px(rx), py(ry), px(fx), py(fy)];
         const degrees = angle * 180 / Math.PI;
         pose.style.transform = `translate(${rpx.toFixed(1)}px,${rpy.toFixed(1)}px) rotate(${degrees.toFixed(2)}deg) translate(${(-rpx).toFixed(1)}px,${(-rpy).toFixed(1)}px) translate(0px,${(lift * k).toFixed(1)}px) translate(${fpx.toFixed(1)}px,${fpy.toFixed(1)}px) rotate(${turn.toFixed(2)}deg) scale(${sx.toFixed(3)},${sy.toFixed(3)}) translate(${(-fpx).toFixed(1)}px,${(-fpy).toFixed(1)}px)`;

@@ -27,7 +27,10 @@
     // Lili's idle faces right and the other poses left; flipping them keeps the tail on one side.
     lili:{available:true, tier:'member', kind:'frames', thumbnail:'characters/lili/thumbnail.webp',
       viewBox:[13, 167, 485, 485], bounds:[81, 207, 430, 608], ring:[256, 150], feet:[256, 608],
-      frames:canvas('lili', ['idle', 'held', 'fall', 'parachute', 'land'], ['held', 'fall', 'parachute', 'land'])},
+      frames:{...canvas('lili', ['idle', 'held', 'fall', 'parachute', 'land'], ['held', 'fall', 'parachute', 'land']),
+        // Landing poses from a generated sheet, placed on the same canvas by scripts/companion/place_frames.py.
+        touchdown:['characters/lili/touchdown.webp', 43, -10, 395, 637], squash:['characters/lili/squash.webp', 73, 255, 390, 372],
+        rise:['characters/lili/rise.webp', 150, 178, 276, 449]}},
     pudding:{available:true, tier:'subscriber', kind:'frames', thumbnail:'characters/pudding/thumbnail.webp',
       viewBox:[13, 167, 485, 485], bounds:[79, 207, 432, 608], ring:[256, 150], feet:[256, 608],
       frames:canvas('pudding', ['idle', 'held', 'fall', 'parachute', 'land'])},
