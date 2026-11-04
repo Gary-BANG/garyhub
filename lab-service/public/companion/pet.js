@@ -12,7 +12,7 @@
   const base = new URL('.', document.currentScript?.src || location.href).href;
   const asset = file => base + file + (window.GaryHubCompanionAssetVersion ? '?v=' + encodeURIComponent(window.GaryHubCompanionAssetVersion) : '');
   const KEY = {position:'garyhub.companion.position', mode:'garyhub.companion.mode'};
-  const GRAVITY = 2600, CHUTE_FROM = 180, CHUTE_SPEED = 170, EDGE = 4, IDLE_FOR = 30000;
+  const GRAVITY = 2600, CHUTE_FROM = 180, CHUTE_SPEED = 170, EDGE = 4, IDLE_FOR = 30000, FADE_MS = 160;
   const text = {
     zh:{label:name => `${name}：按 Enter 聊天，方向键移动，Home 回到默认位置`},
     en:{label:name => `${name}: press Enter to chat, arrow keys to move, Home to reset`}
@@ -65,6 +65,8 @@
   function mount({character = rigs.fallback, target = document.body, mode: initialMode, presence: initialPresence = 'on', onModeChange, chat: sharedChat} = {}) {
     const id = rigs.characters[character]?.available ? character : rigs.fallback, spec = rigs.characters[id];
     const frames = spec.kind === 'frames';
+    // Phase lengths in ms. A 'frames' pose cannot shake its head, so it holds the landing pose for less time.
+    const phase = {land:240, recover:frames ? 460 : 820, settle:300};
     const life = new AbortController(), on = (source, type, handler, options = {}) => source.addEventListener(type, handler, {...options, signal:life.signal});
     const host = document.createElement('div');
     host.id = 'gh-companion-pet'; host.setAttribute('data-i18n-ignore', ''); host.hidden = true; host.dataset.character = id;
@@ -79,7 +81,7 @@
     let state = 'idle', phaseStart = 0, willChute = false, fallFrom = 0;
     let drag = null, pointer = null, gesture = null, twitch = null;
     let eyes = 'open', mouth = 'smile', parts = {}, pose = null, chuteNode = null, harness = null;
-    let images = {}, shown = null;
+    let images = {}, shown = null, fadeNext = false, fading = null;
     let raf = 0, last = 0, lastRender = 0, lastActive = performance.now(), blinkTimer = 0;
     const handlers = {
       onClose:() => { hit.setAttribute('aria-expanded', 'false'); hit.focus({preventScroll:true}); },
@@ -136,6 +138,8 @@
     }
 
     function enter(next) {
+      // Touching down and standing back up dissolve between poses instead of cutting.
+      if (frames && (next === 'land' || next === 'idle' && state === 'recover')) fadeNext = true;
       state = next; phaseStart = now(); host.dataset.state = next;
       if (next === 'drag') { setMouth('o'); setEyes('open'); chuteTarget = 0; gesture = null; }
       if (next === 'fall') setMouth('o');
@@ -194,9 +198,9 @@
         return true;
       }
       const elapsed = t - phaseStart;
-      if (state === 'land' && elapsed > 240) enter('recover');
-      else if (state === 'recover' && elapsed > 820) enter('idle');
-      else if (state === 'settle' && elapsed > 300) enter('idle');
+      if (state === 'land' && elapsed > phase.land) enter('recover');
+      else if (state === 'recover' && elapsed > phase.recover) enter('idle');
+      else if (state === 'settle' && elapsed > phase.settle) enter('idle');
       if (state !== 'idle') busy = true;
       // Swing settles back to upright.
       spin += (-angle * 60 - spin * 10) * dt; angle += spin * dt;
@@ -222,7 +226,7 @@
           if (Math.hypot(pointer.x - headX, pointer.y - headY) < 420) target = clamp((pointer.x - headX) / 140, -1, 1) * 3;
         }
         look += (target - look) * Math.min(1, dt * 6); a.head = look;
-        if (state === 'recover') { const p = (t - phaseStart) / 820; a.head = 4 * Math.sin(p * Math.PI * 4) * (1 - p); }
+        if (state === 'recover') { const p = (t - phaseStart) / phase.recover; a.head = 4 * Math.sin(p * Math.PI * 4) * (1 - p); }
         if (twitch && t < twitch.until) a[twitch.ear] = Math.sin((twitch.until - t) / 25);
         else if (state === 'idle' && Math.random() < dt * .08) twitch = {ear:Math.random() < .5 ? 'ear-l' : 'ear-r', until:t + 160};
       }
@@ -236,22 +240,34 @@
       return a;
     }
     // 'frames' characters show reactions with a pose image when they have one, else a body tilt.
-    function showFrame(name) {
+    // The outgoing pose fades on top, so the canopy and harness melt away rather than vanish.
+    // The frame loop drives the fade, so it never sticks when the page is not being painted.
+    function showFrame(name, t) {
       const pick = images[name]?.ready ? name : 'idle';
-      if (pick === shown) return;
-      for (const [frame, {img}] of Object.entries(images)) img.hidden = frame !== pick;
-      shown = pick;
+      if (pick !== shown) {
+        const old = images[shown]?.img, fade = fadeNext && old && !reduced.matches;
+        fadeNext = false;
+        if (fading) { fading.img.style.opacity = fading.img.style.zIndex = ''; fading = null; }
+        for (const [frame, {img}] of Object.entries(images)) img.hidden = frame !== pick && !(fade && img === old);
+        if (fade) { old.style.zIndex = 1; fading = {img:old, start:t}; }
+        shown = pick;
+      }
+      if (!fading) return;
+      const p = (t - fading.start) / FADE_MS;
+      if (p < 1) { fading.img.style.opacity = (1 - p * (2 - p)).toFixed(3); return; }
+      fading.img.hidden = true; fading.img.style.opacity = fading.img.style.zIndex = ''; fading = null;
     }
 
     function render(t, dt) {
       host.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`;
       const [rx, ry] = spec.ring, [fx, fy] = spec.feet, calm = reduced.matches;
       let sx = 1, sy = 1, lift = 0, turn = 0;
-      const p = (t - phaseStart) / ({land:240, recover:820, settle:300}[state] || 1), wave = Math.sin(Math.PI * clamp(p, 0, 1));
+      const p = (t - phaseStart) / (phase[state] || 1), wave = Math.sin(Math.PI * clamp(p, 0, 1));
       if (!calm) {
         if (state === 'settle') { sx = 1 + .05 * wave; sy = 1 - .07 * wave; }
-        if (state === 'land') { sx = 1 + .16 * wave; sy = 1 - .2 * wave; }
-        if (state === 'recover') lift = -10 / k * Math.sin(Math.PI * clamp((p - .1) / .35, 0, 1));
+        // A landing pose image is already crouched, so it gets only a light squash and no hop.
+        if (state === 'land') { const s = frames ? .3 : 1; sx = 1 + .16 * s * wave; sy = 1 - .2 * s * wave; }
+        if (state === 'recover' && !frames) lift = -10 / k * Math.sin(Math.PI * clamp((p - .1) / .35, 0, 1));
         if (state === 'fall') { sx = .96; sy = 1.05; }
         if (state === 'idle') sy = 1 + .006 * Math.sin(t / 1000 * 2 * Math.PI / 3.6);
       }
@@ -262,7 +278,7 @@
           if (gesture.type === 'shake') turn = 3 * Math.sin(g * Math.PI * 4) * (1 - g);
           if (gesture.type === 'wave') lift = -8 / k * Math.abs(Math.sin(g * Math.PI * 2));
         }
-        showFrame(FRAME_FOR[state] || (framed ? GESTURE_FRAME[gesture.type] : 'idle'));
+        showFrame(FRAME_FOR[state] || (framed ? GESTURE_FRAME[gesture.type] : 'idle'), t);
         const [rpx, rpy, fpx, fpy] = [px(rx), py(ry), px(fx), py(fy)];
         const degrees = angle * 180 / Math.PI;
         pose.style.transform = `translate(${rpx.toFixed(1)}px,${rpy.toFixed(1)}px) rotate(${degrees.toFixed(2)}deg) translate(${(-rpx).toFixed(1)}px,${(-rpy).toFixed(1)}px) translate(0px,${(lift * k).toFixed(1)}px) translate(${fpx.toFixed(1)}px,${fpy.toFixed(1)}px) rotate(${turn.toFixed(2)}deg) scale(${sx.toFixed(3)},${sy.toFixed(3)}) translate(${(-fpx).toFixed(1)}px,${(-fpy).toFixed(1)}px)`;
@@ -282,7 +298,7 @@
       raf = 0;
       if (document.hidden) { last = 0; return; }
       const dt = last ? Math.min(.033, (t - last) / 1000) : 1 / 60; last = t;
-      const busy = step(dt, t), awake = presence === 'on' && !reduced.matches && t - lastActive < IDLE_FOR;
+      const busy = step(dt, t) || !!fading, awake = presence === 'on' && !reduced.matches && t - lastActive < IDLE_FOR;
       if (busy || t - lastRender >= 40) { render(t, dt); lastRender = t; }
       if (busy || awake) schedule(); else last = 0;
     }
@@ -372,9 +388,10 @@
       // Whole-pose images: the idle pose must load before the pet appears; the rest follow quietly.
       const box = document.createElement('div'); box.className = 'pose';
       const add = name => {
-        const [file, ...frameRect] = spec.frames[name], img = new Image();
+        const [file, fx, fy, fw, fh, mirrored] = spec.frames[name], img = new Image();
         img.alt = ''; img.decoding = 'async'; img.draggable = false; img.hidden = true; img.src = asset(file);
-        images[name] = {img, rect:frameRect, ready:false}; box.append(img);
+        if (mirrored) img.style.transform = 'scaleX(-1)';
+        images[name] = {img, rect:[fx, fy, fw, fh], ready:false}; box.append(img);
         // The load event, unlike decode(), also settles while the window is not being painted.
         return new Promise((resolve, reject) => {
           img.onload = () => { images[name].ready = true; resolve(); };
