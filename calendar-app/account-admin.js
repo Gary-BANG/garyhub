@@ -1,7 +1,7 @@
 'use strict';
 const crypto=require('node:crypto'),path=require('node:path');
 const {hashPassword,verifyPassword}=require('./auth-utils');
-const owned=['music_preferences','music_tracks','reading_links','research_projects','fixed_expense_posts','fixed_expenses','password_reset_requests','reminder_deliveries','notifications','email_verifications','events','tasks','categories','diary_entries','weight_entries','exercise_entries','hub_permissions','ledger_entries','ledger_categories','todo_lists','totp_grants','totp_entries','assistant_usage','assistant_actions'];
+const owned=['music_preferences','music_tracks','reading_links','research_projects','fixed_expense_posts','fixed_expenses','password_reset_requests','reminder_deliveries','notifications','email_verifications','events','tasks','categories','diary_entries','weight_entries','exercise_entries','hub_permissions','ledger_entries','ledger_categories','todo_lists','totp_grants','totp_entries','assistant_usage','assistant_actions','assistant_quota','assistant_memory','assistant_calls','assistant_errors'];
 const error=(message,status=400)=>{throw Object.assign(Error(message),{status});};
 function connection(){const sqlite=require('sqlite3'),raw=new sqlite.Database(path.join(require('./db').dataDir,'calendar.sqlite'));raw.configure('busyTimeout',5000);return {run:(s,p=[])=>new Promise((y,n)=>raw.run(s,p,function(e){e?n(e):y(this);})),get:(s,p=[])=>new Promise((y,n)=>raw.get(s,p,(e,r)=>e?n(e):y(r))),all:(s,p=[])=>new Promise((y,n)=>raw.all(s,p,(e,r)=>e?n(e):y(r)))};}
 async function migrateAccounts(db){

@@ -8,7 +8,7 @@
     const response = await fetch(path, {cache:'no-store', credentials:'same-origin', ...options});
     let data = {};
     try { data = await response.json(); } catch {}
-    if (!response.ok) throw Object.assign(Error(typeof data.message === 'string' ? data.message : ''), {status:response.status});
+    if (!response.ok) throw Object.assign(Error(typeof data.message === 'string' ? data.message : ''), {status:response.status, code:data.code});
     return data;
   }
   async function send(path, body) {
@@ -19,6 +19,7 @@
   window.GaryHubCompanionAssistant = {
     status:() => request('/api/assistant/status'),
     chat:payload => send('/api/assistant/chat', payload),
+    forget:() => send('/api/assistant/memory/clear', {}),
     confirm:id => action(id, 'confirm'),
     cancel:id => action(id, 'cancel')
   };
