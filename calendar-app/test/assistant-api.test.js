@@ -54,7 +54,7 @@ test("assistant proposes changes, falls back, counts by kind and never returns t
       let reply = script.shift();
       if (typeof reply === "function") reply = reply(body);
       res.writeHead(reply.status || 200, { "content-type": "application/json" });
-      res.end(JSON.stringify(reply.status ? { error: { code: reply.code || "1", message: `upstream detail ${KEY}` } }
+      res.end(JSON.stringify(reply.status ? { error: { code: reply.code || "1", message: reply.message || `upstream detail ${KEY}` } }
         : { choices: [{ message: reply }], usage: { prompt_tokens: 100, completion_tokens: 10 } }));
     });
   });
@@ -232,6 +232,30 @@ test("assistant proposes changes, falls back, counts by kind and never returns t
     assert.deepEqual(failedSearch.body.counted, ["chat"], "a failed search is not counted");
     assert.equal(await used("search"), 1);
     assert.equal((await database.get("SELECT source FROM assistant_errors ORDER BY created_at DESC LIMIT 1")).source, "search");
+
+    // Models that always think get reasoning_effort instead of thinking; a refusal teaches the server the same.
+    await save({ model: "glm-5.3-flash" });
+    script.push({ content: "低强度思考。" });
+    assert.equal((await chat("你好呀")).body.reply, "低强度思考。");
+    assert.equal(seen.at(-1).body.reasoning_effort, "low");
+    assert.equal(seen.at(-1).body.thinking, undefined);
+    assert.equal(seen.at(-1).body.max_tokens, 3072);
+    await save({ model: "glm-5.9-flash" });
+    const errorsBefore = (await database.get("SELECT COUNT(*) AS n FROM assistant_errors")).n;
+    script.push({ status: 400, code: "1210", message: "该模型始终思考，不支持关闭思考；请使用 low、high 或 max。" }, { content: "重试成功。" });
+    const learned = await chat("再试一次");
+    assert.equal(learned.body.reply, "重试成功。");
+    assert.equal(learned.body.fallback, false);
+    assert.deepEqual(seen.at(-2).body.thinking, { type: "disabled" });
+    assert.equal(seen.at(-1).body.reasoning_effort, "low");
+    assert.equal((await database.get("SELECT COUNT(*) AS n FROM assistant_errors")).n, errorsBefore, "a corrected request is not an error");
+    script.push({ content: "记住了。" });
+    await chat("第三次");
+    assert.equal(seen.at(-1).body.reasoning_effort, "low", "the refusal is remembered");
+    assert.equal(seen.at(-1).body.thinking, undefined);
+    // Other 400s still move to the fallback model.
+    script.push({ status: 400, code: "1214", message: "messages 参数非法" }, { content: "备用。" });
+    assert.equal((await chat("第四次")).body.fallback, true);
 
     // Allowances: data runs out with a fixed reply and the model is not asked again; search can be switched off per tier.
     await save({ quotas: quotas(3, 0) });
