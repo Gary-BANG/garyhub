@@ -1,7 +1,8 @@
 /* Companion chat panel. Lives in a shadow root so site CSS and the i18n scanner leave it alone.
-   The conversation exists only in this page's memory and is dropped when the account changes.
-   Signed-in accounts talk to the AI assistant when an admin has enabled it; the local guide
-   answers guests and steps in whenever the assistant is unavailable. */
+   What is shown exists only in this page and is dropped when the account changes.
+   Signed-in accounts talk to the AI assistant when an admin has enabled it; the server keeps the
+   last five rounds for that account, which "Clear conversation" removes. The local guide answers
+   guests and steps in when the assistant is switched off or the daily chat allowance is used up. */
 (() => {
   'use strict';
   if (window.GaryHubCompanionChat) return;
@@ -13,16 +14,20 @@
   const ui = {
     zh:{subtitle:'站内工具向导', open:'打开', send:'发送', close:'关闭对话', more:'设置', picker:'选择伙伴', current:'当前', login:'登录后可用', input:'输入你的需求', log:'对话记录', launcher:name => `和${name}聊天`,
       chips:['你能做什么', '学习相关', '文档与图片', '日常记录'],
-      ai:{subtitle:'AI 日程助手', placeholder:'比如：明天下午三点开组会', chips:['今天有什么安排？', '这周有哪些事项？', '帮我加一个日程', '打开记账'], thinking:'正在想…',
-        disclosure:provider => `已接入 AI（${provider}）：我可以帮你查看、添加和删除日程。你的消息和相关日程会发给该服务处理；添加和删除都要你点“确认”才会生效。`,
+      ai:{subtitle:'AI 助手', placeholder:'比如：明天下午三点开组会', chips:['今天有什么安排？', '这周有哪些事项？', '帮我加一个日程', '打开记账'], searchChip:'今天有什么新闻？', thinking:'正在想…',
+        disclosure:(provider, search, rounds) => `已接入 AI（${provider}）：我可以帮你查看、添加和删除日程${search ? '，也能联网搜索新闻和时事' : ''}。你的消息和相关日程会发给该服务处理；最近 ${rounds} 轮对话保存在服务器上，可在“⋯”里清空。添加和删除都要你点“确认”才会生效。`,
         add:'添加日程', remove:'删除日程', confirm:'确认', cancel:'取消', added:'已添加到日程 ✓', removed:'已删除 ✓', cancelled:'已取消',
-        reminder:time => `每天 ${time} 提醒`, remaining:count => `今天还能用 AI ${count} 次`, offline:'AI 暂时不可用，先用站内向导回答。'}},
+        reminder:time => `每天 ${time} 提醒`, sources:'来源', forget:'清空对话', forgotten:'对话记忆已清空。',
+        remaining:{chat:count => `今天还能和 AI 对话 ${count} 次`, data:count => `今天还能操作日程 ${count} 次`, search:count => `今天还能联网搜索 ${count} 次`},
+        offline:'AI 暂时不可用，先用站内向导回答。'}},
     en:{subtitle:'Site tool guide', open:'Open', send:'Send', close:'Close chat', more:'Settings', picker:'Choose a companion', current:'Current', login:'Sign in to use', input:'Describe what you need', log:'Conversation', launcher:name => `Chat with ${name}`,
       chips:['What can you do?', 'Study', 'Documents & images', 'Everyday records'],
-      ai:{subtitle:'AI schedule assistant', placeholder:'e.g. Group meeting tomorrow at 3 pm', chips:['What is on today?', 'What is on this week?', 'Add something to my calendar', 'Open the ledger'], thinking:'Thinking…',
-        disclosure:provider => `AI is on (${provider}): I can show, add and delete calendar items. Your messages and the related items are sent to that service; nothing is added or deleted until you press Confirm.`,
+      ai:{subtitle:'AI assistant', placeholder:'e.g. Group meeting tomorrow at 3 pm', chips:['What is on today?', 'What is on this week?', 'Add something to my calendar', 'Open the ledger'], searchChip:'Any news today?', thinking:'Thinking…',
+        disclosure:(provider, search, rounds) => `AI is on (${provider}): I can show, add and delete calendar items${search ? ' and search the web for news' : ''}. Your messages and the related items are sent to that service; the last ${rounds} rounds are kept on the server and can be cleared from “⋯”. Nothing is added or deleted until you press Confirm.`,
         add:'Add to calendar', remove:'Delete from calendar', confirm:'Confirm', cancel:'Cancel', added:'Added to your calendar ✓', removed:'Deleted ✓', cancelled:'Cancelled',
-        reminder:time => `Daily reminder at ${time}`, remaining:count => `${count} AI messages left today`, offline:'The AI is unavailable right now, so here is the site guide.'}}
+        reminder:time => `Daily reminder at ${time}`, sources:'Sources', forget:'Clear conversation', forgotten:'The conversation memory is cleared.',
+        remaining:{chat:count => `${count} AI messages left today`, data:count => `${count} calendar requests left today`, search:count => `${count} web searches left today`},
+        offline:'The AI is unavailable right now, so here is the site guide.'}}
   };
   // Only links from the knowledge file are rendered, and only to GaryHub over HTTPS.
   const safeUrl = value => { try { const url = new URL(value); return url.protocol === 'https:' && (url.hostname === 'garyhub.uk' || url.hostname.endsWith('.garyhub.uk')) ? url.href : null; } catch { return null; } };
@@ -49,8 +54,8 @@
     const panel = $('.panel'), log = $('.log'), input = $('input'), launcher = $('.launcher');
     let lang = window.GaryHubI18n?.language === 'en' ? 'en' : 'zh';
     let user = window.GaryHubIdentity?.user || null, memory = {}, menuItems = [], pickerSpec = null;
-    // ai: the server's assistant status for this account; history: recent AI turns sent back as context.
-    let ai = null, history = [], busy = false, disclosed = false, statusTicket = 0;
+    // ai: the server's assistant status for this account, including today's allowances.
+    let ai = null, busy = false, disclosed = false, statusTicket = 0;
     const more = $('.more'), menu = $('.menu'), picker = $('.picker');
 
     const say = (key, replyLang, vars) => voices.line(character, replyLang, key, vars);
@@ -65,7 +70,8 @@
       input.placeholder = aiOn() ? t.ai.placeholder : say('placeholder', lang); input.setAttribute('aria-label', t.input);
       log.setAttribute('aria-label', t.log); panel.setAttribute('aria-label', t.launcher(who.name[lang]));
       launcher.setAttribute('aria-label', t.launcher(who.name[lang])); launcher.title = launcher.getAttribute('aria-label');
-      $('.chips').replaceChildren(...(aiOn() ? t.ai.chips : t.chips).map(text => chip(text)));
+      const aiChips = ai?.search ? [...t.ai.chips.slice(0, 3), t.ai.searchChip] : t.ai.chips;
+      $('.chips').replaceChildren(...(aiOn() ? aiChips : t.chips).map(text => chip(text)));
       more.setAttribute('aria-label', t.more); more.title = t.more;
       renderMenu(); renderPicker();
     }
@@ -89,10 +95,11 @@
       (picker.querySelector('.pick:not(.locked):not([aria-current])') || picker.querySelector('.pick'))?.focus();
     }
     function hidePicker() { picker.hidden = true; }
-    // Settings menu items come from the pet: [{label:{zh,en}, run}].
+    // Settings menu items come from the pet: [{label:{zh,en}, run}]; the panel adds its own while the AI is on.
     function renderMenu() {
-      more.hidden = !menuItems.length;
-      menu.replaceChildren(...menuItems.map(item => {
+      const items = aiOn() ? [...menuItems, {label:{zh:ui.zh.ai.forget, en:ui.en.ai.forget}, run:forget}] : menuItems;
+      more.hidden = !items.length;
+      menu.replaceChildren(...items.map(item => {
         const button = el('button', 'menu-item', item.label[lang]); button.type = 'button'; button.setAttribute('role', 'menuitem');
         button.addEventListener('click', () => { toggleMenu(false); item.run(); });
         return button;
@@ -174,24 +181,40 @@
       row.append(no, yes); node.append(row);
       return node;
     }
+    // Web sources are shown as plain outbound links, never as GaryHub cards.
+    function sources(list, replyLang) {
+      const links = list.map(item => { try { const url = new URL(item.url); return /^https?:$/.test(url.protocol) ? [url.href, String(item.title || url.hostname)] : null; } catch { return null; } }).filter(Boolean);
+      if (!links.length) return null;
+      const node = el('p', 'sources'); node.append(el('span', 'sources-label', ui[replyLang].ai.sources));
+      for (const [href, title] of links) { const link = el('a', '', title); link.href = href; link.target = '_blank'; link.rel = 'noopener noreferrer'; node.append(link); }
+      return node;
+    }
     async function askAI(message) {
       const replyLang = lang, t = ui[replyLang].ai, account = user;
       busy = true; input.disabled = true;
       const wait = bubble('bot', t.thinking); wait.classList.add('waiting'); scrollDown();
       try {
-        const data = await assistant.chat({message, history, lang:replyLang, character});
+        const data = await assistant.chat({message, lang:replyLang, character});
         if (account !== user) return;
-        history = [...history, {role:'user', text:message}, {role:'assistant', text:data.reply}].slice(-8);
         const node = bubble('bot', data.reply);
         const cards = [...(data.pages || []).map(id => card(id, replyLang)), ...(data.actions || []).map(action => actionCard(action, replyLang))].filter(Boolean);
         if (cards.length) { const list = el('div', 'cards'); list.append(...cards); node.append(list); }
-        if (typeof data.remaining === 'number' && data.remaining <= 5) node.append(el('p', 'quota', t.remaining(data.remaining)));
+        const links = sources(data.sources || [], replyLang);
+        if (links) node.append(links);
+        if (data.quota && ai) ai.quota = data.quota;
+        // Only the allowances this message used, once they are nearly gone.
+        for (const kind of (data.counted || []).filter(kind => t.remaining[kind])) {
+          const q = data.quota?.[kind], left = q ? Math.max(0, q.limit - q.used) : null;
+          if (left != null && left <= 5) node.append(el('p', 'quota', t.remaining[kind](left)));
+        }
         handlers.onReply?.({kind:data.actions?.length ? 'clarify' : 'recommend', tools:data.pages || [], lang:replyLang});
       } catch (error) {
         if (account !== user) return;
-        // Signed out, switched off or out of quota: say why once, then let the local guide answer.
-        if ([401, 503].includes(error.status)) { ai = null; chrome(); }
         bubble('bot', error.message || t.offline).classList.add('notice');
+        // A busy model or a key problem: keep the AI on and let the user try again later.
+        if (['busy', 'config'].includes(error.code)) return;
+        // Signed out or switched off: back to the local guide for this page; out of chat allowance: the guide answers today.
+        if (error.status === 401 || error.code === 'disabled') { ai = null; chrome(); }
         guide(message);
       } finally {
         wait.remove(); busy = false; input.disabled = false;
@@ -201,7 +224,12 @@
     }
     function disclose() {
       if (disclosed || !aiOn() || panel.hidden) return;
-      disclosed = true; bubble('bot', ui[lang].ai.disclosure(ai.provider)).classList.add('notice'); scrollDown();
+      disclosed = true; bubble('bot', ui[lang].ai.disclosure(ai.provider, ai.search, ai.memoryRounds || 5)).classList.add('notice'); scrollDown();
+    }
+    async function forget() {
+      try { await assistant.forget(); } catch (error) { bubble('bot', error.message || ui[lang].ai.offline).classList.add('notice'); scrollDown(); return; }
+      log.replaceChildren(); memory = {};
+      bubble('bot', ui[lang].ai.forgotten).classList.add('notice'); bubble('bot', say('greet', lang)); scrollDown();
     }
     // Ask whether the assistant is on for this account; a later identity change wins over a slow answer.
     async function refreshAI() {
@@ -233,7 +261,7 @@
       host.style.setProperty('--panel-room', viewHeight - bottom - 8 + 'px');
     }
     function reset() {
-      log.replaceChildren(); memory = {}; history = []; disclosed = false; ai = null; chrome();
+      log.replaceChildren(); memory = {}; disclosed = false; ai = null; chrome();
       if (!panel.hidden) { bubble('bot', say('greet', lang)); scrollDown(); }
       refreshAI();
     }
@@ -255,7 +283,7 @@
     document.addEventListener('garyhub:identity', event => setUser(event.detail?.user || null));
     new MutationObserver(theme).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme', 'class'], subtree:false});
     if (document.body) new MutationObserver(theme).observe(document.body, {attributes:true, attributeFilter:['class']});
-    addEventListener('pagehide', () => { memory = {}; history = []; });
+    addEventListener('pagehide', () => { memory = {}; });
 
     chrome(); theme(); target.append(host); refreshAI();
     return {
