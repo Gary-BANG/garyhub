@@ -1,0 +1,300 @@
+{
+  "version": "2.3.0.4",
+  "requires_release": "2.3.0.3",
+  "installer_build": "v2.3.0.4-r1",
+  "reviewed_base_commit": "c9096802a1e8dd3bba5f56a3bc38ed617df331f3",
+  "baseline_adapter": "scripts/releases/v2.3.0.3",
+  "source_subject": "Differentiate admin tool icons and add 14-day notification retention",
+  "updated_features": [
+    "tools_admin_icons",
+    "reading_help_admin_only",
+    "notification_retention_and_bulk_actions"
+  ],
+  "summary": "Distinct Tools icons, Reading help visible only to administrators, and ordinary notifications retained for 14 days with bulk read/delete. Required account notices remain. Existing application records and settings retained.",
+  "asset_checksums": [
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/",
+      "sha256": "115ef9016653329bbc0fcfbc2b33f01c0059c76eb732514cfa1b6257e9ad5d09"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/assistant-admin.js",
+      "sha256": "6abe4eabf59e2aa30579af7bc6e3d8ae9d657fd8bb33eb5d790342e0745c89b9"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/ai-logs/logs.js",
+      "sha256": "086827cd19770bbee8e4b1c294206838ae29287cdbcdc0f26c3201f641cc5600"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/ai-logs/logs.css",
+      "sha256": "d1ae8a44f3bced66bb12ed223eef908de0ae4d3104f1baaa3093072f527ad4db"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/tools-catalog.js",
+      "sha256": "640a26c200969da424154c8093597cb50a9989097c63249c3650152ecc16e7dc"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/companion/boot.js",
+      "sha256": "972b11a191eed16d7f82678cbe3ab9715b4825e3df31fcc88cd9fd4132e404fe"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/companion/assistant.js",
+      "sha256": "eac3731cdc481d937b817107f7b52f794d0e494eba861522a509458b639cb837"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/companion/panel.js",
+      "sha256": "8ab5a1d8ca5099c625ee3830631536c3865ffa48d34772235e204fc3204f21a7"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/companion/panel.css",
+      "sha256": "dedc559bc2bc9c86aaa7509e08058393e5c1c681f9adea3e308cb16067420f90"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/companion/knowledge.js",
+      "sha256": "7ed99cb1c1d39bd14d24bc6469a1cdd6db34c69ed9a8b56e3f8ef0e1568a898a"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/companion/assistant.js",
+      "sha256": "eac3731cdc481d937b817107f7b52f794d0e494eba861522a509458b639cb837"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/companion/panel.js",
+      "sha256": "8ab5a1d8ca5099c625ee3830631536c3865ffa48d34772235e204fc3204f21a7"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/companion/assistant.js",
+      "sha256": "eac3731cdc481d937b817107f7b52f794d0e494eba861522a509458b639cb837"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/companion/panel.js",
+      "sha256": "8ab5a1d8ca5099c625ee3830631536c3865ffa48d34772235e204fc3204f21a7"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/companion/pet.js",
+      "sha256": "50df0eca1ddc35984707b1f43716a5c284e7a57504fb8b27f94dd0f4685c20d1"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/companion/characters.js",
+      "sha256": "11518c572eb3d064e4f7d5020f340f7cf4d2edea19ed127dd6c0622dad4c663b"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/companion/characters/lili/rig.svg",
+      "sha256": "5ca0e3369ed665201b6a23d86d58769a43ce571a9102670c4e9a8d85e3570cd3"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/companion/pet.js",
+      "sha256": "50df0eca1ddc35984707b1f43716a5c284e7a57504fb8b27f94dd0f4685c20d1"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/companion/characters.js",
+      "sha256": "11518c572eb3d064e4f7d5020f340f7cf4d2edea19ed127dd6c0622dad4c663b"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/companion/characters/lili/rig.svg",
+      "sha256": "5ca0e3369ed665201b6a23d86d58769a43ce571a9102670c4e9a8d85e3570cd3"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/companion/pet.js",
+      "sha256": "50df0eca1ddc35984707b1f43716a5c284e7a57504fb8b27f94dd0f4685c20d1"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/companion/characters.js",
+      "sha256": "11518c572eb3d064e4f7d5020f340f7cf4d2edea19ed127dd6c0622dad4c663b"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/companion/characters/lili/rig.svg",
+      "sha256": "5ca0e3369ed665201b6a23d86d58769a43ce571a9102670c4e9a8d85e3570cd3"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/companion/puppet.js",
+      "sha256": "7e0303f9b6b9fc9a8ee2c6146172dbc9516486e4f52ddae8e2ebb444c769c27c"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/companion/puppet.js",
+      "sha256": "7e0303f9b6b9fc9a8ee2c6146172dbc9516486e4f52ddae8e2ebb444c769c27c"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/companion/puppet.js",
+      "sha256": "7e0303f9b6b9fc9a8ee2c6146172dbc9516486e4f52ddae8e2ebb444c769c27c"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/companion/pet.css",
+      "sha256": "b4b056dde957f2957097ab3e2bb5d25a28b26f01563786540522b1d470b75a98"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/companion/pet.css",
+      "sha256": "b4b056dde957f2957097ab3e2bb5d25a28b26f01563786540522b1d470b75a98"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/companion/pet.css",
+      "sha256": "b4b056dde957f2957097ab3e2bb5d25a28b26f01563786540522b1d470b75a98"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/companion/characters/pudding/rig.svg",
+      "sha256": "1928fadcb00afa8188655efd1e9cb8b77d3e9351f3fea5c68f3f715dac149b1f"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/companion/characters/pudding/rig.svg",
+      "sha256": "1928fadcb00afa8188655efd1e9cb8b77d3e9351f3fea5c68f3f715dac149b1f"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/companion/characters/pudding/rig.svg",
+      "sha256": "1928fadcb00afa8188655efd1e9cb8b77d3e9351f3fea5c68f3f715dac149b1f"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/tools-dock.js",
+      "sha256": "5aea1131e003ff29ed7a94185df7fac199370b2283a3dc27502e7b1e5ef747cc"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/hub-account.js",
+      "sha256": "2790a5b5c7a1e4012ca5106c1757a5c391a904d0a4eb75ab7f5a28a59d5cc94d"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/hub-account.js",
+      "sha256": "2790a5b5c7a1e4012ca5106c1757a5c391a904d0a4eb75ab7f5a28a59d5cc94d"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/hub-account.css",
+      "sha256": "63388997244041e51a661ce708ca8bc565dbab9e05511395fbc2a638eba852b9"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/unified.js",
+      "sha256": "2092d42b96894d039e89ddf0cf48838944e13293e4c3a1c7d5617e7a27447dda"
+    }
+  ],
+  "sites_asset_checksums": [
+    {
+      "host": "sites.garyhub.uk",
+      "route": "/",
+      "sha256": "4accac97f1063c2c773628b3125c2b2418dcdd5e41206f7c71b13314b865969d"
+    },
+    {
+      "host": "sites.garyhub.uk",
+      "route": "/sites.css",
+      "sha256": "8525d4ba5225888b2508305e8a0bc05ac0b161775e61a0ec6fbe46b2c3c36507"
+    },
+    {
+      "host": "sites.garyhub.uk",
+      "route": "/sites.js",
+      "sha256": "a44ab7c293e379c7ecd31520a4cc8f0038fdd7528b3a8dea1c3208e1808e1be7"
+    },
+    {
+      "host": "sites.garyhub.uk",
+      "route": "/thumbs/ece470.webp",
+      "sha256": "b7294f62601879dd224aef6c6022840e2e3fafb93dda66074b3cc013d6bdcf27"
+    },
+    {
+      "host": "sites.garyhub.uk",
+      "route": "/thumbs/photography.webp",
+      "sha256": "2d0350bf5a396e1563043331700e7b05ad3725c32346866c07760da5d964a558"
+    }
+  ],
+  "protected_asset_checksums": [
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/lab/index.html",
+      "sha256": "350360779b25e418889685ae094315ade5bee5a66c30883cc123433ec4db49a5",
+      "service": "garyhub-lab",
+      "file": "/lab/public/lab/index.html"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/useful/image-eraser/index.html",
+      "sha256": "351063933bb67b994ad40aee709b016bf8b6ce03fc18dd190d31f1af1b05bc0a",
+      "service": "garyhub-lab",
+      "file": "/lab/public/useful/image-eraser/index.html"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/useful/markdown-viewer/index.html",
+      "sha256": "ce561c30770bd81a045ceae93fbe1e1940ce7404fcefc5f76efad891a540237c",
+      "service": "garyhub-lab",
+      "file": "/lab/public/useful/markdown-viewer/index.html"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/useful/pdf-gray/index.html",
+      "sha256": "cf81b97cc6312acd81624014e39284906bfd605fc7ea12e25a8eecae5c9d32f5",
+      "service": "garyhub-lab",
+      "file": "/lab/public/useful/pdf-gray/index.html"
+    }
+  ],
+  "admin_asset_checksums": [
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/ai-logs/index.html",
+      "sha256": "c98c3131d64481dc78e2e09d0881e9d8d6b0bf2e873176e3280c7d369a2a2975",
+      "service": "garyhub-lab",
+      "file": "/lab/public/ai-logs/index.html"
+    }
+  ],
+  "isolation_checks": [
+    "useful-http.cjs",
+    "study-http.cjs",
+    "asset-response.cjs",
+    "music-http.cjs",
+    "companion-http.cjs",
+    "sites-http.cjs",
+    "assistant-http.cjs",
+    "notifications-http.cjs"
+  ],
+  "isolation_environment": {
+    "TRUSTED_ORIGINS": "https://garyhub.uk,https://calendar.garyhub.uk,https://tools.garyhub.uk,https://lab.garyhub.uk,http://calendar-check:3000"
+  },
+  "isolation_service_environment": {
+    "calendar-app": {
+      "GARYHUB_ASSISTANT_ENDPOINT": "http://127.0.0.1:4011/v4/chat/completions",
+      "GARYHUB_ASSISTANT_SEARCH_ENDPOINT": "http://127.0.0.1:4011/v4/web_search"
+    }
+  },
+  "test_inputs": {
+    "seed.cjs": "scripts/releases/v1.4.3.0/tests/seed.cjs",
+    "seed-base.cjs": "scripts/releases/v1.3.6.0/tests/seed.cjs",
+    "useful-http.cjs": "scripts/releases/v1.3.6.1/tests/useful-http.cjs",
+    "study-http.cjs": "scripts/releases/v1.4.3.1/tests/study-http.cjs",
+    "study-fixture.cjs": "scripts/releases/v1.4.3.1/tests/study-fixture.cjs",
+    "asset-response.cjs": "scripts/releases/v2.3.0.4/tests/asset-response.cjs",
+    "asset-checks.json": "scripts/releases/v2.3.0.4/release-config.json",
+    "music-http.cjs": "scripts/releases/v1.4.3.2/tests/music-http.cjs",
+    "companion-http.cjs": "scripts/releases/v2.0.1.0/tests/companion-http.cjs",
+    "sites-http.cjs": "scripts/releases/v2.1.0.0/tests/sites-http.cjs",
+    "assistant-http.cjs": "scripts/releases/v2.3.0.0/tests/assistant-http.cjs",
+    "notifications-http.cjs": "scripts/releases/v2.3.0.4/tests/notifications-http.cjs"
+  }
+}

@@ -159,7 +159,7 @@ async function resolveTargetUserId(req) {
 }
 
 app.get("/health", (req, res) => {
-  res.json({ ok: true, hubVersion: "2.3.0.3" });
+  res.json({ ok: true, hubVersion: "2.3.0.4" });
 });
 
 // 登录
@@ -704,6 +704,9 @@ initDb()
   .then(() => migrateMusic(require("./db")))
   .then(() => migratePasswordReset(require("./db")))
   .then(() => migrateAssistant(require("./db")))
+  .then(() => {
+    return require("./notification-policy").startNotificationCleanup(require("./db"));
+  })
   .then(() => {
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Calendar app listening on port ${PORT}`);

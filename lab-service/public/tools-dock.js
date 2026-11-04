@@ -23,7 +23,7 @@
   let lang = window.GaryHubI18n?.language === 'en' ? 'en' : 'zh';
   let permissions=window.GaryHubIdentity?.user||null;
   const permitted=tool=>!tool.audience||permissions?.role==='admin'||tool.audience==='subscriber'&&permissions?.accountTier==='subscriber';
-  document.addEventListener('garyhub:identity',event=>{permissions=event.detail?.user||null;filter();const help=document.getElementById('reading-help');if(help)help.hidden=!permitted({audience:'subscriber'});});
+  document.addEventListener('garyhub:identity',event=>{permissions=event.detail?.user||null;filter();const help=document.getElementById('reading-help');if(help)help.hidden=permissions?.role!=='admin';});
   let current = null, pointer = null, focused = null, raf = 0, last = 0, leaveTimer = 0, descriptionAnimation;
   let input = hoverHint.matches ? 'mouse' : 'touch', lastTouch = -Infinity;
   let dirty = true, view = 'grid';

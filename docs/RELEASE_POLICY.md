@@ -12,6 +12,12 @@
 
 通知是站内消息；此规则不要求发送邮件。
 
+## 通知保留（v2.3.0.4 起）
+
+普通通知（含发布更新）从创建时间起保留 14 天。服务启动、每分钟和列表读取时清理；列表与未读数排除到期项。`account`、`security`、`required` 类型用于必须保留的账号/安全要求（现有邮箱验证为 `account`），不自动删除，不参与批量已读/删除。新增强制通知须使用这些类型。
+
+主页对所有分类、Calendar 对 `calendar`、Access 对 `access` 提供当前账号全部普通通知的一键已读/删除。批量接口必须核对会话账号、页面 `userId`、分类、Origin 与 CSRF。单条标记已读保持既有行为。`hub_releases` 台账长期保留，通知清理或用户删除后重复发布旧版本仍不得补发。
+
 ## 身份与权限
 
 - Homepage、Tools、Calendar、Lab、Network Access 共用 Calendar 账号与 `garyhub.shared.sid`；正式 cookie 为 `.garyhub.uk`、HttpOnly、Secure、SameSite=Lax。

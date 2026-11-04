@@ -1,4 +1,6 @@
 "use strict";
+const {PROTECTED_SQL,VISIBLE_SQL,pruneNotifications}=require('./notification-policy');
+
 
 const { randomUUID } = require("crypto");
 const { get, all, run } = require("./db");
@@ -186,8 +188,9 @@ module.exports = function registerTasksApi(app, { requireLogin, resolveTargetUse
   }));
   app.get("/api/notifications", requireLogin, route(async (req,res) => {
     const userId = req.session.user.id;
-    res.json(await all(`SELECT id,type,title,body,action_url,read_at,created_at FROM notifications
-      WHERE user_id=? AND scope='calendar' ORDER BY created_at DESC,id DESC LIMIT 100`, [userId]));
+    await pruneNotifications({run});
+    res.json(await all(`SELECT id,type,title,body,action_url,read_at,created_at,${PROTECTED_SQL} AS required FROM notifications
+      WHERE user_id=? AND ${VISIBLE_SQL} AND scope='calendar' ORDER BY created_at DESC,id DESC LIMIT 100`, [userId]));
   }));
   app.post("/api/notifications/:id/read", requireLogin, route(async (req,res) => {
     const result = await run(`UPDATE notifications SET read_at=COALESCE(read_at,CURRENT_TIMESTAMP)

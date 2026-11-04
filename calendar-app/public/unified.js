@@ -174,10 +174,28 @@ function renderNotifications() {
   const panel = $("notificationsPanel");
   panel.replaceChildren();
   if (!notices.length) { panel.textContent = "暂无通知"; return; }
+  const hint=document.createElement("p");
+  hint.textContent="普通通知保留 14 天；账号验证等必要通知保留。";
+  const actions=document.createElement("div");
+  actions.style.cssText="display:flex;gap:8px;flex-wrap:wrap";
+  for(const [action,label] of [["read-all","一键已读"],["delete-all","一键删除"]]){
+    const button=document.createElement("button");button.type="button";
+    button.className="secondary compact-button";button.textContent=label;
+    button.addEventListener("click",async()=>{
+      const userId=state.me.id;for(const b of actions.children)b.disabled=true;
+      try{
+        await api(`/api/hub/notifications/${action}`,{method:"POST",body:JSON.stringify({scope:"calendar",userId})});
+        state.notifications=await api("/api/notifications");renderNotifications();
+      }catch(e){hint.textContent=e.message;for(const b of actions.children)b.disabled=false;}
+    });
+    actions.append(button);
+  }
+  panel.append(hint,actions);
   notices.forEach(n => {
     const row = document.createElement("div");
     row.className = "request-item";
     row.innerHTML = `<strong>${escapeHtml(n.title)}</strong><p>${escapeHtml(n.body)}</p>`;
+    if(n.required){const required=document.createElement("small");required.textContent="必要通知 · 不自动清理";row.append(required);}
     if (!n.read_at) {
       const button = document.createElement("button");
       button.type = "button"; button.className = "secondary compact-button"; button.textContent = "标为已读";
