@@ -9,8 +9,6 @@
   else root.GaryHubCompanionCharacters = api;
 })(typeof window === 'object' ? window : this, () => {
   'use strict';
-  // Step 1b poses share a 512×640 canvas with the ground at y=608.
-  const canvas = (id, names) => Object.fromEntries(names.map(name => [name, [`characters/${id}/${name}.svg`, 0, 0, 512, 640]]));
   // Step 1c frames were cut from the concept sheets; units are sheet pixels, feet at the origin.
   // The sheets drew some poses at another size; `scale` brings each head back to the idle size.
   const cut = (id, rects, scale = {}) => Object.fromEntries(Object.entries(rects).map(([name, rect]) => [name, [`characters/${id}/${name}.webp`, ...rect.map(v => v * (scale[name] ?? 1))]]));
@@ -30,9 +28,19 @@
       limits:{head:4, 'ear-l':2, 'ear-r':2, tail:3, 'paw-r':7},
       eyes:{open:'eyes-open', closed:'eyes-closed', happy:'eyes-happy'}, mouth:{smile:'mouth-smile', o:'mouth-o'},
       props:{strap:'#6f86d6', canopy:['#d3ddf8', '#8ea3e6'], line:'#231420'}},
-    pudding:{available:true, tier:'subscriber', kind:'frames', thumbnail:'characters/pudding/thumbnail.webp',
-      viewBox:[13, 167, 485, 485], bounds:[79, 207, 432, 608], ring:[256, 150], feet:[256, 608],
-      frames:canvas('pudding', ['idle', 'held', 'fall', 'parachute', 'land'])},
+    // Source: generated model, puppet and expression sheets. The sitting drawing supplies every visible
+    // pixel, the cut-out pieces fill what other parts hide; traced with vtracer, slimmed with slim_rig.py.
+    // `puppet` hands the parts to puppet.js: segmented ears and tail on springs, legs that dangle in the
+    // air, a raised paw, petting, idle actions, and a separate sleeping drawing (`rest`).
+    pudding:{available:true, tier:'subscriber', kind:'rig', rig:'characters/pudding/rig.svg', thumbnail:'characters/pudding/thumbnail.webp',
+      viewBox:[-142, -127, 1611, 1611], bounds:[145, 145, 1101, 1325], ring:[663, 67], feet:[663, 1323],
+      pivots:{head:[652, 801], 'ear-l':[446, 317], 'ear-r':[709, 249], tail:[351, 1237], 'front-r':[779, 901]},
+      limits:{head:9, 'ear-l':8, 'ear-r':8, tail:9, 'front-r':10},
+      eyes:{open:'eyes-open', closed:'eyes-closed', happy:'eyes-happy', drowsy:'eyes-drowsy'},
+      mouth:{smile:'mouth-smile', o:'mouth-o', tongue:'mouth-tongue', yawn:'mouth-yawn', w:'mouth-w'},
+      props:{strap:'#8db8f0', canopy:['#d6e6fb', '#8fb5ee'], line:'#140f13'},
+      puppet:{head:[667, 519, 273], pivots:{head:[652, 801], 'ear-l':[446, 317], 'ear-l-tip':[340, 506], 'ear-r':[709, 249], 'ear-r-tip':[836, 434],
+        tail:[351, 1237], 'tail-tip':[309, 1075], 'front-l':[600, 912], 'front-r':[779, 901], 'hind-l':[472, 989], 'hind-r':[850, 1028]}}},
     // Source: GaryHub_Companion_Step1c_Design 12-pose sheets; the held frame hangs from the ring.
     pagey:{available:true, tier:'subscriber', kind:'frames', thumbnail:'characters/pagey/thumbnail.webp',
       viewBox:[-187, -340, 374, 374], bounds:[-97, -309, 97, 0], ring:[0, -321], feet:[0, 0],

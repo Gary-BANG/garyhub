@@ -2,9 +2,9 @@
 
 GaryHub 是使用统一账号的个人工作空间，包含日历与私人记录、账本、待办、学习工具和服务器工具。仓库保存应用源码、脱敏文档与可复现更新器；正式服务通过经过验证的升级包部署，GitHub 合并不会自动更新服务器。
 
-**当前源码版本：v2.3.0.2。** 在 v2.3.0.1（提交 `5a45333942b7d2602f4645f328d6caea535a49b2`）基础上，把伙伴栗栗改成和米露一样的分层矢量骨骼角色（会眨眼、摆尾巴、挥手，下落／落地／起身有不同表情），并让所有伙伴开伞降落时在着地前收住摆动，落地后脚不再滑动。v2.3.0.1 修复 AI 助手无法使用始终思考的 GLM-5.3 系列模型（改发 `reasoning_effort: "low"`）；v2.3.0.0 为 AI 助手加入按等级计次、备用模型、对话记忆、联网搜索和管理员“AI 日志”。
+**当前源码版本：v2.3.0.3。** 在 v2.3.0.2（提交 `9c61d249a98290e1d39e993552767cce747bfe48`）基础上，把伙伴布丁改成可活动的骨骼角色：耳朵、尾巴、腿挂在弹簧上随动作甩动，会呼吸、看鼠标、自己打哈欠／摇尾巴／抬爪，鼠标在头上来回划可以摸头，一分钟没人理会趴下睡觉；Calendar、Lab 上保持安静。动作由新增的 `companion/puppet.js` 驱动，米露与栗栗不变。v2.3.0.2 把栗栗改成分层矢量骨骼角色，并让所有伙伴开伞降落时在着地前收住摆动。v2.3.0.1 修复 AI 助手无法使用始终思考的 GLM-5.3 系列模型（改发 `reasoning_effort: "low"`）；v2.3.0.0 为 AI 助手加入按等级计次、备用模型、对话记忆、联网搜索和管理员“AI 日志”。
 
-当前安装器为 **v2.3.0.2-r1**，严格要求 Calendar 与 Tools/Lab 均实际运行 v2.3.0.1，只替换静态伙伴文件与版本引用，不改动数据库结构、Caddy、DNS 或 Compose。**v2.3.0.2：源码已准备、本地已验证；未推送、未合并，生产未核验。** **生产：v2.3.0.1 已于 2026-11-03 安装完成**（安装输出 8/8 COMPLETE，站内通知核对 8 个账号，`SOURCE_BASELINE=1.3.4.2`）；其第 1 阶段核对同时证明此前 v2.3.0.0 已在运行（v2.3.0.0 自身的安装输出未收录）。v2.3.0.0 已由 PR #28 合并（main `b783804`，代码树与 `e89fc65` 相同）；v2.3.0.1 与 v2.3.0.2 在审查分支 `update/garyhub-v2.3.0.1`，待维护者合并。
+当前安装器为 **v2.3.0.3-r1**，严格要求 Calendar 与 Tools/Lab 均实际运行 v2.3.0.2，只替换静态伙伴文件与版本引用，不改动数据库结构、Caddy、DNS 或 Compose。**生产：v2.3.0.3 已于 2026-11-04 安装完成**（安装输出 8/8 COMPLETE，站内通知核对 8 个账号，`SOURCE_BASELINE=1.3.4.2`）；其第 1 阶段核对同时证明此前 v2.3.0.2 已在运行（v2.3.0.2 自身的安装输出未收录）。v2.3.0.1 已于 2026-11-03 安装完成（安装输出 8/8 COMPLETE，站内通知核对 8 个账号，`SOURCE_BASELINE=1.3.4.2`）；其第 1 阶段核对同时证明此前 v2.3.0.0 已在运行（v2.3.0.0 自身的安装输出未收录）。v2.3.0.0 已由 PR #28 合并（main `b783804`，代码树与 `e89fc65` 相同）；v2.3.0.1 至 v2.3.0.3 在审查分支 `update/garyhub-v2.3.0.1`（已推送），待维护者合并。
 
 维护日期：2026-11-04（America/Chicago）。
 
@@ -33,7 +33,7 @@ Calendar 使用 Node.js 20、Express 与 SQLite；Tools/Lab 使用 Node 原生 H
   - 用户消息、最近 5 轮对话、相关日程和搜索词会发送给所选服务商；API Key 只存在 Calendar 数据库，不会返回浏览器或写入日志。
   - 管理员工具“AI 日志”（`https://tools.garyhub.uk/ai-logs/`）显示最近 24 小时概况、按用户统计、每条消息的模型／是否切换／计次／Token／耗时，以及全部错误（服务商状态码、错误代码、是否已由备用模型恢复）。只记录元数据，不保存对话内容，保留 30 天。
   - 游客、未启用或对话次数用完时回到本地向导。源码为 `calendar-app/assistant-api.js`、`lab-service/public/companion/assistant.js`、`lab-service/public/assistant-admin.js` 与 `lab-service/public/ai-logs/`。
-- 伙伴角色：聊天面板设置中的“换个伙伴”可在米露（所有访问者）、栗栗（登录账号）以及布丁、页芽、小航（订阅用户与管理员）之间切换；对话保留，选择随偏好 Cookie 同步，账号权限变化时自动回到可用角色。这是界面权益，角色图片与其他页面资源一样公开。新角色只在被选中时加载。米露与栗栗（v2.3.0.2 起）是分层矢量骨骼角色，头、耳、尾、爪单独转动并切换表情；布丁、页芽、小航仍按整张姿态图切换。
+- 伙伴角色：聊天面板设置中的“换个伙伴”可在米露（所有访问者）、栗栗（登录账号）以及布丁、页芽、小航（订阅用户与管理员）之间切换；对话保留，选择随偏好 Cookie 同步，账号权限变化时自动回到可用角色。这是界面权益，角色图片与其他页面资源一样公开。新角色只在被选中时加载。米露与栗栗（v2.3.0.2 起）是分层矢量骨骼角色，头、耳、尾、爪单独转动并切换表情；布丁（v2.3.0.3 起）在此基础上由 `puppet.js` 驱动弹簧耳尾、摸头、待机小动作和睡觉；页芽、小航仍按整张姿态图切换。
 - 外站链接 `sites.garyhub.uk`：由 Tools/Lab 容器提供的公开静态页，只开放页面、样式、脚本和预览图，并使用严格 CSP；其他主机的 `/sites/` 返回 404。背景为景深粒子、极光与流星，鼠标附近的条目按 Tools Dock 方式放大，宽屏且使用鼠标时在列表旁显示网站预览图；减少动态效果时只绘制静止画面。语言跟随共享 `garyhub_language` Cookie。新增网站时在 `lab-service/public/sites/index.html` 加一行，再运行 `python scripts/sites/capture_thumbnails.py`（需本机 Edge/Chrome 与 Pillow）生成预览图。
 - ECE 470 Lab 题干与解析支持 `$...$`、`$$...$$`、`\(...\)`、`\[...\]`，常见旧式 ASCII 数学记法可自动排版。题目切换、运行与提交后保持排版；无法解析的内容显示原文。转换只影响显示，首次提交前仍隐藏公式答案与解析。
 - 学习中心按账号保存课程、讲次、进度与配图，支持 Markdown、文件夹、ZIP 和 GitHub 导入。课程／讲次左栏可用图标收起；Lecture Notes 可在新标签页直接打开当前讲义的 Markdown Viewer。
@@ -56,6 +56,10 @@ python scripts/updater/manage.py check
 ```
 
 用独立分支开发，按实际行为变化选择测试；同步 README、项目档案、发布清单、版本说明与验证记录，再通过统一入口生成 upgrade ZIP。每次发布都必须检查根 README 的版本、功能、文档链接和状态表述；长期规则以 `docs/UPDATE_WORKFLOW.md` 为准。
+
+## v2.3.0.3 安装与回滚
+
+v2.3.0.3 只替换静态伙伴文件（`companion/pet.js`、`pet.css`、`characters.js`、`boot.js`，新增 `companion/puppet.js` 与 `companion/characters/pudding/rig.svg`）和各页面的版本引用：安装前两服务必须均实际运行 v2.3.0.2；流程与 v2.3.0.2 相同（隔离验证沿用 v2.3.0.0 的 7 项检查，资源哈希按 2.3.0.3 重算，新增三处伙伴文件在三个主机上的核对）。安装后以订阅或管理员账号选布丁，试重力落地、在头上来回划摸头、放置一分钟看它睡觉。`ROLLBACK.cmd` 恢复 v2.3.0.2 应用，保留当前记录与设置；布丁回到整张姿态图。构建入口为 `python scripts/updater/manage.py build --release 2.3.0.3 --output <新的ZIP绝对路径>`。
 
 ## v2.3.0.2 安装与回滚
 
@@ -82,7 +86,7 @@ python scripts/updater/manage.py build --release 2.3.0.0 --output <新的ZIP绝�
 
 Windows 工作区若启用 `core.autocrlf`，请在 `core.autocrlf=false` 的独立 worktree 中构建，使包内文件与资源哈希都使用仓库中的 LF 字节。
 
-详见 [v2.3.0.2 说明](docs/GARYHUB_V2_3_0_2.md)与[验证记录](docs/GARYHUB_V2_3_0_2_TESTS.md)、[v2.3.0.1 说明](docs/GARYHUB_V2_3_0_1.md)与[验证记录](docs/GARYHUB_V2_3_0_1_TESTS.md)、[v2.3.0.0 说明](docs/GARYHUB_V2_3_0_0.md)与[验证记录](docs/GARYHUB_V2_3_0_0_TESTS.md)、上一版 [v2.2.0.0 说明](docs/GARYHUB_V2_2_0_0.md)及[发布通知规则](docs/RELEASE_POLICY.md)。
+详见 [v2.3.0.3 说明](docs/GARYHUB_V2_3_0_3.md)与[验证记录](docs/GARYHUB_V2_3_0_3_TESTS.md)、[v2.3.0.2 说明](docs/GARYHUB_V2_3_0_2.md)与[验证记录](docs/GARYHUB_V2_3_0_2_TESTS.md)、[v2.3.0.1 说明](docs/GARYHUB_V2_3_0_1.md)与[验证记录](docs/GARYHUB_V2_3_0_1_TESTS.md)、[v2.3.0.0 说明](docs/GARYHUB_V2_3_0_0.md)与[验证记录](docs/GARYHUB_V2_3_0_0_TESTS.md)、上一版 [v2.2.0.0 说明](docs/GARYHUB_V2_2_0_0.md)及[发布通知规则](docs/RELEASE_POLICY.md)。
 
 ## 部署与私密数据
 

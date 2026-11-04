@@ -7,3 +7,7 @@ div.pose img{position:absolute;max-width:none;user-select:none;-webkit-user-drag
 .hit{position:absolute;padding:0;border:0;border-radius:40%;background:transparent;cursor:grab;pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent}
 :host([data-state=drag]) .hit{cursor:grabbing}
 .hit:focus-visible{outline:2px solid #6f8fd0;outline-offset:4px}
+/* A sleeping puppet keeps breathing after the frame loop has stopped. */
+.breathing{transform-box:fill-box;transform-origin:50% 100%;animation:gh-breathe 4.6s ease-in-out infinite}
+@keyframes gh-breathe{50%{transform:scaleY(1.025)}}
+@media (prefers-reduced-motion:reduce){.breathing{animation:none}}

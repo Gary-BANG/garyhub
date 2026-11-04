@@ -1,6 +1,7 @@
 /* Companion pet: draws one character and handles dragging, free placement, gravity,
    the parachute and landing. 'rig' characters animate layers of a single SVG; 'frames'
-   characters swap whole pose images and move the body. A frame loop runs only while
+   characters swap whole pose images and move the body. A rig with a `puppet` section hands its
+   parts to puppet.js (springs, breathing, idle actions, petting, sleep). A frame loop runs only while
    something moves; idle motion is throttled and stops after a quiet spell. If the artwork
    fails, the plain chat launcher is used. destroy() releases everything, so the page can
    switch characters while keeping one chat panel. */
@@ -9,6 +10,7 @@
   if (window.GaryHubCompanionPet) return;
   const rigs = window.GaryHubCompanionCharacters, chatApi = window.GaryHubCompanionChat, voices = window.GaryHubCompanionVoices;
   if (!rigs || !chatApi || !voices) return;
+  const puppets = window.GaryHubCompanionPuppet;
   const base = new URL('.', document.currentScript?.src || location.href).href;
   const asset = file => base + file + (window.GaryHubCompanionAssetVersion ? '?v=' + encodeURIComponent(window.GaryHubCompanionAssetVersion) : '');
   const KEY = {position:'garyhub.companion.position', mode:'garyhub.companion.mode'};
@@ -85,6 +87,7 @@
     let drag = null, pointer = null, gesture = null, twitch = null;
     let eyes = 'open', mouth = 'smile', parts = {}, pose = null, chuteNode = null, harness = null;
     let images = {}, shown = null, fadeNext = false, fading = null;
+    let puppet = null, faceOverride = {eyes:null, mouth:null}, painted = '';
     let raf = 0, last = 0, lastRender = 0, lastActive = performance.now(), blinkTimer = 0;
     const handlers = {
       onClose:() => { hit.setAttribute('aria-expanded', 'false'); hit.focus({preventScroll:true}); },
@@ -98,6 +101,8 @@
     const ground = () => height - (compact.matches ? 8 : 12);
     const range = () => ({minX:EDGE - px(spec.bounds[0]), maxX:width - EDGE - px(spec.bounds[2]), minY:EDGE - py(spec.bounds[1]), maxY:ground() - py(spec.feet[1])});
     const rect = () => ({left:x + px(spec.bounds[0]), top:y + py(spec.bounds[1]), right:x + px(spec.bounds[2]), bottom:y + py(spec.bounds[3])});
+    // Page pixels → character units (ignores the body's swing, which is small at rest).
+    const toRig = (cx, cy) => [(cx - x) / k + spec.viewBox[0], (cy - y) / k + spec.viewBox[1]];
     const now = () => performance.now();
 
     function measure() {
@@ -123,13 +128,15 @@
     }
 
     // Expressions exist only on 'rig' characters; 'frames' poses carry their own faces.
-    function setEyes(value) {
-      eyes = value;
-      for (const [name, part] of Object.entries(spec.eyes || {})) parts[part]?.setAttribute('display', name === value ? 'inline' : 'none');
-    }
-    function setMouth(value) {
-      mouth = value;
-      for (const [name, part] of Object.entries(spec.mouth || {})) parts[part]?.setAttribute('display', name === value ? 'inline' : 'none');
+    function setEyes(value) { eyes = value; paintFace(); }
+    function setMouth(value) { mouth = value; paintFace(); }
+    // A puppet may hold an expression of its own (petting, yawning, sleep) over the state's.
+    function paintFace() {
+      const e = faceOverride.eyes || eyes, m = faceOverride.mouth || mouth;
+      if (painted === e + '/' + m) return;
+      painted = e + '/' + m;
+      for (const [name, part] of Object.entries(spec.eyes || {})) parts[part]?.setAttribute('display', name === e ? 'inline' : 'none');
+      for (const [name, part] of Object.entries(spec.mouth || {})) parts[part]?.setAttribute('display', name === m ? 'inline' : 'none');
     }
     function blink() {
       clearTimeout(blinkTimer);
@@ -167,6 +174,7 @@
       if (!type) return;
       gesture = {type, start:now(), duration:type === 'wave' ? 1000 : 900};
       if (type === 'wave') setEyes('happy');
+      puppet?.attention(now());
       wake();
     }
 
@@ -211,7 +219,7 @@
       // Swing settles back to upright.
       spin += (-angle * 60 - spin * 10) * dt; angle += spin * dt;
       if (Math.abs(angle) > .002 || Math.abs(spin) > .01) busy = true; else angle = spin = 0;
-      return busy || !!gesture;
+      return busy || !!gesture || !!puppet?.busy();
     }
 
     // Gesture progress 0..1, or null once it has finished.
@@ -295,6 +303,12 @@
       harness.setAttribute('display', ['drag', 'fall', 'chute'].includes(state) || state === 'land' && chute > .1 ? 'inline' : 'none');
       chuteNode.setAttribute('display', chute > .02 ? 'inline' : 'none');
       chuteNode.setAttribute('transform', `translate(${rx} ${ry}) scale(${chute.toFixed(3)} ${(chuteTarget ? chute : chute * chute).toFixed(3)}) translate(${-rx} ${-ry})`);
+      if (puppet) {
+        const g = gestureProgress(t);
+        puppet.apply(dt, {state, now:t, angle, vx, vy, gesture:g === null ? null : {type:gesture.type, p:g},
+          pointer:pointer && toRig(pointer.x, pointer.y), chatOpen:chatOpen(), canAct:presence === 'on' && !document.hidden});
+        return;
+      }
       for (const [part, degrees] of Object.entries(partAngles(t, dt))) {
         const [cx, cy] = spec.pivots[part];
         parts[part]?.setAttribute('transform', degrees ? `rotate(${degrees.toFixed(2)} ${cx} ${cy})` : '');
@@ -321,6 +335,7 @@
       event.preventDefault(); hit.setPointerCapture(event.pointerId);
       const ringX = x + px(spec.ring[0]), ringY = y + py(spec.ring[1]);
       drag = {id:event.pointerId, startX:event.clientX, startY:event.clientY, x:event.clientX, y:event.clientY, ox:event.clientX - ringX, oy:event.clientY - ringY, moved:false};
+      if (puppet) { puppet.attention(now()); drag.head = event.pointerType === 'touch' && puppet.overHead(...toRig(event.clientX, event.clientY)); }
       wake();
     });
     on(hit, 'pointermove', event => {
@@ -328,13 +343,18 @@
       drag.x = event.clientX; drag.y = event.clientY;
       // The small parked pet is a button only; expanding it brings dragging back.
       if (presence !== 'on') return;
+      // A finger sliding to and fro on the head pets her; a clear move away or down still drags.
+      if (drag.head && !drag.moved) {
+        if (puppet.stroke(...toRig(drag.x, drag.y), now())) { drag.petting = true; wake(); }
+        if (drag.petting || Math.abs(drag.y - drag.startY) < 24 && Math.abs(drag.x - drag.startX) < 60) return;
+      }
       if (!drag.moved && Math.hypot(drag.x - drag.startX, drag.y - drag.startY) > 5) { drag.moved = true; vx = vy = 0; enter('drag'); }
     });
     const finishDrag = (event, cancelled) => {
       if (!drag || event.pointerId !== drag.id) return;
-      const moved = drag.moved; drag = null;
+      const moved = drag.moved, petted = drag.petting; drag = null;
       if (hit.hasPointerCapture(event.pointerId)) hit.releasePointerCapture(event.pointerId);
-      if (moved) release(); else if (!cancelled) toggleChat();
+      if (moved) release(); else if (!cancelled && !petted) toggleChat();
     };
     on(hit, 'pointerup', event => finishDrag(event, false));
     on(hit, 'pointercancel', event => finishDrag(event, true));
@@ -348,7 +368,11 @@
     });
     on(document, 'pointermove', event => {
       pointer = {x:event.clientX, y:event.clientY};
-      if (!raf && state === 'idle' && presence === 'on') { const r = rect(); if (Math.hypot(pointer.x - (r.left + r.right) / 2, pointer.y - (r.top + r.bottom) / 2) < 420) wake(); }
+      if (presence !== 'on') return;
+      const r = rect(), near = Math.hypot(pointer.x - (r.left + r.right) / 2, pointer.y - (r.top + r.bottom) / 2) < 420;
+      // Mouse or pen hovering to and fro over the head pets a puppet; touch pets through the hit area.
+      if (puppet?.pointer(...toRig(pointer.x, pointer.y), near, event.pointerType !== 'touch' && !event.buttons, now())) wake();
+      else if (!raf && state === 'idle' && near) wake();
     }, {passive:true});
     on(document, 'visibilitychange', () => { if (!document.hidden) wake(); });
     on(document, 'garyhub:language', event => { lang = event.detail?.language === 'en' ? 'en' : 'zh'; label(); });
@@ -374,6 +398,7 @@
       measure(); place();
       if (pose) render(now(), 0);
       if (chatOpen()) chat.place(rect());
+      puppet?.attention(now());
       wake();
     }
 
@@ -390,6 +415,8 @@
         actor.before(pose);
         chuteNode = props.querySelector('.chute'); harness = props.querySelector('.harness');
         pose.append(chuteNode, harness, actor);
+        if (spec.puppet && puppets) puppet = puppets.create({spec, svg, reduced, kick:wake, quiet:window.GaryHubCompanionBoot?.scope === 'quiet',
+          face:(e, m) => { faceOverride = {eyes:e, mouth:m}; paintFace(); }});
         return;
       }
       // Whole-pose images: the idle pose must load before the pet appears; the rest follow quietly.
@@ -425,7 +452,7 @@
     });
 
     function destroy() {
-      life.abort(); cancelAnimationFrame(raf); raf = 0; clearTimeout(blinkTimer); host.remove();
+      life.abort(); cancelAnimationFrame(raf); raf = 0; clearTimeout(blinkTimer); puppet?.destroy(); host.remove();
     }
     return {
       element:host, chat, ready, id,
