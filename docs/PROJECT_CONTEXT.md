@@ -1,10 +1,11 @@
 # GaryHub 项目档案
 
-维护日期：2026-11-03（America/Chicago）。首次阅读本文件及 UPDATE_WORKFLOW.md，按任务范围读取相关源码。
+维护日期：2026-11-04（America/Chicago）。首次阅读本文件及 UPDATE_WORKFLOW.md，按任务范围读取相关源码。
 
 ## 当前源码与部署证据
 
-- **v2.3.0.1（当前源码）**：基础为 v2.3.0.0 提交 `e89fc65c5dad4011faf2089c2468fabe90f9f424`（同一分支 `feature/assistant-tiers`，两者均未推送／合并）；清单 `releases/2.3.0.1.json`，适配器 `scripts/releases/v2.3.0.1/`（baseline_adapter v2.3.0.0，隔离检查沿用 v2.3.0.0 的 7 项），安装器 v2.3.0.1-r1，要求两服务实际运行 v2.3.0.0。起因：维护者把主模型设为 `glm-5.3-flash` 后“测试连接”返回 HTTP 400、错误码 1210“该模型始终思考，不支持关闭思考；请使用 low、high 或 max”。`assistant-api.js` 的 `complete()` 改为：名称匹配 `glm-5.3` 的模型不发 `thinking`，改发 `reasoning_effort:'low'`，`max_tokens` 加 2048 留给思考；GLM 4.5+ 其他模型仍发 `thinking:{type:'disabled'}`；若某模型以 400 且说明含“思考／thinking／reasoning”拒绝，则在同一请求预算内改用 `reasoning_effort` 重试一次，并在进程内记住该模型（不计入错误日志、不触发备用模型）。无数据库结构变化。GitHub：v2.3.0.0 由 PR #28 合并为 main `b783804`（代码树与 `e89fc65` 相同，但不含该提交本身），因此 v2.3.0.1 的审查分支 `update/garyhub-v2.3.0.1` 在 `b783804` 上重放 v2.3.0.1 的两个提交另行准备，并核对树与本地 `7464b50` 相同，未使用安装包的源码同步。**生产：2026-11-03 安装输出 8/8 COMPLETE，通知核对 8 个账号，`SOURCE_BASELINE=1.3.4.2`；本地源码同步按预期因 main 不含基础提交而停止。**
+- **v2.3.0.2（当前源码）**：基础为 v2.3.0.1 源码提交 `5a45333942b7d2602f4645f328d6caea535a49b2`（分支 `update/garyhub-v2.3.0.1`）；清单 `releases/2.3.0.2.json`，适配器 `scripts/releases/v2.3.0.2/`（baseline_adapter v2.3.0.1，隔离检查沿用 v2.3.0.0 的 7 项，`asset_checksums` 新增 `companion/pet.js`、`characters.js`、`characters/lili/rig.svg` 在 tools／garyhub／calendar 三个主机的核对），安装器 v2.3.0.2-r1，要求两服务实际运行 v2.3.0.1；无 TOTP 覆盖仅版本号不同，与主文件差异仍为 12 行（app.js）与 7 行（server.cjs）。栗栗改为 `kind:'rig'`：`characters/lili/rig.svg`（187 KiB）由 GPT 生成的部件图与表情图拆层、vtracer 矢量化、`slim_rig.py` 精简，结构与米露相同（`actor`／`tail`／`body`／`paw-l`／`paw-r`／`head`{`ear-l`,`ear-r`,`head-fur`,`eyes-*`,`mouth-*`}）；尾巴大，摆动上限 3°。`pet.js`：降落伞摆动在落地前 200 px 内收到 0（身体绕头顶挂点转动，着地时残留倾角会让脚在地面滑动），所有角色生效；整张姿态角色的落地帧淡入淡出与 `LANDING_FRAME`（可选 touchdown／squash／rise 帧）保留，目前无角色使用。升级包只能新增／替换文件，栗栗旧的五个姿态 SVG 保留为未引用的静态文件。`scripts/companion/place_frames.py` 可把生成的姿态图裁切为帧。尚未推送／合并，生产未核验。详见 `docs/GARYHUB_V2_3_0_2.md`。
+- **v2.3.0.1（上一版本，生产已安装）**：基础为 v2.3.0.0 提交 `e89fc65c5dad4011faf2089c2468fabe90f9f424`（同一分支 `feature/assistant-tiers`，两者均未推送／合并）；清单 `releases/2.3.0.1.json`，适配器 `scripts/releases/v2.3.0.1/`（baseline_adapter v2.3.0.0，隔离检查沿用 v2.3.0.0 的 7 项），安装器 v2.3.0.1-r1，要求两服务实际运行 v2.3.0.0。起因：维护者把主模型设为 `glm-5.3-flash` 后“测试连接”返回 HTTP 400、错误码 1210“该模型始终思考，不支持关闭思考；请使用 low、high 或 max”。`assistant-api.js` 的 `complete()` 改为：名称匹配 `glm-5.3` 的模型不发 `thinking`，改发 `reasoning_effort:'low'`，`max_tokens` 加 2048 留给思考；GLM 4.5+ 其他模型仍发 `thinking:{type:'disabled'}`；若某模型以 400 且说明含“思考／thinking／reasoning”拒绝，则在同一请求预算内改用 `reasoning_effort` 重试一次，并在进程内记住该模型（不计入错误日志、不触发备用模型）。无数据库结构变化。GitHub：v2.3.0.0 由 PR #28 合并为 main `b783804`（代码树与 `e89fc65` 相同，但不含该提交本身），因此 v2.3.0.1 的审查分支 `update/garyhub-v2.3.0.1` 在 `b783804` 上重放 v2.3.0.1 的两个提交另行准备，并核对树与本地 `7464b50` 相同，未使用安装包的源码同步。**生产：2026-11-03 安装输出 8/8 COMPLETE，通知核对 8 个账号，`SOURCE_BASELINE=1.3.4.2`；本地源码同步按预期因 main 不含基础提交而停止。**
 - **v2.3.0.0**：维护者 2026-11-03 发回的管理页“测试连接”三项结果（主模型／备用模型／联网搜索）只在 v2.3.0.0 出现，说明已在运行；安装输出未收录。以下为当时记录：基础为已合并 main `a75a1e35b1d8ff6f81ff794a4080ccccacd22aa2`（PR #27，树与 v2.2.0.0-r2 提交 f98eac4 相同）；开发分支 `feature/assistant-tiers`，清单 `releases/2.3.0.0.json`，适配器 `scripts/releases/v2.3.0.0/`（baseline_adapter v2.2.0.0），安装器 v2.3.0.0-r1，要求两服务实际运行 v2.2.0.0，不改 Caddy／DNS／Compose。`assistant-api.js` 改为：
   - `assistant_settings` 原地新增 `fallback_model`（默认 `glm-4-flashx-250414`）、`search_enabled`、`quotas`（JSON，按 chat／data／search × standard／subscriber／admin，默认 200/200/500、30/50/200、5/30/100；`daily_limit` 列保留但不再使用）。
   - 新表 `assistant_quota`（每人每天每类计数）、`assistant_memory`（每人最近 5 轮）、`assistant_calls`（每条消息元数据）、`assistant_errors`（服务商／服务器错误，`recovered` 表示备用模型已完成）；均无外键，已加入 `account-admin.js` 删除清单；日志保留 30 天。
@@ -75,7 +76,7 @@ v1.4.3.1-r1 曾在受保护 HTML 的未登录正文哈希检查失败后回滚�
 | 三个本地实用工具 | lab-service/public/useful/，避免读取 vendor/ 的大文件 |
 | 外站链接 | lab-service/public/sites/；server.cjs 中 sites.garyhub.uk 分支；scripts/sites/capture_thumbnails.py |
 | 网站伙伴米露 | lab-service/public/companion/（Calendar 副本 calendar-app/public/companion/）；lab-service/test/companion-*.cjs；scripts/companion/slim_rig.py |
-| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v2.3.0.1/ |
+| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v2.3.0.2/ |
 
 Calendar 使用 Node.js、Express、SQLite；Lab 使用 Node 原生 HTTP，浏览器运行 Python/WASM。生产运行代码须保持 Node 20 兼容。浏览器依赖已本地打包，无需让生产服务器在线安装依赖。
 
