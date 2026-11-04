@@ -195,7 +195,10 @@
         vx *= Math.exp(-dt * (state === 'chute' ? 3 : 1.5));
         x += vx * dt; y += vy * dt;
         if (x < r.minX || x > r.maxX) { x = clamp(x, r.minX, r.maxX); vx = -vx * .4; }
-        const sway = state === 'chute' && !reduced.matches ? Math.sin(t / 1000 * 2.4) * .12 : clamp(-vx * .0006, -.25, .25);
+        // The swing dies down over the last stretch: the body turns about the ring above the head,
+        // so any tilt left at touchdown would slide the feet along the ground.
+        const settle = clamp((r.maxY - y) / 200, 0, 1);
+        const sway = (state === 'chute' && !reduced.matches ? Math.sin(t / 1000 * 2.4) * .12 : clamp(-vx * .0006, -.25, .25)) * settle;
         spin += ((sway - angle) * 40 - spin * 9) * dt; angle += spin * dt;
         if (y >= r.maxY) { y = r.maxY; enter(reduced.matches ? 'idle' : 'land'); }
         return true;
@@ -392,10 +395,9 @@
       // Whole-pose images: the idle pose must load before the pet appears; the rest follow quietly.
       const box = document.createElement('div'); box.className = 'pose';
       const add = name => {
-        const [file, fx, fy, fw, fh, mirrored] = spec.frames[name], img = new Image();
+        const [file, ...frameRect] = spec.frames[name], img = new Image();
         img.alt = ''; img.decoding = 'async'; img.draggable = false; img.hidden = true; img.src = asset(file);
-        if (mirrored) img.style.transform = 'scaleX(-1)';
-        images[name] = {img, rect:[fx, fy, fw, fh], ready:false}; box.append(img);
+        images[name] = {img, rect:frameRect, ready:false}; box.append(img);
         // The load event, unlike decode(), also settles while the window is not being painted.
         return new Promise((resolve, reject) => {
           img.onload = () => { images[name].ready = true; resolve(); };

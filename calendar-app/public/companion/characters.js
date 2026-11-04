@@ -1,7 +1,7 @@
 /* Character rigs. Geometry is in each character's own units:
    bounds = visible art, ring = where the harness is held (also the swing pivot),
    feet = ground contact point. kind 'rig' animates layers of one SVG (pivots/limits per part);
-   kind 'frames' swaps whole pose images ([file, x, y, w, h, mirrored] in the same units) and moves the body.
+   kind 'frames' swaps whole pose images ([file, x, y, w, h] in the same units) and moves the body.
    tier: guest = everyone, member = signed-in accounts, subscriber = subscribers and admins. */
 ((root, factory) => {
   const api = factory();
@@ -9,9 +9,8 @@
   else root.GaryHubCompanionCharacters = api;
 })(typeof window === 'object' ? window : this, () => {
   'use strict';
-  // Step 1b poses share a 512×640 canvas with the ground at y=608, centred on the feet,
-  // so a pose listed in `mirrored` can be flipped to face the same way as the others.
-  const canvas = (id, names, mirrored = []) => Object.fromEntries(names.map(name => [name, [`characters/${id}/${name}.svg`, 0, 0, 512, 640, mirrored.includes(name)]]));
+  // Step 1b poses share a 512×640 canvas with the ground at y=608.
+  const canvas = (id, names) => Object.fromEntries(names.map(name => [name, [`characters/${id}/${name}.svg`, 0, 0, 512, 640]]));
   // Step 1c frames were cut from the concept sheets; units are sheet pixels, feet at the origin.
   // The sheets drew some poses at another size; `scale` brings each head back to the idle size.
   const cut = (id, rects, scale = {}) => Object.fromEntries(Object.entries(rects).map(([name, rect]) => [name, [`characters/${id}/${name}.webp`, ...rect.map(v => v * (scale[name] ?? 1))]]));
@@ -23,14 +22,14 @@
       limits:{head:4, 'ear-l':1, 'ear-r':1, tail:6, 'paw-r':7},
       eyes:{open:'eyes-open', closed:'eyes-closed', happy:'eyes-happy'}, mouth:{smile:'mouth-smile', o:'mouth-o'},
       props:{strap:'#3d63c9', canopy:['#d2e2f8', '#8fb1ea'], line:'#232232'}},
-    // Source: GaryHub_Companion_Step1b static poses (idle/held/fall/parachute/land), slimmed.
-    // Lili's idle faces right and the other poses left; flipping them keeps the tail on one side.
-    lili:{available:true, tier:'member', kind:'frames', thumbnail:'characters/lili/thumbnail.webp',
-      viewBox:[13, 167, 485, 485], bounds:[81, 207, 430, 608], ring:[256, 150], feet:[256, 608],
-      frames:{...canvas('lili', ['idle', 'held', 'fall', 'parachute', 'land'], ['held', 'fall', 'parachute', 'land']),
-        // Landing poses from a generated sheet, placed on the same canvas by scripts/companion/place_frames.py.
-        touchdown:['characters/lili/touchdown.webp', 43, -10, 395, 637], squash:['characters/lili/squash.webp', 73, 255, 390, 372],
-        rise:['characters/lili/rise.webp', 150, 178, 276, 449]}},
+    // Source: generated puppet and expression sheets, traced with vtracer, slimmed with scripts/companion/slim_rig.py.
+    // Her tail is large, so it swings less than Milu's to keep its tucked-in base hidden.
+    lili:{available:true, tier:'member', kind:'rig', rig:'characters/lili/rig.svg', thumbnail:'characters/lili/thumbnail.webp',
+      viewBox:[-7, -111, 1601, 1601], bounds:[153, 155, 1148, 1330], ring:[794, 81], feet:[794, 1330],
+      pivots:{head:[835, 746], 'ear-l':[602, 465], 'ear-r':[919, 372], tail:[596, 1157], 'paw-r':[1002, 771]},
+      limits:{head:4, 'ear-l':2, 'ear-r':2, tail:3, 'paw-r':7},
+      eyes:{open:'eyes-open', closed:'eyes-closed', happy:'eyes-happy'}, mouth:{smile:'mouth-smile', o:'mouth-o'},
+      props:{strap:'#6f86d6', canopy:['#d3ddf8', '#8ea3e6'], line:'#231420'}},
     pudding:{available:true, tier:'subscriber', kind:'frames', thumbnail:'characters/pudding/thumbnail.webp',
       viewBox:[13, 167, 485, 485], bounds:[79, 207, 432, 608], ring:[256, 150], feet:[256, 608],
       frames:canvas('pudding', ['idle', 'held', 'fall', 'parachute', 'land'])},
