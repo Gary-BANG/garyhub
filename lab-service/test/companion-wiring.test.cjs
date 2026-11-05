@@ -17,7 +17,7 @@ test('both services ship the same companion bundle and tool catalogue', () => {
 
 test('pages load the companion once, with one asset version and the intended default', () => {
   const pages = {
-    [path.join(lab, 'homepage.html')]:'open', [path.join(lab, 'index.html')]:'open', [path.join(lab, 'lab/index.html')]:'quiet',
+    [path.join(lab, 'homepage.html')]:'open', [path.join(lab, 'index.html')]:'open', [path.join(lab, 'lab/index.html')]:'quiet', [path.join(lab, 'academic/index.html')]:'quiet',
     ...Object.fromEntries(['index.html', 'health-records/index.html', 'journal/index.html', 'ledger/index.html', 'ledger/fixed/index.html', 'todos/index.html', 'research/index.html', 'music/index.html'].map(page => [path.join(calendar, page), 'quiet']))
   };
   const versions = new Set();

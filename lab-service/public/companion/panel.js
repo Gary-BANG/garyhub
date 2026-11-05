@@ -45,6 +45,8 @@
         <header><span class="avatar" aria-hidden="true"></span><div class="who"><strong class="name"></strong><span class="subtitle"></span></div><button class="more" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="menu" hidden>⋯</button><button class="close" type="button">×</button></header>
         <div class="menu" id="menu" role="menu" hidden></div>
         <div class="picker" role="group" hidden><strong class="picker-title"></strong><div class="picker-grid"></div></div>
+        <div class="tutor-bar" hidden><button class="tutor-toggle" type="button" aria-pressed="false"></button><span class="tutor-hint"></span></div>
+        <div class="tutor-consent" hidden><p></p><button class="tutor-accept" type="button"></button><button class="tutor-cancel" type="button"></button></div>
         <div class="log" role="log" aria-live="polite"></div>
         <div class="chips"></div>
         <form class="composer"><input type="text" maxlength="200" autocomplete="off" enterkeyhint="send"><button class="send" type="submit"></button></form>
@@ -56,6 +58,9 @@
     let user = window.GaryHubIdentity?.user || null, memory = {}, menuItems = [], pickerSpec = null;
     // ai: the server's assistant status for this account, including today's allowances.
     let ai = null, busy = false, disclosed = false, statusTicket = 0;
+    let tutor = null, consent = null, tutorTicket = 0, tutorStarting = false, lastAnchor = null, tutorExpiry = null;
+    const study = window.GaryHubStudyContext;
+    const tutorText = () => lang === 'en' ? {start:'Study Q&A',stop:'Exit Q&A',subscriber:'Subscribers only',open:'Open a Markdown in Study Hub',off:'Enable AI in admin settings first',active:'10 rounds · reasoning when supported',accept:'Authorize this document',cancel:'Cancel',placeholder:'Ask about this document (up to 4,000 characters)',confirm:title=>`Allow the assistant to read “${title}”? When you ask a question, this Markdown and the last 10 rounds will be sent to ${ai?.provider || 'the configured AI provider'}. This session expires after one hour and is cleared from server memory. Switching document, closing the chat or exiting Q&A ends sharing and clears this session. Images and linked documents are not read.`,ended:'Q&A ended. The document is no longer shared.',enabled:title=>`Study Q&A: ${title}. You can ask for explanations, examples or a walkthrough.`,chips:['Explain the key ideas','Walk me through an example','Which prerequisites should I review?']} : {start:'讲义答疑',stop:'退出答疑',subscriber:'订阅用户专享',open:'请在学习中心打开 Markdown 讲义',off:'请先由管理员启用 AI',active:'10 轮记忆 · 按模型能力开启思考',accept:'授权当前讲义并开启',cancel:'取消',placeholder:'针对这篇讲义提问（最多 4,000 字符）',confirm:title=>`允许伙伴读取《${title}》吗？提问时，这篇 Markdown 和最近 10 轮对话会发送给${ai?.provider || '已配置的 AI 服务商'}。本次会话只在服务器内存中暂存，一小时后过期清理；切换讲义、关闭对话或退出答疑会停止共享并清空本次记忆。不读取图片和链接中的其他文档。`,ended:'已结束讲义答疑，当前讲义不再共享。',enabled:title=>`正在答疑：《${title}》。可以问概念、例题或推导步骤。`,chips:['解释这篇讲义的核心概念','用一个例子带我理解','我需要先掌握哪些知识？']};
     const more = $('.more'), menu = $('.menu'), picker = $('.picker');
 
     const say = (key, replyLang, vars) => voices.line(character, replyLang, key, vars);
@@ -65,15 +70,16 @@
       const t = ui[lang], who = voices.get(character);
       host.style.setProperty('--companion-accent', who.accent);
       for (const avatar of root.querySelectorAll('.avatar')) avatar.textContent = who.name[lang].slice(0, 1);
-      $('.name').textContent = who.name[lang]; $('.subtitle').textContent = aiOn() ? t.ai.subtitle : t.subtitle;
+      $('.name').textContent = who.name[lang]; $('.subtitle').textContent = tutor ? tutorText().start : aiOn() ? t.ai.subtitle : t.subtitle;
       $('.close').setAttribute('aria-label', t.close); $('.send').textContent = t.send;
-      input.placeholder = aiOn() ? t.ai.placeholder : say('placeholder', lang); input.setAttribute('aria-label', t.input);
+      input.maxLength = tutor ? 4000 : 200;
+      input.placeholder = tutor ? tutorText().placeholder : aiOn() ? t.ai.placeholder : say('placeholder', lang); input.setAttribute('aria-label', t.input);
       log.setAttribute('aria-label', t.log); panel.setAttribute('aria-label', t.launcher(who.name[lang]));
       launcher.setAttribute('aria-label', t.launcher(who.name[lang])); launcher.title = launcher.getAttribute('aria-label');
       const aiChips = ai?.search ? [...t.ai.chips.slice(0, 3), t.ai.searchChip] : t.ai.chips;
-      $('.chips').replaceChildren(...(aiOn() ? aiChips : t.chips).map(text => chip(text)));
+      $('.chips').replaceChildren(...(tutor ? tutorText().chips : aiOn() ? aiChips : t.chips).map(text => chip(text)));
       more.setAttribute('aria-label', t.more); more.title = t.more;
-      renderMenu(); renderPicker();
+      renderMenu(); renderPicker(); renderTutor();
     }
     // Character picker: items [{id, name:{zh,en}, blurb:{zh,en}, thumb, locked, note:{zh,en}, current}].
     function renderPicker() {
@@ -130,7 +136,7 @@
       return node;
     }
     function bubble(who, text) {
-      const node = el('div', `msg ${who}`); node.append(el('p', 'text', text));
+      const node = el('div', `msg ${who}`); node.append(el('div', 'text', text));
       log.append(node); return node;
     }
     function answer(result) {
@@ -157,7 +163,7 @@
       const message = String(text).trim();
       if (!message || busy) return;
       bubble('user', message);
-      if (aiOn()) askAI(message); else guide(message);
+      if (tutor) askTutor(message); else if (aiOn()) askAI(message); else guide(message);
     }
     const day = (value, replyLang) => new Intl.DateTimeFormat(replyLang === 'en' ? 'en-US' : 'zh-CN', {month:'short', day:'numeric', weekday:'short', timeZone:'UTC'}).format(new Date(value + 'T00:00:00Z'));
     // A prepared change: nothing is written until the owner presses Confirm here.
@@ -227,6 +233,7 @@
       disclosed = true; bubble('bot', ui[lang].ai.disclosure(ai.provider, ai.search, ai.memoryRounds || 5)).classList.add('notice'); scrollDown();
     }
     async function forget() {
+      if (tutor) { try { await study.clear(tutor); log.replaceChildren(); bubble('bot', ui[lang].ai.forgotten); } catch (error) { bubble('bot', error.message); } return; }
       try { await assistant.forget(); } catch (error) { bubble('bot', error.message || ui[lang].ai.offline).classList.add('notice'); scrollDown(); return; }
       log.replaceChildren(); memory = {};
       bubble('bot', ui[lang].ai.forgotten).classList.add('notice'); bubble('bot', say('greet', lang)); scrollDown();
@@ -247,24 +254,99 @@
     }
     function close() {
       if (panel.hidden) return;
-      toggleMenu(false); hidePicker();
+      stopTutor(); toggleMenu(false); hidePicker();
       panel.hidden = true; launcher.setAttribute('aria-expanded', 'false'); delete host.dataset.open;
       if (host.dataset.launcher === 'off') handlers.onClose?.(); else launcher.focus({preventScroll:true});
     }
     function place(anchor) {
+      lastAnchor = anchor;
       const sides = ['left', 'top', 'right', 'bottom'];
       if (!anchor || matchMedia('(max-width:600px)').matches) { for (const side of sides) host.style.removeProperty(side); host.style.removeProperty('--panel-room'); return; }
-      const width = 340, gap = 10, viewWidth = document.documentElement.clientWidth || innerWidth, viewHeight = innerHeight;
+      const viewWidth = document.documentElement.clientWidth || innerWidth, viewHeight = innerHeight, width = tutor ? Math.min(660, viewWidth - 16) : 340, gap = 10;
       const left = anchor.left - gap - width >= 8 ? anchor.left - gap - width : Math.max(8, Math.min(anchor.right + gap, viewWidth - width - 8));
       const bottom = Math.min(Math.max(8, viewHeight - anchor.bottom), Math.max(8, viewHeight - 240));
       Object.assign(host.style, {left:left + 'px', right:'auto', top:'auto', bottom:bottom + 'px'});
       host.style.setProperty('--panel-room', viewHeight - bottom - 8 + 'px');
     }
     function reset() {
+      stopTutor(false);
       log.replaceChildren(); memory = {}; disclosed = false; ai = null; chrome();
       if (!panel.hidden) { bubble('bot', say('greet', lang)); scrollDown(); }
       refreshAI();
     }
+
+    function renderTutor() {
+      if (!study) return;
+      const t = tutorText(), context = study.current();
+      $('.tutor-bar').hidden = false;
+      $('.tutor-toggle').textContent = tutor ? t.stop : t.start;
+      $('.tutor-toggle').disabled = !tutor && (tutorStarting || busy || !context || !ai?.tutor?.available || context.accountId !== user?.id);
+      $('.tutor-toggle').setAttribute('aria-pressed', String(!!tutor));
+      $('.tutor-hint').textContent = tutor ? tutor.context.title + ' · ' + t.active : !context ? t.open : ai?.tier === 'standard' ? t.subscriber : !aiOn() ? t.off : t.active;
+      panel.classList.toggle('tutoring', !!tutor);
+      $('.tutor-consent').hidden = !consent;
+      if (consent) $('.tutor-consent p').textContent = t.confirm(consent.title);
+      $('.tutor-accept').textContent = t.accept; $('.tutor-cancel').textContent = t.cancel;
+      $('.tutor-accept').disabled = tutorStarting;
+    }
+    function stopTutor(notice = true) {
+      const old = tutor; clearTimeout(tutorExpiry); tutor = null; consent = null; tutorStarting = false; ++tutorTicket;
+      if (old) { study.stop(old).catch(() => {}); log.replaceChildren(); if (notice) bubble('bot', tutorText().ended); }
+      chrome(); place(lastAnchor);
+    }
+    $('.tutor-toggle').addEventListener('click', async () => {
+      if (tutor) return stopTutor();
+      if (busy || tutorStarting || !ai?.tutor?.available) return;
+      const ticket = ++tutorTicket, account = user; tutorStarting = true; renderTutor();
+      await refreshAI();
+      if (ticket !== tutorTicket || account !== user) return;
+      tutorStarting = false;
+      const context = study.current();
+      consent = context && ai?.tutor?.available ? {...context, provider:ai.provider} : null;
+      renderTutor(); if (consent) $('.tutor-accept').focus();
+    });
+    $('.tutor-cancel').addEventListener('click', () => { consent = null; renderTutor(); });
+    $('.tutor-accept').addEventListener('click', async () => {
+      if (!consent || tutorStarting || !ai?.tutor?.available) return;
+      const expected = consent, ticket = ++tutorTicket; tutorStarting = true; renderTutor();
+      try {
+        const grant = await study.start(expected);
+        if (ticket !== tutorTicket || expected.key !== study.current()?.key || expected.accountId !== user?.id) { study.stop(grant).catch(() => {}); return; }
+        tutor = grant; clearTimeout(tutorExpiry); tutorExpiry = setTimeout(() => { if (tutor === grant) stopTutor(); }, Math.max(0, grant.expiresAt - Date.now())); consent = null; log.replaceChildren(); bubble('bot', tutorText().enabled(grant.title)); chrome(); place(lastAnchor);
+      } catch (error) { if (ticket === tutorTicket) { consent = null; bubble('bot', error.message); } }
+      finally { if (ticket === tutorTicket) tutorStarting = false; renderTutor(); }
+    });
+    async function askTutor(message) {
+      const grant = tutor, ticket = tutorTicket, replyLang = lang;
+      busy = true; input.disabled = true; renderTutor();
+      const wait = bubble('bot', ui[lang].ai.thinking); wait.classList.add('waiting'); scrollDown();
+      try {
+        const data = await study.chat(grant, message, replyLang);
+        if (ticket !== tutorTicket || grant !== tutor) return;
+        const node = bubble('bot', data.reply);
+        // Use existing local Markdown libraries; allow formatting only, no URLs, images, HTML events or embedded content.
+        if (window.marked && window.DOMPurify) node.querySelector('.text').innerHTML = DOMPurify.sanitize(marked.parse(data.reply), {
+          ALLOWED_TAGS:['p','br','strong','em','ul','ol','li','pre','code','blockquote','h1','h2','h3','h4','table','thead','tbody','tr','th','td','hr','span'], ALLOWED_ATTR:['data-math','data-display'], ALLOW_DATA_ATTR:false});
+        for (const math of node.querySelectorAll('[data-math]')) {
+          const value = math.getAttribute('data-math');
+          try { if (!window.katex) throw Error('math'); katex.render(value, math, {displayMode:math.dataset.display === 'yes', throwOnError:false, trust:false}); }
+          catch { math.textContent = value; }
+        }
+        if (data.reasoning === 'unavailable') node.append(el('p','quota',replyLang === 'en' ? 'This model has no configurable reasoning mode.' : '本次模型不支持配置思考模式。'));
+        if (data.fallback) node.append(el('p','quota',replyLang === 'en' ? 'Answered by the fallback model.' : '本次由备用模型回答。'));
+        if (ai && data.quota) ai.quota = data.quota;
+        handlers.onReply?.({kind:'recommend',tools:[],lang:replyLang});
+      } catch (error) {
+        if (ticket !== tutorTicket) return;
+        if ([401,403,404].includes(error.status) || ['consent','identity','document_changed','subscription','disabled'].includes(error.code)) stopTutor();
+        bubble('bot', error.message || ui[lang].ai.offline);
+      } finally { wait.remove(); busy = false; input.disabled = false; renderTutor(); scrollDown(); }
+    }
+    document.addEventListener('garyhub:study-context', () => {
+      const context = study?.current();
+      if ((tutor && tutor.context.key !== context?.key) || (consent && consent.key !== context?.key)) stopTutor();
+      renderTutor();
+    });
 
     launcher.addEventListener('click', () => panel.hidden ? open() : close());
     $('.close').addEventListener('click', close);
@@ -283,8 +365,9 @@
     document.addEventListener('garyhub:identity', event => setUser(event.detail?.user || null));
     new MutationObserver(theme).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme', 'class'], subtree:false});
     if (document.body) new MutationObserver(theme).observe(document.body, {attributes:true, attributeFilter:['class']});
-    addEventListener('pagehide', () => { memory = {}; });
+    addEventListener('pagehide', () => { stopTutor(false); memory = {}; });
 
+    if (study) { const mathStyle = el('link'); mathStyle.rel = 'stylesheet'; mathStyle.href = '/academic/vendor/katex.min.css'; root.append(mathStyle); }
     chrome(); theme(); target.append(host); refreshAI();
     return {
       element:host, open, close, ask, place, setUser,

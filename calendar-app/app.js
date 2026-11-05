@@ -35,6 +35,7 @@ app.set("trust proxy", 1);
 
 app.use("/api/todos",express.json({limit:"2mb"}));
 app.use("/api/research",express.json({limit:"4mb"}));
+app.use("/api/assistant/tutor",express.json({limit:"256kb"}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -159,7 +160,7 @@ async function resolveTargetUserId(req) {
 }
 
 app.get("/health", (req, res) => {
-  res.json({ ok: true, hubVersion: "2.3.0.4" });
+  res.json({ ok: true, hubVersion: "2.3.1.0" });
 });
 
 // 登录
