@@ -1,7 +1,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const A=require('./public/academic/core.js');
-const RELEASE='v1.3.3.2';
+const RELEASE='v2.3.1.0';
 const err=(status,message)=>Object.assign(Error(message),{status});
 function atomic(file,value){const tmp=file+'.'+crypto.randomUUID()+'.tmp';const fd=fs.openSync(tmp,'wx',0o600);try{fs.writeFileSync(fd,JSON.stringify(value));fs.fsyncSync(fd);}finally{fs.closeSync(fd);}fs.renameSync(tmp,file);}
 async function readBody(req,max=24*1024*1024){let size=0;const parts=[];for await(const p of req){size+=p.length;if(size>max)throw err(413,'上传内容过大');parts.push(p);}try{return JSON.parse(Buffer.concat(parts).toString());}catch{throw err(400,'请求格式无效');}}
@@ -38,6 +38,26 @@ function createAcademic({DATA,identity,validCsrf,calendar,json}){
  if(route==='state'&&req.method==='GET'){const profile=await calendar(req,'/api/account/email');if(profile.ok){const info=await profile.json();if(typeof info.timezone==='string')user.timezone=info.timezone;}json(res,200,{...store.read(user.id),user});return true;}
  const input=write?await readBody(req,route==='state'?24*1024*1024:16000):null;
  if(write&&input.accountId!==user.id)throw err(409,'登录账号已变化，请重新加载后操作');
+ if(route.startsWith('tutor/')&&req.method==='POST'){
+  const verb=route.slice(6);if(!['start','chat','stop','clear'].includes(verb))throw err(404,'接口不存在');
+  if(verb!=='stop'&&user.role!=='admin'&&user.accountTier!=='subscriber')throw err(403,'讲义答疑仅订阅用户和管理员可用');
+  const payload={accountId:user.id,token:input.token};
+  if(['start','chat'].includes(verb)){
+   const saved=store.read(user.id),c=saved.state.courses.find(x=>x.id===input.courseId),l=c?.lectures.find(x=>x.id===input.lectureId);
+   if(!l)throw err(404,'讲义不存在，请先保存当前讲义');
+   const doc={courseId:c.id,lectureId:l.id,title:l.title,content:l.content};
+   if(verb==='start'){
+    if(input.revision!==saved.revision)throw err(409,'讲义已更新，请刷新后重新授权');
+    if(doc.content.length>60000)throw err(413,'讲义超过 60,000 字符，请拆分为较小的讲义后开启答疑');
+    payload.provider=input.provider;payload.consent=input.consent===true;payload.document=doc;
+   }else{
+    payload.fingerprint=crypto.createHash('sha256').update(JSON.stringify([doc.courseId,doc.lectureId,doc.title,doc.content])).digest('hex');
+    payload.message=input.message;payload.lang=input.lang;
+   }
+  }
+  const r=await calendar(req,'/api/assistant/tutor/'+verb,'POST',JSON.stringify(payload),verb==='chat'?130000:10000);
+  json(res,r.status,await r.json());return true;
+ }
  if(route==='state'&&req.method==='PUT'){const next=store.save(user.id,input);json(res,200,{revision:next.revision,updatedAt:next.updatedAt});return true;}
  if(route==='github'&&req.method==='POST'){
   if(busy.has('gh-'+user.id)||Date.now()-(lastGithub.get(user.id)||0)<15000)throw err(429,'请等待当前导入结束，或 15 秒后重试');busy.add('gh-'+user.id);lastGithub.set(user.id,Date.now());try{json(res,200,await github(input));}finally{busy.delete('gh-'+user.id);}return true;

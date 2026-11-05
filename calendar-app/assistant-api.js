@@ -85,8 +85,8 @@ function clock(zone, now = new Date()) {
 }
 // Tier and time zone come from the database, so a subscription change applies without signing in again.
 async function account(user) {
-  const row = await get('SELECT role,account_tier,timezone FROM users WHERE id=?', [user.id]);
-  return {tier:tierOf(row || {role:user.role, account_tier:user.accountTier}), now:clock(row?.timezone || 'Etc/UTC')};
+  const row = await get('SELECT role,account_tier,timezone,enabled,deletion_pending FROM users WHERE id=?', [user.id]);
+  return {active:!!row?.enabled && !row?.deletion_pending, tier:tierOf(row || {role:user.role, account_tier:user.accountTier}), now:clock(row?.timezone || 'Etc/UTC')};
 }
 const days = (from, to) => Math.round((Date.parse(to + 'T00:00:00Z') - Date.parse(from + 'T00:00:00Z')) / 86400000);
 function hhmm(value, label) {
@@ -182,14 +182,16 @@ async function post(s, url, model, body, timeout) {
 // a 400 and take reasoning_effort low/high/max instead; another model that refuses it is remembered here.
 const ALWAYS_THINKS = /^glm-5\.3(?:-|$)/i, alwaysThinks = new Set();
 const thinksAlways = model => ALWAYS_THINKS.test(model) || alwaysThinks.has(model.toLowerCase());
-function reasoning(model, maxTokens) {
+function reasoning(model, maxTokens, deep = false) {
+  if (deep) return {...(/^glm-(?:4\.[5-9]|[5-9])/i.test(model) ? {thinking:{type:'enabled'}} : {}),
+    ...((thinksAlways(model) || /^glm-5\.[2-9]/i.test(model)) ? {reasoning_effort:'high'} : {}), max_tokens:maxTokens + 4096};
   if (thinksAlways(model)) return {reasoning_effort:'low', max_tokens:maxTokens + 2048};
   return {...(/^glm-(?:4\.[5-9]|[5-9])/i.test(model) ? {thinking:{type:'disabled'}} : {}), max_tokens:maxTokens};
 }
 // One OpenAI-style chat completion with one model.
-async function complete(s, model, messages, tools, maxTokens = 1024, timeout = ROUND_TIMEOUT) {
+async function complete(s, model, messages, tools, maxTokens = 1024, timeout = ROUND_TIMEOUT, deep = false) {
   const url = process.env.GARYHUB_ASSISTANT_ENDPOINT || provider(s).url, started = Date.now();
-  const send = (wait) => post(s, url, model, {model, messages, ...(tools ? {tools, tool_choice:'auto'} : {}), ...reasoning(model, maxTokens),
+  const send = (wait) => post(s, url, model, {model, messages, ...(tools ? {tools, tool_choice:'auto'} : {}), ...reasoning(model, maxTokens, deep),
     temperature:0.3, stream:false}, wait);
   let data;
   try { data = await send(timeout); }
@@ -210,18 +212,18 @@ async function think(s, call, messages, tools) {
     const left = call.deadline - Date.now();
     if (left < 3000) break;
     try {
-      const {message, usage: used} = await complete(s, models[index], messages, tools, 1024, Math.min(ROUND_TIMEOUT, left));
+      const {message, usage: used} = await complete(s, models[index], messages, tools, call.tutor ? 4096 : 1024, Math.min(call.tutor ? 75000 : ROUND_TIMEOUT, left), !!call.tutor);
       Object.assign(call, {model:models[index], fallback:index > 0, rounds:call.rounds + 1,
         promptTokens:call.promptTokens + (Number(used.prompt_tokens) || 0), completionTokens:call.completionTokens + (Number(used.completion_tokens) || 0)});
       return message;
     } catch (error) {
       if (!error.upstream) throw error;
-      call.failures.push({source:'chat', ...error.upstream});
+      call.failures.push({source:call.tutor ? 'tutor' : 'chat', ...error.upstream, ...(call.tutor ? {detail:'Tutor provider request failed', code:'upstream'} : {})});
       if (error.code === 'config' || index === models.length - 1) throw error;
     }
   }
   const error = upstream(s, call.model || s.model, 504, 'deadline', 'request time budget used up');
-  call.failures.push({source:'chat', ...error.upstream});
+  call.failures.push({source:call.tutor ? 'tutor' : 'chat', ...error.upstream, ...(call.tutor ? {detail:'Tutor provider request failed', code:'upstream'} : {})});
   throw error;
 }
 const safeLink = value => { try { const url = new URL(String(value)); return ['https:', 'http:'].includes(url.protocol) ? url.href.slice(0, 500) : null; } catch { return null; } };
@@ -391,10 +393,12 @@ function registerAssistant(app, {requireLogin, requireAdmin}) {
     }
   };
 
+  require('./assistant-tutor').registerTutor(app, {requireLogin, settings, ready, provider, account, quotasOf, charge, refund, usage, think, logCall, logFailures, purge, reasoning});
+
   app.get('/api/assistant/status', requireLogin, route('status', async (req, res) => {
     const s = await settings(), {tier, now} = await account(req.session.user), quotas = quotasOf(s);
     res.json({enabled:ready(s), provider:provider(s).label, model:s.model, search:!!s.search_enabled && quotas.search[tier] > 0,
-      tier, memoryRounds:MEMORY_ROUNDS, quota:await usage(req.session.user.id, now.date, tier, quotas)});
+      tier, tutor: {available:ready(s) && tier !== 'standard', memoryRounds:10, maxDocumentChars:60000}, memoryRounds:MEMORY_ROUNDS, quota:await usage(req.session.user.id, now.date, tier, quotas)});
   }));
 
   app.post('/api/assistant/chat', requireLogin, rateLimit(30, 60_000), route('chat', async (req, res) => {

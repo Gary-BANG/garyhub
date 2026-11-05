@@ -20,7 +20,7 @@ test("assistant proposes changes, falls back, counts by kind and never returns t
   const database = createSqliteAdapter();
   await database.exec(`
     PRAGMA foreign_keys=ON;
-    CREATE TABLE users(id INTEGER PRIMARY KEY,username TEXT,password_hash TEXT,role TEXT,enabled INTEGER,created_at TEXT,account_tier TEXT NOT NULL DEFAULT 'standard');
+    CREATE TABLE users(id INTEGER PRIMARY KEY,username TEXT,password_hash TEXT,role TEXT,enabled INTEGER,created_at TEXT,account_tier TEXT NOT NULL DEFAULT 'standard',deletion_pending INTEGER NOT NULL DEFAULT 0);
     CREATE TABLE register_requests(id INTEGER PRIMARY KEY);
     CREATE TABLE events(id INTEGER PRIMARY KEY,user_id INTEGER);
     CREATE TABLE admin_operations(id TEXT PRIMARY KEY,actor_id INTEGER NOT NULL,target_id INTEGER NOT NULL,action TEXT NOT NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
