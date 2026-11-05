@@ -45,7 +45,7 @@
         <header><span class="avatar" aria-hidden="true"></span><div class="who"><strong class="name"></strong><span class="subtitle"></span></div><button class="more" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="menu" hidden>⋯</button><button class="close" type="button">×</button></header>
         <div class="menu" id="menu" role="menu" hidden></div>
         <div class="picker" role="group" hidden><strong class="picker-title"></strong><div class="picker-grid"></div></div>
-        <div class="tutor-bar" hidden><button class="tutor-toggle" type="button" aria-pressed="false"></button><span class="tutor-hint"></span></div>
+        <div class="tutor-bar" hidden><button class="tutor-toggle" type="button" role="switch" aria-checked="false"><span class="tutor-label"></span><span class="switch-track" aria-hidden="true"></span></button><span class="tutor-info"><button class="tutor-info-button" type="button" aria-describedby="tutor-help">ⓘ</button><span class="tutor-tooltip" id="tutor-help" role="tooltip"></span></span><span class="tutor-hint"></span></div>
         <div class="tutor-consent" hidden><p></p><button class="tutor-accept" type="button"></button><button class="tutor-cancel" type="button"></button></div>
         <div class="log" role="log" aria-live="polite"></div>
         <div class="chips"></div>
@@ -60,7 +60,7 @@
     let ai = null, busy = false, disclosed = false, statusTicket = 0;
     let tutor = null, consent = null, tutorTicket = 0, tutorStarting = false, lastAnchor = null, tutorExpiry = null;
     const study = window.GaryHubStudyContext;
-    const tutorText = () => lang === 'en' ? {start:'Study Q&A',stop:'Exit Q&A',subscriber:'Subscribers only',open:'Open a Markdown in Study Hub',off:'Enable AI in admin settings first',active:'10 rounds · reasoning when supported',accept:'Authorize this document',cancel:'Cancel',placeholder:'Ask about this document (up to 4,000 characters)',confirm:title=>`Allow the assistant to read “${title}”? When you ask a question, this Markdown and the last 10 rounds will be sent to ${ai?.provider || 'the configured AI provider'}. This session expires after one hour and is cleared from server memory. Switching document, closing the chat or exiting Q&A ends sharing and clears this session. Images and linked documents are not read.`,ended:'Q&A ended. The document is no longer shared.',enabled:title=>`Study Q&A: ${title}. You can ask for explanations, examples or a walkthrough.`,chips:['Explain the key ideas','Walk me through an example','Which prerequisites should I review?']} : {start:'讲义答疑',stop:'退出答疑',subscriber:'订阅用户专享',open:'请在学习中心打开 Markdown 讲义',off:'请先由管理员启用 AI',active:'10 轮记忆 · 按模型能力开启思考',accept:'授权当前讲义并开启',cancel:'取消',placeholder:'针对这篇讲义提问（最多 4,000 字符）',confirm:title=>`允许伙伴读取《${title}》吗？提问时，这篇 Markdown 和最近 10 轮对话会发送给${ai?.provider || '已配置的 AI 服务商'}。本次会话只在服务器内存中暂存，一小时后过期清理；切换讲义、关闭对话或退出答疑会停止共享并清空本次记忆。不读取图片和链接中的其他文档。`,ended:'已结束讲义答疑，当前讲义不再共享。',enabled:title=>`正在答疑：《${title}》。可以问概念、例题或推导步骤。`,chips:['解释这篇讲义的核心概念','用一个例子带我理解','我需要先掌握哪些知识？']};
+    const tutorText = () => lang === 'en' ? {start:'Study Q&A',stop:'Exit Q&A',subscriber:'Subscribers only',open:'Open a Markdown in Study Hub',off:'Enable AI in admin settings first',active:'10 rounds · reasoning when supported',accept:'Authorize this document',cancel:'Cancel',placeholder:'Ask about this document (up to 4,000 characters)',confirm:title=>`Allow the assistant to read “${title}”? When you ask a question, this Markdown and the last 10 rounds will be sent to ${ai?.provider || 'the configured AI provider'}. This session expires after one hour and is cleared from server memory. Hiding the chat keeps this session. Switching document or turning off Q&A ends sharing and clears it. Images and linked documents are not read.`,ended:'Q&A ended. The document is no longer shared.',enabled:title=>`Study Q&A: ${title}. You can ask for explanations, examples or a walkthrough.`,chips:['Explain the key ideas','Walk me through an example','Which prerequisites should I review?']} : {start:'讲义答疑',stop:'退出答疑',subscriber:'订阅用户专享',open:'请在学习中心打开 Markdown 讲义',off:'请先由管理员启用 AI',active:'10 轮记忆 · 按模型能力开启思考',accept:'授权当前讲义并开启',cancel:'取消',placeholder:'针对这篇讲义提问（最多 4,000 字符）',confirm:title=>`允许伙伴读取《${title}》吗？提问时，这篇 Markdown 和最近 10 轮对话会发送给${ai?.provider || '已配置的 AI 服务商'}。本次会话只在服务器内存中暂存，一小时后过期清理；收起对话框会保留会话，切换讲义或关闭答疑开关才会停止共享并清空本次记忆。不读取图片和链接中的其他文档。`,ended:'已结束讲义答疑，当前讲义不再共享。',enabled:title=>`正在答疑：《${title}》。可以问概念、例题或推导步骤。`,chips:['解释这篇讲义的核心概念','用一个例子带我理解','我需要先掌握哪些知识？']};
     const more = $('.more'), menu = $('.menu'), picker = $('.picker');
 
     const say = (key, replyLang, vars) => voices.line(character, replyLang, key, vars);
@@ -254,7 +254,8 @@
     }
     function close() {
       if (panel.hidden) return;
-      stopTutor(); toggleMenu(false); hidePicker();
+      if (!tutor) stopTutor(false);
+      toggleMenu(false); hidePicker();
       panel.hidden = true; launcher.setAttribute('aria-expanded', 'false'); delete host.dataset.open;
       if (host.dataset.launcher === 'off') handlers.onClose?.(); else launcher.focus({preventScroll:true});
     }
@@ -279,10 +280,12 @@
       if (!study) return;
       const t = tutorText(), context = study.current();
       $('.tutor-bar').hidden = false;
-      $('.tutor-toggle').textContent = tutor ? t.stop : t.start;
+      $('.tutor-label').textContent = t.start;
+      $('.tutor-info-button').setAttribute('aria-label', lang === 'en' ? 'About Study Q&A' : '讲义答疑说明');
+      $('.tutor-tooltip').textContent = t.start + ' · ' + (lang === 'en' ? '10 rounds · reasoning when supported' : '10 轮记忆 · 支持时开启思考');
       $('.tutor-toggle').disabled = !tutor && (tutorStarting || busy || !context || !ai?.tutor?.available || context.accountId !== user?.id);
-      $('.tutor-toggle').setAttribute('aria-pressed', String(!!tutor));
-      $('.tutor-hint').textContent = tutor ? tutor.context.title + ' · ' + t.active : !context ? t.open : ai?.tier === 'standard' ? t.subscriber : !aiOn() ? t.off : t.active;
+      $('.tutor-toggle').setAttribute('aria-checked', String(!!tutor));
+      $('.tutor-hint').textContent = tutor ? tutor.context.title : !context ? t.open : ai?.tier === 'standard' ? t.subscriber : !aiOn() ? t.off : '';
       panel.classList.toggle('tutoring', !!tutor);
       $('.tutor-consent').hidden = !consent;
       if (consent) $('.tutor-consent p').textContent = t.confirm(consent.title);

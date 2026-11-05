@@ -88,7 +88,7 @@ header{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 14px;bord
 .tutor-bar{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--bg)}
 .tutor-bar[hidden],.tutor-consent[hidden]{display:none}
 .tutor-toggle,.tutor-consent button{padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);cursor:pointer;flex-shrink:0}
-.tutor-toggle[aria-pressed=true],.tutor-accept{color:var(--companion-accent)}
+.tutor-toggle[aria-checked=true],.tutor-accept{color:var(--companion-accent)}
 .tutor-toggle:disabled,.tutor-accept:disabled{opacity:.55;cursor:default}
 .tutor-hint{font-size:11px;color:var(--muted);overflow-wrap:anywhere}
 .tutor-consent{padding:10px 14px;border-bottom:1px solid var(--line);max-height:45vh;overflow:auto}
@@ -100,3 +100,15 @@ header{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 14px;bord
 .tutoring .text table{display:block;max-width:100%;overflow:auto;border-collapse:collapse}.tutoring th,.tutoring td{padding:4px 8px;border:1px solid var(--line)}
 .tutoring .text h1,.tutoring .text h2{font-size:1.2em}.tutoring .text h3,.tutoring .text h4{font-size:1.1em}
 @media(max-width:600px){.panel.tutoring{width:100%;height:min(82dvh,720px)}.tutor-bar{align-items:flex-start}}
+
+.tutor-toggle{display:inline-flex;align-items:center;gap:9px;border:0;background:transparent;padding:6px 0}
+.switch-track{display:inline-block;width:34px;height:20px;padding:3px;border-radius:20px;background:var(--muted);flex:none}
+.switch-track::after{content:"";display:block;width:14px;height:14px;border-radius:50%;background:var(--paper);transition:transform .15s}
+.tutor-toggle[aria-checked=true] .switch-track{background:var(--companion-accent)}
+.tutor-toggle[aria-checked=true] .switch-track::after{transform:translateX(14px)}
+.tutor-info{position:relative;display:inline-flex;flex:none}
+.tutor-info-button{border:0;background:transparent;color:var(--muted);padding:5px;cursor:help;font-size:16px}
+.tutor-tooltip{display:none;position:absolute;top:100%;left:-130px;z-index:2;width:230px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);box-shadow:var(--shadow);font-size:12px;white-space:normal}
+.tutor-info:hover .tutor-tooltip,.tutor-info:focus-within .tutor-tooltip{display:block}
+.tutor-toggle:focus-visible,.tutor-info-button:focus-visible{outline:2px solid var(--companion-accent);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.switch-track::after{transition:none}}
