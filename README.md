@@ -2,11 +2,11 @@
 
 GaryHub 是使用统一账号的个人工作空间，包含日历与私人记录、账本、待办、学习工具和服务器工具。仓库保存应用源码、脱敏文档与可复现更新器；正式服务通过经过验证的升级包部署，GitHub 合并不会自动更新服务器。
 
-**当前源码版本：v2.3.2.1。** 学习中心侧栏通过图标切换课程与本讲目录、折叠层级和正文，并显示随中英文切换的阅读进度。用户名旁的头像打开独立的 [个性化页面](https://tools.garyhub.uk/personalize/)，可预览并保存当前账号的学习中心外观、正文和标题字号。
+**当前源码版本 v2.3.2.2。** 网站伙伴可修改日程、标记完成、记录支出和添加按月或按年的固定开支。未分类日程可直接确认，也可在对话中选择已有分类。记账需要明确币种和分类，核对卡片后保存。
 
-安装器 v2.3.2.1-r1 要求 Calendar 和 Lab 都运行 v2.3.2.0。源码基于已合并的 PR #35，已本地验证，本版尚未推送、合并或生产部署。
+安装器 v2.3.2.2-r1 要求两服务运行 v2.3.2.1。源码基线为 ef0bebec，生产状态待安装日志。
 
-完整解压后双击 `RUN-UPDATE.cmd`。`ROLLBACK.cmd` 恢复 v2.3.2.0 应用并保留当前数据，`PUSH-TO-GITHUB.cmd` 在独立工作区准备审查分支。构建命令为 `python scripts/updater/manage.py build --release 2.3.2.1 --output <ZIP绝对路径>`。见 [版本说明](docs/GARYHUB_V2_3_2_1.md) 和 [验证记录](docs/GARYHUB_V2_3_2_1_TESTS.md)。
+完整解压后双击 `RUN-UPDATE.cmd`。`ROLLBACK.cmd` 恢复 v2.3.2.1 应用并保留当前数据，`PUSH-TO-GITHUB.cmd` 在独立工作区准备审查分支。构建命令为 `python scripts/updater/manage.py build --release 2.3.2.2 --output <ZIP绝对路径>`。见 [版本说明](docs/GARYHUB_V2_3_2_2.md) 和 [验证记录](docs/GARYHUB_V2_3_2_2_TESTS.md)。
 
 维护日期：2026-11-06（America/Chicago）。
 

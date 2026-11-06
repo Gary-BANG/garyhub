@@ -71,7 +71,11 @@ test("assistant proposes changes, falls back, counts by kind and never returns t
     req.session = { user: id ? { id, role: id === 1 ? "admin" : "user", accountTier: "standard" } : null };
     next();
   });
-  registerAssistant(app, {
+  const {migrateLedger,registerLedger}=require('../ledger-api');
+  await migrateLedger(database);
+  for(const field of ['auth_version','must_change_password']) await database.run('ALTER TABLE users ADD COLUMN '+field+' INTEGER DEFAULT 0');
+  const ledger=registerLedger(app,{db:database,requireLogin:(req,res,next)=>next(),fx:{}});
+  registerAssistant(app, {ledger,
     requireLogin: (req, res, next) => req.session.user ? next() : res.status(401).json({ message: "未登录" }),
     requireAdmin: (req, res, next) => req.session.user?.role === "admin" ? next() : res.status(403).json({ message: "需要管理员权限" })
   });
@@ -80,7 +84,7 @@ test("assistant proposes changes, falls back, counts by kind and never returns t
   const url = `http://127.0.0.1:${server.address().port}`;
   const bodies = [];
   async function api(path, method = "GET", body, user = 2) {
-    const response = await fetch(url + path, { method, headers: { "content-type": "application/json", "x-test-user": String(user) },
+    const response = await fetch(url + path, { method, headers: { "content-type": "application/json", "x-forwarded-for":"192.0.2.1", "x-test-user": String(user) },
       body: body ? JSON.stringify(body) : undefined });
     const text = await response.text();
     bodies.push(text);
@@ -125,8 +129,8 @@ test("assistant proposes changes, falls back, counts by kind and never returns t
     assert.equal(first.auth, "Bearer " + KEY);
     assert.deepEqual(first.body.thinking, { type: "disabled" });
     assert.equal(first.body.model, "glm-4.7-flash");
-    assert.deepEqual(first.body.tools.map(tool => tool.function.name), ["list_tasks", "add_task", "delete_task", "open_page", "web_search"]);
-    assert.ok(!first.body.tools[3].function.parameters.properties.page.enum.includes("status"), "admin pages are not offered to members");
+    assert.deepEqual(first.body.tools.map(tool => tool.function.name), ["update_task","complete_task","set_pending_category","add_expense","add_fixed_expense","list_tasks","add_task","delete_task","open_page","web_search"]);
+    assert.ok(!first.body.tools.find(t=>t.function.name==="open_page").function.parameters.properties.page.enum.includes("status"), "admin pages are not offered to members");
     assert.match(first.body.messages[0].content, /Asia\/Shanghai/);
     assert.match(first.body.messages[0].content, /“栗栗”/);
     assert.deepEqual(first.body.messages.slice(1).map(m => m.role), ["user"], "browser-sent history is ignored");
@@ -299,6 +303,35 @@ test("assistant proposes changes, falls back, counts by kind and never returns t
     assert.equal(view.body.keySet, true);
     assert.ok(bodies.every(text => !text.includes(KEY)), "the API key never leaves the server");
     assert.ok((await database.get("SELECT COUNT(*) AS n FROM admin_operations WHERE action='assistant-settings'")).n >= 3);
+    await save({apiKey:KEY,quotas:quotas(500)});
+    app.set("trust proxy","loopback");
+    const draft=async(name,args,message)=>{
+      script.push(call(name,args),{content:'请确认'});
+      const result=await chat(message);
+      assert.equal(result.status,200);
+      return result.body.actions[0];
+    };
+    const confirm=(id,user=2)=>api('/api/assistant/actions/'+id+'/confirm','POST',{},user);
+    const pending=await draft('add_task',{title:'报告',start_date:'2026-11-08'},'周日写报告');
+    assert.deepEqual(pending.summary.choices,['Health']);
+    const updated=await draft('set_pending_category',{card_id:pending.id,category:'Health'},'放入 Health');
+    assert.equal((await confirm(pending.id)).status,404);
+    const savedTask=(await confirm(updated.id)).body.task;
+    const moved=await draft('update_task',{task_id:savedTask.id,start_date:'2026-11-09'},'推迟一天');
+    assert.equal((await confirm(moved.id,3)).status,404);
+    assert.equal((await confirm(moved.id)).status,200);
+    const finished=await draft('complete_task',{task_id:savedTask.id},'报告做完了');
+    assert.equal((await confirm(finished.id)).status,200);
+    assert.deepEqual({...await database.get('SELECT start_date,end_date,status FROM tasks WHERE id=?',[savedTask.id])},{start_date:'2026-11-09',end_date:'2026-11-09',status:'done'});
+    for (const [name,table,extra] of [['add_expense','ledger_entries',{}],['add_fixed_expense','fixed_expenses',{name:'午餐计划',period:'monthly'}]]) {
+      assert.equal(await draft(name,{amount:'20',...extra},'记录午餐20'),undefined);
+      const expense=await draft(name,{amount:'20',currency:'USD',category:'餐饮',...extra},'美元，餐饮');
+      assert.equal((await database.get('SELECT count(*) AS n FROM '+table)).n,0);
+      assert.equal((await confirm(expense.id,3)).status,404);
+      assert.equal((await confirm(expense.id)).status,200);
+      assert.equal((await confirm(expense.id)).status,409);
+      assert.deepEqual({...await database.get('SELECT user_id,amount,currency,category_id FROM '+table)},{user_id:2,amount:2000,currency:'USD',category_id:'food'});
+    }
   } finally {
     server.close();
     model.close();

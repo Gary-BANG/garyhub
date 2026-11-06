@@ -61,9 +61,12 @@ function registerLedger(app,{requireLogin,db=connection(),fx=createFx({dataDir:r
   if(old){const children=await db.all('SELECT * FROM ledger_entries WHERE user_id=? AND refund_of=?',[uid,old.id]);if(children.length&&(x.kind!=='expense'||x.currency!==old.currency||x.category_id!==old.category_id||children.some(r=>r.date<x.date)||children.reduce((s,r)=>s+r.amount,0)>x.amount))fail('此消费有关联退款；请先调整退款，再修改性质、币种、类别、日期或金额');}
   return x;
  }
- app.post('/api/ledger/entries',...route(async(req,res)=>{
-  const uid=req.session.user.id,v=req.body;if(typeof v.requestId!=='string'||!/^[a-f0-9-]{36}$/.test(v.requestId))fail('请求编号无效，请刷新后重试');
-  const result=await transaction(async()=>{const old=await db.get('SELECT * FROM ledger_entries WHERE user_id=? AND request_id=?',[uid,v.requestId]);if(old)return {item:output(old),duplicate:true};const x=await validate(uid,v),id=crypto.randomUUID();await db.run('INSERT INTO ledger_entries(id,user_id,kind,currency,date,category_id,amount,notes,refund_of,request_id) VALUES(?,?,?,?,?,?,?,?,?,?)',[id,uid,x.kind,x.currency,x.date,x.category_id,x.amount,x.notes,x.refund_of,v.requestId]);return {item:output(await fetchEntry(uid,id))};});res.status(result.duplicate?200:201).json(result);
+ async function createEntry(req,body){
+    const uid=req.session.user.id,v=body;if(typeof v.requestId!=='string'||!/^[a-f0-9-]{36}$/.test(v.requestId))fail('请求编号无效，请刷新后重试');
+  return transaction(async()=>{const old=await db.get('SELECT * FROM ledger_entries WHERE user_id=? AND request_id=?',[uid,v.requestId]);if(old)return {item:output(old),duplicate:true};const x=await validate(uid,v),id=crypto.randomUUID();await db.run('INSERT INTO ledger_entries(id,user_id,kind,currency,date,category_id,amount,notes,refund_of,request_id) VALUES(?,?,?,?,?,?,?,?,?,?)',[id,uid,x.kind,x.currency,x.date,x.category_id,x.amount,x.notes,x.refund_of,v.requestId]);return {item:output(await fetchEntry(uid,id))};});
+  }
+  app.post('/api/ledger/entries',...route(async(req,res)=>{
+  const result=await createEntry(req,req.body);res.status(result.duplicate?200:201).json(result);
  }));
  app.put('/api/ledger/entries/:id',...route(async(req,res)=>{
   const uid=req.session.user.id,v=req.body;const item=await transaction(async()=>{const old=await fetchEntry(uid,req.params.id);if(!old)fail('记录不存在',404);if(v.revision!==old.revision)fail('记录已在另一页面修改，请刷新',409);const x=await validate(uid,v,old);await db.run(`UPDATE ledger_entries SET kind=?,currency=?,date=?,category_id=?,amount=?,notes=?,refund_of=?,revision=revision+1,updated_at=CURRENT_TIMESTAMP WHERE user_id=? AND id=?`,[x.kind,x.currency,x.date,x.category_id,x.amount,x.notes,x.refund_of,uid,old.id]);return output(await fetchEntry(uid,old.id));});res.json({item});
@@ -71,6 +74,10 @@ function registerLedger(app,{requireLogin,db=connection(),fx=createFx({dataDir:r
  app.delete('/api/ledger/entries/:id',...route(async(req,res)=>{
   const uid=req.session.user.id;await transaction(async()=>{const old=await fetchEntry(uid,req.params.id);if(!old)fail('记录不存在',404);if(req.body.revision!==old.revision)fail('记录已变化，请刷新后重试',409);const children=await db.get('SELECT COUNT(*) AS n FROM ledger_entries WHERE user_id=? AND refund_of=?',[uid,old.id]);if(children.n)fail('请先删除或取消关联此消费的退款');await db.run('DELETE FROM ledger_entries WHERE user_id=? AND id=?',[uid,old.id]);});res.json({ok:true});
  }));
- require('./fixed-expenses').registerFixedExpenses(app,{db,route,categories,fx,transaction,output,fetchEntry,validate,money,date});
+ const createFixed=require('./fixed-expenses').registerFixedExpenses(app,{db,route,categories,fx,transaction,output,fetchEntry,validate,money,date});
+ return {categories, create(req,body,fixed){
+   const task=queue.then(()=>fixed?createFixed(req,body):createEntry(req,body));
+   queue=task.catch(()=>{});return task;
+ }};
 }
 module.exports={registerLedger,migrateLedger,money,date,BUILTIN};

@@ -160,7 +160,7 @@ async function resolveTargetUserId(req) {
 }
 
 app.get("/health", (req, res) => {
-  res.json({ ok: true, hubVersion: "2.3.2.1" });
+  res.json({ ok: true, hubVersion: "2.3.2.2" });
 });
 
 // 登录
@@ -677,7 +677,7 @@ registerAccounts(app,{requireLogin,requireAdmin,sessionStore});
 registerMembership(app,{requireAdmin});
 registerTotp(app,{requireLogin,requireAdmin});
 registerProfile(app,{db:require("./db"),requireAdmin});
-registerLedger(app,{requireLogin});
+const assistantLedger=registerLedger(app,{requireLogin});
 registerTodos(app,{requireLogin});
 registerResearch(app,{requireLogin});
 registerToolAccess(app);
@@ -687,7 +687,7 @@ registerHubApi(app,{db:require("./db"),requireLogin,requireAdmin});
 registerTasksApi(app, { requireLogin, resolveTargetUserId });
 registerEmailApi(app, { requireLogin });
 registerPersonalApi(app, { requireLogin });
-registerAssistant(app, { requireLogin, requireAdmin });
+registerAssistant(app, { requireLogin, requireAdmin, ledger:assistantLedger });
 
 app.use((err,req,res,next)=>{if(res.headersSent)return next(err);res.status(err.status||500).json({message:err.status?err.message:"服务暂时不可用，请重试",...(err.name==='TodoImportError'?{code:err.code,path:err.path,details:err.details}:{})});});
 

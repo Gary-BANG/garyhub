@@ -56,9 +56,9 @@ function registerFixedExpenses(app, {db, route, categories, fx, transaction, out
     res.json({items:items.map(output),categories:await categories(uid),fx:rate,rawTotals,activeCount,limit:entitlement.limits(user).fixedExpenses,used:usage.n,
       summary:rate.available?{currency,annual,monthly:annual/12,byCategory}:null});
   }));
-  app.post('/api/ledger/fixed', ...route(async(req,res)=>{
-    const uid=req.session.user.id,v=req.body;if(!uuid(v.requestId))fail('请求编号无效，请刷新后重试');
-    const result=await transaction(async()=>{
+  async function createFixed(req,body){
+    const uid=req.session.user.id,v=body;if(!uuid(v.requestId))fail('请求编号无效，请刷新后重试');
+    return transaction(async()=>{
       const old=await db.get('SELECT * FROM fixed_expenses WHERE user_id=? AND request_id=?',[uid,v.requestId]);
       if(old)return {item:output(old),duplicate:true};
       const cap=entitlement.limits(await entitlement.currentUser(db,req)).fixedExpenses;
@@ -66,7 +66,10 @@ function registerFixedExpenses(app, {db, route, categories, fx, transaction, out
       const x=await fields(uid,v),id=crypto.randomUUID();
       await db.run('INSERT INTO fixed_expenses(id,user_id,name,amount,currency,period,category_id,notes,active,request_id) VALUES(?,?,?,?,?,?,?,?,?,?)',[id,uid,x.name,x.amount,x.currency,x.period,x.category_id,x.notes,x.active,v.requestId]);
       return {item:output(await find(uid,id))};
-    });res.status(result.duplicate?200:201).json(result);
+    });
+  }
+  app.post('/api/ledger/fixed', ...route(async(req,res)=>{
+    const result=await createFixed(req,req.body);res.status(result.duplicate?200:201).json(result);
   }));
   app.put('/api/ledger/fixed/:id', ...route(async(req,res)=>{
     const uid=req.session.user.id,v=req.body;
@@ -94,5 +97,6 @@ function registerFixedExpenses(app, {db, route, categories, fx, transaction, out
       return {item:output(await fetchEntry(uid,id)),duplicate:false};
     });res.status(result.duplicate?200:201).json(result);
   }));
+  return createFixed;
 }
 module.exports={migrateFixedExpenses,registerFixedExpenses};
