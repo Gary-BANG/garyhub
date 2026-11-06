@@ -16,3 +16,41 @@
 
 /* Study navigation can release its width without re-rendering the lecture. */
 .workspace{position:relative}.workspace:has(.sidebar-toggle){padding-top:44px}.sidebar-toggle{position:absolute;top:0;left:0;display:grid;place-items:center;width:36px;height:34px;padding:6px}.sidebar[hidden]{display:none}.workspace.sidebar-closed{grid-template-columns:minmax(0,1fr)}.viewer-link{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:7px;padding:7px 10px;color:var(--accent);text-decoration:none;background:var(--paper)}.viewer-link:hover{background:var(--soft)}.sidebar-toggle:focus-visible,.viewer-link:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+:root[data-theme=warm]{--bg:#f3ebdb;--paper:#fff8ea;--ink:#443728;--muted:#766653;--line:#ddd0bb;--accent:#805533;--soft:#eee2cd}
+.study-stats .stat{padding:10px 18px}
+.study-stats .stat strong{margin-top:3px;font-size:clamp(28px,2.4vw,36px);line-height:1.08;font-variant-numeric:tabular-nums}
+.study-stats strong span{font:inherit;color:var(--ink)}
+#personalize{display:inline-grid;place-items:center;border-radius:50%;padding:6px}
+.study-nav{position:sticky;top:8px;align-self:start;z-index:3;min-width:0;background:var(--bg)}
+.study-nav-buttons{display:flex;gap:5px;padding:4px 0 8px}
+.study-nav-buttons button[aria-expanded=true]{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.study-nav .sidebar{max-height:calc(100dvh - 70px);overflow:auto;overscroll-behavior:contain}
+.study-nav .lecture-list{max-height:none}
+.workspace.sidebar-closed:has(.study-nav){grid-template-columns:max-content minmax(0,1fr)}
+.workspace.sidebar-closed .study-nav-buttons{flex-direction:column}
+#outlinePanel h3{margin:4px 0 8px}
+.outline-tools{display:flex;gap:4px;flex-wrap:wrap}
+.outline-tools button,.outline-branch{font-size:12px;padding:5px 7px}
+.outline-tree,.outline-tree ul{list-style:none;padding:0;margin:8px 0}
+.outline-tree ul{border-left:1px solid var(--line);margin:2px 0 4px 6px;padding-left:6px}
+.outline-row{display:flex;align-items:baseline;gap:3px}
+.outline-row a{display:block;flex:1;padding:5px;color:var(--ink);font-size:14px;overflow-wrap:anywhere}
+.outline-row a[aria-current]{background:var(--soft);color:var(--accent);border-radius:5px}
+.outline-branch{border:0;background:transparent;color:var(--muted)}
+.note-section>summary{cursor:pointer;color:var(--ink);margin:1em 0 .5em}
+.prose .note-section>summary>.note-heading{display:inline;margin:0;line-height:1.35}
+.prose h1{font-size:var(--heading-font)}.prose h2{font-size:calc(var(--heading-font)*.8)}.prose h3{font-size:calc(var(--heading-font)*.68)}
+.prose h4{font-size:calc(var(--heading-font)*.62)}.prose h5{font-size:calc(var(--heading-font)*.56)}.prose h6{font-size:calc(var(--heading-font)*.52)}
+.code-frame{border:1px solid var(--line);background:var(--bg);border-radius:10px;margin:1em 0;overflow:hidden}
+.code-bar{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding:5px 14px;font:13px/1.4 monospace;color:var(--muted)}
+.code-bar button{font:inherit;background:transparent;border:0;color:inherit}
+.code-frame pre{margin:0;border:0;border-radius:0}
+@media(max-width:850px){
+ .workspace:has(.study-nav),.workspace.sidebar-closed:has(.study-nav){grid-template-columns:minmax(0,1fr);gap:12px}
+ .study-nav{top:0}.study-nav-buttons,.workspace.sidebar-closed .study-nav-buttons{flex-direction:row}
+ .study-nav .sidebar{max-height:35dvh;border-bottom:1px solid var(--line);padding-bottom:6px}
+ .note-heading{scroll-margin-top:64px}
+}
+#personalize[hidden]{display:none}
+@media(max-width:850px){.header-actions #account{display:inline;max-width:9em;overflow:hidden;text-overflow:ellipsis}}

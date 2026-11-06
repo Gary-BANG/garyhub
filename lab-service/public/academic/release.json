@@ -1,1 +1,12 @@
-{"version":"v1.3.3.2","features":["frontmatter","callouts","wikilinks","github-guide"]}
+{
+  "version": "v2.3.2.0",
+  "features": [
+    "frontmatter",
+    "callouts",
+    "wikilinks",
+    "github-guide",
+    "lecture-outline",
+    "reading-preferences",
+    "code-language"
+  ]
+}

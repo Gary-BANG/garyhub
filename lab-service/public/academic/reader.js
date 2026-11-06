@@ -27,17 +27,78 @@ function create({marked,yaml,DOMPurify,katex}){
  const normalizeHeading=s=>clean(s).trim().replace(/\s+/g,' ').toLowerCase(),slug=s=>normalizeHeading(s).replace(/[^\p{L}\p{N}\s_-]/gu,'').replace(/\s+/g,'-');
  function outlines(box){const counts=new Map();return [...box.querySelectorAll('h1,h2,h3,h4,h5,h6')].map((h,i)=>{const copy=h.cloneNode(true);for(const el of copy.querySelectorAll('[data-math]'))el.textContent=el.dataset.math;const text=copy.textContent,base=slug(text),n=counts.get(base)||0;counts.set(base,n+1);return {element:h,id:'heading-'+i,text,slug:base+(n?'-'+n:''),level:Number(h.tagName.slice(1))};});}
  function findHeading(outline,anchor){const key=normalizeHeading(anchor),byId=outline.find(h=>h.id===anchor||h.slug===anchor);if(byId)return byId;const keys=anchor.split('#').map(normalizeHeading);if(keys.length===1)return outline.find(h=>normalizeHeading(h.text)===key||h.slug===slug(anchor));let start=0,end=outline.length,last=null;for(const k of keys){const index=outline.findIndex((h,i)=>i>=start&&i<end&&normalizeHeading(h.text)===k);if(index<0)return null;last=outline[index];start=index+1;const next=outline.findIndex((h,i)=>i>=start&&i<end&&h.level<=last.level);if(next>=0)end=next;}return last;}
- function mount({box,toc,lecture,course,onNavigate,onNotice=()=>{}}){const document=box.ownerDocument;box.innerHTML=html(lecture.content).html;if(toc)toc.replaceChildren();const outline=outlines(box),cache=new Map([[lecture.id,outline]]);
+ function mount({box,toc,lecture,course,onNavigate,onJump=()=>{},onNotice=()=>{}}){const document=box.ownerDocument;box.innerHTML=html(lecture.content).html;if(toc)toc.replaceChildren();const outline=outlines(box),cache=new Map([[lecture.id,outline]]);
  function targetHeading(target,anchor){if(!cache.has(target.id)){const temp=document.createElement('div');temp.innerHTML=html(target.content).html;cache.set(target.id,outlines(temp));}return findHeading(cache.get(target.id),anchor);}
- function reveal(h){for(let el=h.element.parentElement;el&&el!==box;el=el.parentElement)if(el.tagName==='DETAILS')el.open=true;h.element.scrollIntoView?.({behavior:'smooth',block:'start'});}
- for(const h of outline){h.element.id=h.id;h.element.classList.add('note-heading');if(toc&&h.level<=3){const a=document.createElement('a');a.textContent=h.text;a.href='#'+h.id;a.onclick=e=>{e.preventDefault();reveal(h);};toc.append(a);}}
+ // Wrap the original nodes so math, Obsidian links and nested callouts keep their handlers.
+ const sections=new Map();
+ for(const h of [...outline].reverse()){
+  const section=document.createElement('details'),summary=document.createElement('summary');
+  section.className='note-section';section.open=true;
+  h.element.before(section);summary.append(h.element);section.append(summary);
+  h.element.id=h.id;h.element.classList.add('note-heading');
+  while(section.nextSibling && !(sections.get(section.nextSibling)?.level<=h.level)){
+   section.append(section.nextSibling);
+  }
+  sections.set(section,h);
+ }
+ let syncOutline=()=>{};
+ function reveal(h){
+  for(let el=h.element.parentElement;el&&el!==box;el=el.parentElement)if(el.tagName==='DETAILS')el.open=true;
+  syncOutline();onJump();
+  h.element.scrollIntoView?.({block:'start'});
+ }
+ if(toc){
+  if(!outline.length)toc.textContent='这份讲义没有标题';
+  else {
+   const tools=document.createElement('div'),tree=document.createElement('ul');
+   tools.className='outline-tools';tree.className='outline-tree';toc.append(tools,tree);
+   const control=()=>{const b=document.createElement('button');b.type='button';tools.append(b);return b;};
+   const levels=control(),content=control(),branches=[],stack=[];
+   let active=null;
+   for(const h of outline){
+    while(stack.length && stack.at(-1).level>=h.level)stack.pop();
+    const parent=stack.at(-1);
+    if(parent&&!parent.children){
+     const children=document.createElement('ul'),toggle=document.createElement('button');
+     toggle.type='button';toggle.className='outline-branch';toggle.setAttribute('aria-label','子目录 · '+parent.text);
+     parent.row.prepend(toggle);parent.item.append(children);parent.children=children;
+     const branch={children,toggle};branches.push(branch);
+     toggle.onclick=()=>{setBranch(branch,children.hidden);sync();};setBranch(branch,true);
+    }
+    const item=document.createElement('li'),row=document.createElement('div'),a=document.createElement('a');
+    row.className='outline-row';a.textContent=h.text;a.href='#'+lecture.id+'~'+h.id;
+    a.setAttribute('data-i18n-ignore','');a.onclick=e=>{
+     if(e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;
+     e.preventDefault();active?.removeAttribute('aria-current');a.setAttribute('aria-current','location');active=a;reveal(h);sync();
+    };
+    row.append(a);item.append(row);(parent?.children||tree).append(item);stack.push({level:h.level,text:h.text,item,row});
+   }
+   function setBranch(b,open){b.children.hidden=!open;b.toggle.textContent=open?'▾':'▸';b.toggle.setAttribute('aria-expanded',String(open));}
+   function sync(){
+    const allLevels=branches.every(b=>!b.children.hidden),allContent=[...sections.keys()].every(s=>s.open);
+    levels.disabled=!branches.length;levels.textContent=allLevels?'收起目录层级':'展开目录层级';
+    content.textContent=allContent?'收起全部正文':'展开全部正文';
+   }
+   syncOutline=sync;
+   levels.onclick=()=>{const open=branches.some(b=>b.children.hidden);branches.forEach(b=>setBranch(b,open));sync();};
+   content.onclick=()=>{const open=[...sections.keys()].some(s=>!s.open);for(const s of sections.keys())s.open=open;sync();};
+   box.addEventListener('click',e=>{if(e.target.closest('summary'))document.defaultView.requestAnimationFrame(sync);});
+   sync();
+  }
+ }
  for(const a of box.querySelectorAll('a')){const wiki=a.hasAttribute('data-note-link'),href=wiki?a.dataset.noteLink:a.getAttribute('href')||'';if(!wiki&&/^https?:\/\//i.test(href)){a.target='_blank';a.rel='noopener noreferrer';continue;}const result=resolveLink(course.lectures,lecture,href,wiki);let reason=result.status==='ambiguous'?'同名讲义不唯一，请使用完整路径':result.status==='invalid'?'链接格式不支持':'目标讲义尚未导入';let heading=null;
  if(result.status==='found'&&result.anchor){heading=targetHeading(result.target,result.anchor);if(!heading)reason='目标标题尚未找到';}
  if(result.status!=='found'||(result.anchor&&!heading)){a.removeAttribute('href');a.removeAttribute('data-note-link');a.classList.add('unresolved-link');a.setAttribute('aria-disabled','true');a.title=reason;a.insertAdjacentHTML('beforeend',`<small class="link-status">（${esc(reason)}）</small>`);continue;}
  a.href='#'+result.target.id+(result.anchor?'~'+encodeURIComponent(result.anchor):'');a.onclick=e=>{if(e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;e.preventDefault();if(result.target.id===lecture.id&&heading)reveal(heading);else onNavigate(result.target,result.anchor);};}
  for(const span of box.querySelectorAll('[data-math]')){try{katex.render(span.dataset.math,span,{displayMode:span.dataset.display==='yes',throwOnError:true,trust:false,strict:'warn',maxExpand:1000});}catch(e){span.textContent=span.dataset.math;span.className='notice warning';span.title='公式解析失败：'+e.message;}}
  for(const img of box.querySelectorAll('img')){const raw=img.getAttribute('src')||'';let p=null;try{const name=decodeURIComponent(raw.split('#')[0].split('?')[0]);if(!/^(?:[a-z]+:|\/)/i.test(name))p=pathJoin(lecture.path.split('/').slice(0,-1).join('/'),name);}catch{}const asset=course.assets.find(x=>clean(x.path)===p);if(asset)img.src=asset.data;else{const missing=document.createElement('span');missing.className='notice warning';missing.textContent='图片未导入：'+(img.alt||raw||'图片');img.replaceWith(missing);}}
- for(const code of box.querySelectorAll('pre code')){const source=code.textContent;code.innerHTML=source.split(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|\b(?:def|class|return|import|from|as|if|else|for|while|const|let|function|True|False|None|in|await|async)\b)/g).map((s,i)=>i%2?`<span class="${/^["']/.test(s)?'str':'token'}">${esc(s)}</span>`:esc(s)).join('');}
+ for(const code of box.querySelectorAll('pre code')){const source=code.textContent;
+ const language=[...code.classList].find(name=>name.startsWith('language-'))?.slice(9);
+ const frame=document.createElement('div'),bar=document.createElement('div'),label=document.createElement('span'),copy=document.createElement('button');
+ frame.className='code-frame';bar.className='code-bar';label.textContent=language||'纯文本';label.setAttribute('data-i18n-ignore','');
+ copy.type='button';copy.textContent='复制代码';copy.onclick=async()=>{try{await document.defaultView.navigator.clipboard.writeText(source);onNotice('代码已复制');}catch{onNotice('复制失败，请选中代码手动复制');}};
+ const pre=code.closest('pre');if(!pre.parentElement.classList.contains('code-frame')){pre.before(frame);bar.append(label,copy);frame.append(bar,pre);}
+ code.innerHTML=source.split(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|\b(?:def|class|return|import|from|as|if|else|for|while|const|let|function|True|False|None|in|await|async)\b)/g).map((s,i)=>i%2?`<span class="${/^["']/.test(s)?'str':'token'}">${esc(s)}</span>`:esc(s)).join('');}
  return {scrollTo(anchor){const h=findHeading(outline,anchor);if(h)reveal(h);else onNotice('目标标题尚未找到');return !!h;}};
  }
  return {html,mount};

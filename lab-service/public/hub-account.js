@@ -6,11 +6,14 @@
  const name=el('span','正在确认登录…','gh-name'),login=el('a','登录','gh-button'),logout=el('button','退出登录','gh-button'),admin=el('a','用户管理 ↗','gh-button');
  login.href='https://calendar.garyhub.uk/login/?next='+encodeURIComponent(location.href);admin.href='https://tools.garyhub.uk/admin/';admin.target='_blank';admin.rel='noopener';logout.type='button';
  const bell=el('button','🔔','gh-button'),panel=el('section',undefined,'gh-notices'),message=el('span','','gh-message');bell.type='button';bell.setAttribute('aria-label','更新通知');bell.setAttribute('aria-expanded','false');panel.id='gh-notices';panel.setAttribute('aria-label','更新通知');bell.setAttribute('aria-controls',panel.id);panel.hidden=true;message.setAttribute('role','status');
- mount.append(name,login,admin,...(scope?[bell]:[]),logout,message,panel);login.hidden=logout.hidden=admin.hidden=bell.hidden=true;
+ const personalize=el('a',undefined,'gh-button');personalize.href='https://tools.garyhub.uk/study/?personalize=study';
+ personalize.title='个性化';personalize.setAttribute('aria-label','个性化');personalize.hidden=true;
+ personalize.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="9" r="3"/><path d="M5.5 19a7 7 0 0 1 13 0"/></svg>';
+ mount.append(personalize,name,login,admin,...(scope?[bell]:[]),logout,message,panel);login.hidden=logout.hidden=admin.hidden=bell.hidden=true;
  async function api(path,options={}){const r=await fetch(path,{cache:'no-store',...options});let data;try{data=await r.json();}catch{throw Error('服务暂时不可用');}if(r.status===428){location.replace('https://calendar.garyhub.uk/change-password/');throw Error('请先修改临时密码');}if(!r.ok)throw Error(data.message||'请求失败');return data;}
  async function mutate(path,method='POST',body={}){const {token}=await api('/api/csrf');return api(path,{method,headers:{'Content-Type':'application/json','X-CSRF-Token':token},body:JSON.stringify(body)});}
  function conceal(){window.GaryHubIdentity={user:null};document.dispatchEvent(new CustomEvent("garyhub:identity",{detail:window.GaryHubIdentity}));const p=document.querySelector('[data-academics]');if(p&&!document.getElementById('profileUnlock')){p.replaceChildren(el('span','该部分已隐藏','gh-masked'));p.setAttribute('aria-label','该部分已隐藏');}}
- function resetPrivate(){conceal();panel.hidden=true;panel.replaceChildren();items=[];bell.textContent='🔔';bell.setAttribute('aria-expanded','false');}
+ function resetPrivate(){personalize.hidden=true;conceal();panel.hidden=true;panel.replaceChildren();items=[];bell.textContent='🔔';bell.setAttribute('aria-expanded','false');}
  function render(){panel.replaceChildren(el('h3',scope==='all'?'全部更新':'Network Access 更新'));if(!items.length)panel.append(el('p','暂无通知'));
   panel.append(el('p','普通通知保留 14 天；账号验证等必要通知保留。'));
   const actions=el('div',undefined,'gh-notice-actions');
@@ -25,7 +28,7 @@
  }
  async function notices(more=false){if(!user||!scope)return;const id=user.id;const r=await api('/api/hub/notifications?scope='+scope+(more&&nextBefore?'&before='+nextBefore:''));if(user?.id!==id)return;items=more?[...items,...r.items]:r.items;nextBefore=r.nextBefore;bell.textContent='🔔'+(r.unread?' '+r.unread:'');bell.setAttribute('aria-label',`更新通知，${r.unread} 条未读`);render();}
  async function refresh(){if(loading)return;loading=true;const ticket=++requestId;
-  try{const me=await api('/api/hub/me');if(ticket!==requestId)return;if(me.user?.mustChangePassword){location.replace('https://calendar.garyhub.uk/change-password/');return;}const changed=started&&user?.id!==me.user?.id;if(changed)resetPrivate();user=me.user;started=true;name.textContent=user?user.username:'';login.hidden=!!user;logout.hidden=!user;bell.hidden=!user;admin.hidden=!(user?.role==='admin'&&mount.dataset.admin==='true');message.textContent='';
+  try{const me=await api('/api/hub/me');if(ticket!==requestId)return;if(me.user?.mustChangePassword){location.replace('https://calendar.garyhub.uk/change-password/');return;}const changed=started&&user?.id!==me.user?.id;if(changed)resetPrivate();user=me.user;started=true;name.textContent=user?user.username:'';personalize.hidden=!user;login.hidden=!!user;logout.hidden=!user;bell.hidden=!user;admin.hidden=!(user?.role==='admin'&&mount.dataset.admin==='true');message.textContent='';
    if(!user){resetPrivate();if(mount.dataset.required==='true')location.replace(login.href);}
    const p=document.querySelector('[data-academics]');if(p&&!document.getElementById('profileUnlock')){if(!me.canViewAcademics)conceal();else{const academic=await api('/api/hub/academics');if(ticket===requestId&&user&&academic.allowed){p.textContent=`GPA: ${academic.gpa} · Rank: ${academic.rank}`;p.removeAttribute('aria-label');}else conceal();}}
    await notices();window.GaryHubIdentity=me;document.dispatchEvent(new CustomEvent('garyhub:identity',{detail:me}));
