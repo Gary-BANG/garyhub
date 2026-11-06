@@ -3,7 +3,7 @@
   const LOGIN='https://calendar.garyhub.uk/login/';
   const routes={
     'https://calendar.garyhub.uk':['/','/journal/','/health-records/','/ledger/','/ledger/fixed/','/todos/','/change-password/','/research/','/reading/'],
-    'https://tools.garyhub.uk':['/','/grades/','/study/','/academic/index.html','/access/','/admin/','/server-monitor/','/ai-logs/','/totp/','/lab/','/useful/image-eraser/','/useful/markdown-viewer/','/useful/pdf-gray/'],
+    'https://tools.garyhub.uk':['/','/grades/','/study/','/personalize/','/academic/index.html','/access/','/admin/','/server-monitor/','/ai-logs/','/totp/','/lab/','/useful/image-eraser/','/useful/markdown-viewer/','/useful/pdf-gray/'],
     'https://lab.garyhub.uk':['/','/lab/','/grades/','/study/','/access/','/totp/','/admin/','/useful/image-eraser/','/useful/markdown-viewer/','/useful/pdf-gray/'],
     'https://garyhub.uk':['/','/index.html'],
     'https://files.garyhub.uk':['/'],

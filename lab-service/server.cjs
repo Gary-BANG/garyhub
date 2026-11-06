@@ -81,7 +81,7 @@ const server = http.createServer(async (req,res)=>{
     if(await academic(req,res,url))return;
     if(['/grades','/grades/','/study','/study/'].includes(url.pathname))url.pathname='/academic/index.html';
     url.pathname=decodeURIComponent(url.pathname);
-    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"2.3.2.0"});
+    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"2.3.2.1"});
     if(url.pathname.startsWith('/sub/')) {
       if(req.method!=='GET') return json(res,405,{message:'Method not allowed'});
       const sub=connections.subscription(url.pathname.slice(5));
@@ -199,6 +199,10 @@ const server = http.createServer(async (req,res)=>{
       if(url.pathname==='/access') {res.writeHead(302,{Location:'/access/'});return res.end();}
     }
     if(url.pathname.startsWith('/server-monitor')){const user=await identity(req);if(!user)return redirectLogin('/server-monitor/');if(user.role!=='admin')return json(res,403,{message:'需要管理员权限'});if(url.pathname==='/server-monitor'){res.writeHead(302,{Location:'/server-monitor/'});return res.end();}}
+    if(host!=='garyhub.uk'&&['/personalize','/personalize/','/personalize/index.html'].includes(url.pathname)){
+      if(!await identity(req))return redirectLogin('https://tools.garyhub.uk/personalize/'+url.search);
+      if(url.pathname==='/personalize'){res.writeHead(302,{Location:'/personalize/'+url.search});return res.end();}
+    }
     if(['/ai-logs','/ai-logs/','/ai-logs/index.html'].includes(url.pathname)){const user=await identity(req);if(!user)return redirectLogin('/ai-logs/'+url.search);if(user.role!=='admin')return json(res,403,{message:'需要管理员权限'});if(url.pathname==='/ai-logs'){res.writeHead(302,{Location:'/ai-logs/'});return res.end();}}
     if(url.pathname==='/admin/' || url.pathname==='/admin' || url.pathname==='/admin.html' || url.pathname==='/admin/index.html') {
       const user=await identity(req);

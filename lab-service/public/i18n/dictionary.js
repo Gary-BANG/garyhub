@@ -13,3 +13,38 @@ Object.assign(window.GARYHUB_TRANSLATIONS,{"登录 GaryHub": "Sign in to GaryHub
 
 /* Todo import and AI prompt, v1.3.5.4 */
 Object.assign(window.GARYHUB_TRANSLATIONS,{"导入待办":"Import","AI 提示词":"AI Prompt","关闭导入窗口":"Close import dialog","关闭提示词窗口":"Close AI prompt dialog","粘贴 AI 生成的 JSON，或选择已下载的 JSON 文件。预览后追加到清单末尾。":"Paste AI-generated JSON or choose a downloaded JSON file. Preview before appending to your list.","选择 JSON 文件":"Choose a JSON file","JSON 内容":"JSON content","在这里粘贴 JSON…":"Paste JSON here…","支持 garyhub-todos-v1、待办数组及下载的草稿。标题最多 160 字符，每条最多 100 个子要点，每个子要点最多 1,000 字符；文件最多 2 MB。":"Accepts garyhub-todos-v1, Todo arrays and downloaded drafts. Titles: 160 characters; up to 100 points per Todo and 1,000 characters per point; files: 2 MB.","跳过完全重复的待办（建议）":"Skip identical Todos (recommended)","导入预览":"Import preview","解析并预览":"Preview","确认导入":"Confirm import","复制下面的提示词，连同你的计划或长文本发给 AI，再把生成的 JSON 导入待办清单。":"Copy the prompt and send it to your AI with your plans or long text, then import the resulting JSON into your Todo List.","可复制的提示词":"Prompt to copy","复制提示词":"Copy prompt","读取待办":"Read","将新增":"To add","新增子要点":"Points to add","跳过重复":"Skipped","存在同名但内容不同的待办，将作为新待办追加；请检查下方预览。":"Some Todos share a title but differ in content. They will be appended separately; check the preview.","主待办已完成":"Main Todo complete","主待办未完成":"Main Todo incomplete","同名待办的内容不同，保留为独立待办。":"This title already exists with different content. It will be kept as a separate Todo.","没有子要点":"No points","文件已读取，请解析并预览。":"File loaded. Choose Preview to check it.","无法读取文件，请重新选择或粘贴内容。":"Could not read the file. Choose it again or paste its content.","正在解析并核对清单…":"Parsing and checking your list…","预览已就绪，确认后追加到清单末尾。":"Preview ready. Confirm to append these Todos to the end of your list.","全部内容已存在，无需导入。":"All items already exist. Nothing to import.","清单状态已变化，请重新加载后再预览。":"The list has changed. Reload it and preview again.","正在导入并保存…":"Importing and saving…","提示词已复制。":"Prompt copied.","已选中提示词，请按 Ctrl+C 或使用系统复制。":"Prompt selected. Press Ctrl+C or use your system copy action.","导入请求无效，请重新预览":"Invalid import request. Preview again.","清单已在另一页面更新，请保留导入内容，重新加载后再预览。":"Your list was updated in another page. Keep your import content, reload the list and preview again.","Todo 批量导入与 AI 提示词 · v1.3.5.4":"Todo import and AI prompts · v1.3.5.4","待办清单支持粘贴或上传 JSON，预览后批量追加主待办和子要点，默认跳过完全重复内容。新增可一键复制的 AI 提示词，保留原有清单、排序与账号隔离。":"Paste or upload JSON to preview and append Todos and points, with identical items skipped by default. Copy an AI prompt to generate the import format. Existing lists, ordering and account privacy are retained."});
+
+Object.assign(window.GARYHUB_TRANSLATIONS,{
+  "个性化": "Personalization",
+  "阅读进度": "Reading progress",
+  "尚未开始阅读": "Ready to read",
+  "正在阅读": "Reading",
+  "读完了，试着用自己的话回顾一下。": "Finished. Try recalling the key points in your own words.",
+  "课程": "Courses",
+  "目录": "Outline",
+  "本讲目录": "Lecture outline",
+  "请先选择讲义": "Select a lecture first",
+  "这份讲义没有标题": "This lecture has no headings",
+  "收起目录层级": "Collapse outline levels",
+  "展开目录层级": "Expand outline levels",
+  "收起全部正文": "Collapse all sections",
+  "展开全部正文": "Expand all sections",
+  "工具设置": "Tool settings",
+  "学习中心": "Study Hub",
+  "外观": "Appearance",
+  "墨夜": "Midnight",
+  "纸白": "Paper white",
+  "暖纸": "Warm paper",
+  "正文字号（px）": "Body size (px)",
+  "标题字号（px）": "Heading size (px)",
+  "保存设置": "Save settings",
+  "设置已保存": "Settings saved",
+  "正在保存设置": "Saving settings",
+  "无法载入设置，请刷新重试。": "Could not load settings. Refresh to try again.",
+  "设置已在其他页面更改，请刷新后再保存。": "Settings changed in another page. Refresh before saving.",
+  "保存失败，请重试。": "Could not save. Please try again.",
+  "字号预览": "Type preview",
+  "讲义标题": "Lecture heading",
+  "正文将以这个大小显示。": "Lecture text will appear at this size.",
+  "打开学习中心": "Open Study Hub"
+});

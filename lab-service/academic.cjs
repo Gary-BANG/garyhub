@@ -1,7 +1,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const A=require('./public/academic/core.js');
-const RELEASE='v2.3.2.0';
+const RELEASE='v2.3.2.1';
 const err=(status,message)=>Object.assign(Error(message),{status});
 function atomic(file,value){const tmp=file+'.'+crypto.randomUUID()+'.tmp';const fd=fs.openSync(tmp,'wx',0o600);try{fs.writeFileSync(fd,JSON.stringify(value));fs.fsyncSync(fd);}finally{fs.closeSync(fd);}fs.renameSync(tmp,file);}
 async function readBody(req,max=24*1024*1024){let size=0;const parts=[];for await(const p of req){size+=p.length;if(size>max)throw err(413,'上传内容过大');parts.push(p);}try{return JSON.parse(Buffer.concat(parts).toString());}catch{throw err(400,'请求格式无效');}}
@@ -38,6 +38,16 @@ function createAcademic({DATA,identity,validCsrf,calendar,json}){
  if(route==='state'&&req.method==='GET'){const profile=await calendar(req,'/api/account/email');if(profile.ok){const info=await profile.json();if(typeof info.timezone==='string')user.timezone=info.timezone;}json(res,200,{...store.read(user.id),user});return true;}
  const input=write?await readBody(req,route==='state'?24*1024*1024:16000):null;
  if(write&&input.accountId!==user.id)throw err(409,'登录账号已变化，请重新加载后操作');
+ if(route==='preferences'&&['GET','PUT'].includes(req.method)){
+  const current=store.read(user.id),s=current.state.settings;
+  if(req.method==='GET'){
+   json(res,200,{accountId:user.id,revision:current.revision,studyTheme:s.studyTheme||s.theme,fontSize:s.fontSize,headingSize:s.headingSize??Math.round(s.fontSize*1.8)});return true;
+  }
+  if(!['dark','light','warm'].includes(input.studyTheme)||!Number.isInteger(input.fontSize)||!Number.isInteger(input.headingSize))throw err(400,'阅读偏好无效');
+  Object.assign(s,{studyTheme:input.studyTheme,fontSize:input.fontSize,headingSize:input.headingSize});
+  const saved=store.save(user.id,{accountId:user.id,revision:input.revision,state:current.state});
+  json(res,200,{revision:saved.revision});return true;
+ }
  if(route.startsWith('tutor/')&&req.method==='POST'){
   const verb=route.slice(6);if(!['start','chat','stop','clear'].includes(verb))throw err(404,'接口不存在');
   if(verb!=='stop'&&user.role!=='admin'&&user.accountTier!=='subscriber')throw err(403,'讲义答疑仅订阅用户和管理员可用');
