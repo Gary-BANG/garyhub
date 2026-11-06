@@ -26,7 +26,8 @@ const TIME = /^(\d{1,2}):([0-5]\d)$/, MODEL = /^[A-Za-z0-9][A-Za-z0-9._:-]{1,63}
 const TIERS = ['standard', 'subscriber', 'admin'], KINDS = ['chat', 'data', 'search'];
 // chat guards every message (including small talk and navigation); data and search count once per message that uses them.
 const DEFAULT_QUOTAS = {chat:{standard:200, subscriber:200, admin:500}, data:{standard:30, subscriber:50, admin:200}, search:{standard:5, subscriber:30, admin:100}};
-const DATA_TOOLS = new Set(['list_tasks', 'add_task', 'delete_task', 'update_task', 'complete_task', 'add_expense', 'add_fixed_expense', 'set_pending_category']);
+const personal=require('./assistant-personal');
+const DATA_TOOLS = new Set([...personal.names,'list_tasks', 'add_task', 'delete_task', 'update_task', 'complete_task', 'add_expense', 'add_fixed_expense', 'set_pending_category']);
 const fail = (message, status = 400, code) => { throw Object.assign(Error(message), {status, code}); };
 
 async function migrateAssistant(db) {
@@ -49,11 +50,11 @@ async function migrateAssistant(db) {
     expires_at INTEGER NOT NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)`);
   // Widen the original CHECK while retaining pending cards and their expiry.
   const schema = await db.get("SELECT sql FROM sqlite_master WHERE name='assistant_actions'");
-  if (!schema.sql.includes("'update_task'")) {
+  if (!schema.sql.includes("'change_todo'")) {
     await db.run('BEGIN IMMEDIATE');
     try {
       await db.run('ALTER TABLE assistant_actions RENAME TO assistant_actions_old');
-      await db.run(schema.sql.replace("'add_task','delete_task'", "'add_task','delete_task','update_task','complete_task','add_expense','add_fixed_expense'"));
+      await db.run(schema.sql.replace(/CHECK\(kind IN \([^)]*\)\)/,"CHECK(kind IN ('add_task','delete_task','update_task','complete_task','add_expense','add_fixed_expense','change_todo','change_health'))"));
       await db.run('INSERT INTO assistant_actions SELECT * FROM assistant_actions_old');
       await db.run('DROP TABLE assistant_actions_old');
       await db.run('COMMIT');
@@ -128,6 +129,7 @@ function toolList(pages, search = false) {
   const str = {type:'string'};
   const expense = {amount:str, currency:{type:'string',enum:['CNY','USD','CAD','HKD']}, category:str, notes:str};
   const tools = [
+    ...personal.tools(fn),
     fn('update_task','Edit only supplied fields on an existing task. For time use HH:MM.',{task_id:str,title:str,time:str,start_date:date,end_date:date,note:str,category:str},['task_id']),
     fn('complete_task','Mark an existing calendar task done.',{task_id:str},['task_id']),
     fn('set_pending_category','Replace the pending add card with the requested category.',{card_id:str,category:str},['card_id','category']),
@@ -155,6 +157,8 @@ function systemPrompt({now, lang, name, pages, search}) {
     `你是 GaryHub 网站上的伙伴“${name}”，帮已登录用户查看、添加和删除日程（Calendar 里的事项），也能把用户带到站内页面${search ? '，并能联网搜索新闻和时事' : ''}。`,
     `现在是 ${now.date}（${now.weekday}）${now.time}，用户时区 ${now.zone}。“今天”“明天”“下周三”等都按这个日期换算成 YYYY-MM-DD。`,
     '规则：',
+    '健康仅支持体重和运动。体重必须由用户明确给出公斤或磅，不可猜测单位；运动需类型和分钟数。当天按账号时区。查最近记录用 latest，查周/月运动用 week/month；纠错先查原记录，候选不唯一先问。健康查询只取用户要求的内容。',
+    'Todo 清单与日历各自独立。待办、清单、points 使用 read_todos/change_todo。先定位待办与子项；目标模糊或跨清单和日历同名时先询问。展示待办详情时列出每个 point 和完成状态。删除整条须指出包含的子项数量。任何写入以确认卡为准，查询直接回答。',
     '修改或完成日程先查询，多个候选先追问。任何写入只生成确认卡。新增日程未指定分类时说明目前未分类，列出现有分类，询问想选哪项或直接确认；补充分类用 set_pending_category 和原卡 ID。',
     '支出和固定开支必须由用户明确给出分类和币种，不得从用途、账号或地区推断。一次问齐缺失项。固定开支还要名称和月付或年付周期，只创建项目。普通支出日期默认用户当地今天。',
     '- 查日程用 list_tasks；添加用 add_task；删除时先用 list_tasks 找到 task_id，再用 delete_task。',
@@ -392,6 +396,19 @@ async function runTool(call, ctx, result) {
   }
   try {
     switch (name) {
+      case 'read_health': case 'read_todos':
+        return await personal.read({all,get},ctx.userId,name,args,ctx.day);
+      case 'change_health': case 'change_todo': {
+        if(result.actions.length>=5)return {error:'at most five changes per message'};
+        if(name==='change_health' && args.kind==='weight' && args.weight!==undefined) {
+          const units={kg:/公斤|千克|kilograms?|kilos?|kg/i,lb:/磅|pounds?|lbs?/i};
+          if(!Object.hasOwn(units,args.unit)||!units[args.unit].test(ctx.userWords))fail('请明确体重单位：公斤还是磅？');
+        }
+        const {payload,summary}=await personal.prepare({all,get},ctx.userId,name,args,ctx.day);
+        const action=await propose(ctx.userId,name,{...payload,args,day:ctx.day},summary);
+        result.actions.push(action);
+        return {status:'waiting_for_user_confirmation',summary};
+      }
       case 'list_tasks': return await listTasks(ctx.userId, args);
       case 'add_task': case 'delete_task': case 'update_task': case 'complete_task': case 'set_pending_category': case 'add_expense': case 'add_fixed_expense': {
         if (result.actions.length >= 5) return {error:'at most five changes per message'};
@@ -572,7 +589,22 @@ function registerAssistant(app, {requireLogin, requireAdmin, ledger}) {
     fail({pending:'这个操作已过期，请重新告诉我', running:'这个操作正在处理', done:'这个操作已经完成', cancelled:'这个操作已取消'}[row.state], 409);
   }
   app.post('/api/assistant/actions/:id/confirm', requireLogin, route('confirm', async (req, res) => {
-    const id = actionId(req), userId = req.session.user.id, action = await claim(id, userId, 'running');
+    const id = actionId(req), userId = req.session.user.id;
+    const current=await get('SELECT kind,payload FROM assistant_actions WHERE id=? AND user_id=?',[id,userId]);
+    if(current && ['change_todo','change_health'].includes(current.kind)){
+      try {
+        const kind=await personal.confirm(req,id);
+        return res.json({ok:true,kind});
+      } catch(error) {
+        if(error.status!==409 || !error.message.includes('已变化'))throw error;
+        await claim(id,userId,'cancelled');
+        const old=JSON.parse(current.payload);
+        const {payload,summary}=await personal.prepare({all,get},userId,current.kind,old.args,old.day);
+        const replacement=await propose(userId,current.kind,{...payload,args:old.args,day:old.day},summary);
+        return res.json({ok:false,replacement,message:error.message});
+      }
+    }
+    const action = await claim(id, userId, 'running');
     try {
       const payload = JSON.parse(action.payload);
       if (action.kind === 'add_task') {

@@ -50,6 +50,16 @@
  $('todo-logout').onclick=async()=>{try{await save();await api('/api/logout','POST',{});block();location.replace('/login/?next=%2Ftodos%2F');}catch(e){message(e.message,true);}};
  let checking=false;async function identity(){if(checking||!user||document.hidden)return;checking=true;try{const r=await fetch('/api/me',{cache:'no-store'}),d=await r.json();if(!r.ok||d.user?.id!==user.id)block();else{const paid=d.user.role==='admin'||d.user.accountTier==='subscriber';caps={todos:paid?300:5,points:paid?100:10};}}catch{}finally{checking=false;}}
  importer=window.GaryHubTodoImporter.create({api,save,message,getState:()=>({user,revision,epoch,blocked,count:todos.length,limits:caps}),applyResult(result){todos=result.todos;revision=result.revision;dirty=false;render();}});
+ document.addEventListener('garyhub:records-changed',async event=>{
+   if(event.detail?.kind!=='todos'||!user||blocked)return;
+   const busy=()=>dirty||saving||$('todo-dialog').open||importer.hasDraft();
+   if(busy()){message('伙伴已更新清单，请保留当前草稿后重新加载。');return;}
+   const account=user.id;
+   try {
+     const data=await api('/api/todos');
+     if(account===user?.id && !busy() && data.revision>revision){todos=data.todos;revision=data.revision;render();}
+   } catch(error){message(error.message,true);}
+ });
  addEventListener('focus',identity);document.addEventListener('visibilitychange',()=>{if(!document.hidden)identity();});setInterval(identity,10000);addEventListener('beforeunload',e=>{if(dirty||saving||importer.hasDraft()||$('todo-title').value||$('todo-edit-text').value||[...document.querySelectorAll('.point-add textarea')].some(t=>t.value)){e.preventDefault();e.returnValue='';}});
  document.addEventListener('garyhub:language',()=>{render();importer.languageChanged();if(!dirty&&!saving&&!blocked)message('已保存到服务器');});load().catch(e=>message(e.message,true));
 })();

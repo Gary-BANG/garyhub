@@ -15,7 +15,7 @@
     zh:{subtitle:'站内工具向导', open:'打开', send:'发送', close:'关闭对话', more:'设置', picker:'选择伙伴', current:'当前', login:'登录后可用', input:'输入你的需求', log:'对话记录', launcher:name => `和${name}聊天`,
       chips:['你能做什么', '学习相关', '文档与图片', '日常记录'],
       ai:{subtitle:'AI 助手', placeholder:'比如：明天下午三点开组会', chips:['今天有什么安排？', '这周有哪些事项？', '帮我加一个日程', '打开记账'], searchChip:'今天有什么新闻？', thinking:'正在想…',
-        disclosure:(provider, search, rounds) => `已接入 AI（${provider}）：我可以帮你管理日程、标记完成、记录支出和固定开支${search ? '，也能联网搜索新闻和时事' : ''}。你的消息和相关日程或支出信息会发给该服务处理；最近 ${rounds} 轮对话保存在服务器上，可在“⋯”里清空。保存更改前需要你点“确认”才会生效。`,
+        disclosure:(provider, search, rounds) => `已接入 AI（${provider}）：我可以帮你管理日程、标记完成、记录支出和固定开支、管理健康记录与待办清单${search ? '，也能联网搜索新闻和时事' : ''}。你的消息和本次所需的日程、支出、健康或待办信息会发给该服务处理；最近 ${rounds} 轮对话保存在服务器上，可在“⋯”里清空。保存更改前需要你点“确认”才会生效。`,
         add:'添加日程', remove:'删除日程', confirm:'确认', cancel:'取消', added:'已添加到日程 ✓', removed:'已删除 ✓', cancelled:'已取消',
         reminder:time => `每天 ${time} 提醒`, sources:'来源', forget:'清空对话', forgotten:'对话记忆已清空。',
         remaining:{chat:count => `今天还能和 AI 对话 ${count} 次`, data:count => `今天还能操作日程 ${count} 次`, search:count => `今天还能联网搜索 ${count} 次`},
@@ -23,7 +23,7 @@
     en:{subtitle:'Site tool guide', open:'Open', send:'Send', close:'Close chat', more:'Settings', picker:'Choose a companion', current:'Current', login:'Sign in to use', input:'Describe what you need', log:'Conversation', launcher:name => `Chat with ${name}`,
       chips:['What can you do?', 'Study', 'Documents & images', 'Everyday records'],
       ai:{subtitle:'AI assistant', placeholder:'e.g. Group meeting tomorrow at 3 pm', chips:['What is on today?', 'What is on this week?', 'Add something to my calendar', 'Open the ledger'], searchChip:'Any news today?', thinking:'Thinking…',
-        disclosure:(provider, search, rounds) => `AI is on (${provider}): I can manage calendar items, mark them complete and record expenses or fixed expenses${search ? ' and search the web for news' : ''}. Your messages and relevant calendar or expense details are sent to that service; the last ${rounds} rounds are kept on the server and can be cleared from “⋯”. Press Confirm to save a change.`,
+        disclosure:(provider, search, rounds) => `AI is on (${provider}): I can manage calendar items, mark them complete and record expenses, manage health records and edit to-do lists${search ? ' and search the web for news' : ''}. Your messages and relevant calendar, expense, health or to-do details are sent to that service; the last ${rounds} rounds are kept on the server and can be cleared from “⋯”. Press Confirm to save a change.`,
         add:'Add to calendar', remove:'Delete from calendar', confirm:'Confirm', cancel:'Cancel', added:'Added to your calendar ✓', removed:'Deleted ✓', cancelled:'Cancelled',
         reminder:time => `Daily reminder at ${time}`, sources:'Sources', forget:'Clear conversation', forgotten:'The conversation memory is cleared.',
         remaining:{chat:count => `${count} AI messages left today`, data:count => `${count} calendar requests left today`, search:count => `${count} web searches left today`},
@@ -176,20 +176,29 @@
       node.dataset.actionId=action.id;
       const en=replyLang==='en';
       const labels={add_task:t.add,delete_task:t.remove,update_task:en?'Edit calendar item':'修改日程',complete_task:en?'Mark complete':'标记完成',add_expense:en?'Record expense':'记录支出',add_fixed_expense:en?'Add fixed expense':'新增固定开支'};
+      const doneLabel=s.done?(en?'Mark complete':'标记完成'):(en?'Reopen':'恢复未完成');
+      const operations={create:en?'Create to-do':'新建待办',rename:en?'Rename to-do':'修改待办标题',delete:en?'Delete to-do and all points':'删除待办及全部子项',set_done:doneLabel,add_point:en?'Add point':'添加子项',edit_point:en?'Edit point':'修改子项',delete_point:en?'Delete point':'删除子项',set_point_done:doneLabel+(en?' · point':' · 子项')};
+      labels.change_todo=operations[s.operation];
+      labels.change_health=s.editing?(en?'Correct health record':'修改健康记录'):(en?'Add health record':'添加健康记录');
       const period=s.period==='monthly'?(en?'Monthly':'每月'):s.period==='yearly'?(en?'Yearly':'每年'):null;
       const when = !s.start_date ? null : s.start_date === s.end_date ? day(s.start_date, replyLang) : `${day(s.start_date, replyLang)} – ${day(s.end_date, replyLang)}`;
       node.append(el('span', 'card-kind', labels[action.kind]), el('strong', 'card-name', s.title || ''),
         el('p', 'card-copy', [when, s.amount && s.amount+' '+s.currency, period, s.category || (action.kind==='add_task'?(en?'Uncategorized':'未分类'):null), s.reminder_time && t.reminder(s.reminder_time)].filter(Boolean).join(' · ')));
       if (s.choices) node.append(el('p','card-copy',en?'Currently uncategorized. Confirm as is, or tell me which category to use. '+s.choices.join(', '):'目前未分类。你想选哪个分类？可在对话里告诉我，也可以直接确认。'+s.choices.join('、')));
-      if (s.note) node.append(el('p', 'card-copy', s.note));
+      if (s.note) node.append(el('p', 'card-copy', s.operation==='delete'?s.note+(en?' points':' 个子项'):s.note));
       const row = el('div', 'card-row'), no = el('button', 'card-cancel', t.cancel), yes = el('button', 'card-open', t.confirm);
       no.type = yes.type = 'button';
       async function settle(verb) {
         no.disabled = yes.disabled = true;
         try {
-          await assistant[verb](action.id);
+          const result=await assistant[verb](action.id);
+          if(result?.replacement) {
+            row.replaceChildren(el('span','card-note',en?'Changed since preview. Review the new card.':'内容已变化，请核对新卡片。'));
+            node.after(actionCard(result.replacement,replyLang));
+            return;
+          }
           row.replaceChildren(el('span', 'card-done', verb === 'cancel' ? t.cancelled : en?'Saved':'已保存'));
-          if (verb === 'confirm') { document.dispatchEvent(new CustomEvent('garyhub:records-changed', {detail:{kind:s.amount?'ledger':'tasks'}})); handlers.onReply?.({kind:'thanks', tools:[], lang:replyLang}); }
+          if (verb === 'confirm') { document.dispatchEvent(new CustomEvent('garyhub:records-changed', {detail:{kind:action.kind==='change_todo'?'todos':action.kind==='change_health'?'health':s.amount?'ledger':'tasks'}})); handlers.onReply?.({kind:'thanks', tools:[], lang:replyLang}); }
         } catch (error) { row.replaceChildren(el('span', 'card-note', error.message || ui[replyLang].ai.offline)); }
       }
       no.addEventListener('click', () => settle('cancel')); yes.addEventListener('click', () => settle('confirm'));

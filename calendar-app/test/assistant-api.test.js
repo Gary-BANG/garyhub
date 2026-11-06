@@ -129,7 +129,7 @@ test("assistant proposes changes, falls back, counts by kind and never returns t
     assert.equal(first.auth, "Bearer " + KEY);
     assert.deepEqual(first.body.thinking, { type: "disabled" });
     assert.equal(first.body.model, "glm-4.7-flash");
-    assert.deepEqual(first.body.tools.map(tool => tool.function.name), ["update_task","complete_task","set_pending_category","add_expense","add_fixed_expense","list_tasks","add_task","delete_task","open_page","web_search"]);
+    assert.deepEqual(first.body.tools.map(tool => tool.function.name), ["read_health","change_health","read_todos","change_todo","update_task","complete_task","set_pending_category","add_expense","add_fixed_expense","list_tasks","add_task","delete_task","open_page","web_search"]);
     assert.ok(!first.body.tools.find(t=>t.function.name==="open_page").function.parameters.properties.page.enum.includes("status"), "admin pages are not offered to members");
     assert.match(first.body.messages[0].content, /Asia\/Shanghai/);
     assert.match(first.body.messages[0].content, /“栗栗”/);
