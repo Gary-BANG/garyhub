@@ -194,3 +194,9 @@ $("exercisePeriod").addEventListener("change", () => loadExerciseSummary().catch
 $("exerciseAnchor").addEventListener("change", () => loadExerciseSummary().catch(error => alert(error.message)));
 
 initWorkspace(async () => { await loadPersonal(); installDirtyGuard(document.querySelectorAll("form")); });
+
+document.addEventListener('garyhub:records-changed',async event=>{
+  if(event.detail?.kind!=='health')return;
+  try { await Promise.all([...personalKinds.map(loadPersonalKind),loadExerciseSummary()]); }
+  catch(error){document.querySelector('[data-personal-message="'+personalState.active+'"]').textContent=error.message;}
+});

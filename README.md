@@ -2,11 +2,9 @@
 
 GaryHub 是使用统一账号的个人工作空间，包含日历与私人记录、账本、待办、学习工具和服务器工具。仓库保存应用源码、脱敏文档与可复现更新器；正式服务通过经过验证的升级包部署，GitHub 合并不会自动更新服务器。
 
-**当前源码版本 v2.3.2.2。** 网站伙伴可修改日程、标记完成、记录支出和添加按月或按年的固定开支。未分类日程可直接确认，也可在对话中选择已有分类。记账需要明确币种和分类，核对卡片后保存。
+**当前源码版本 v2.3.2.3。** 伙伴可查询、记录或纠正体重与运动，按周或月汇总运动。待办及子项支持查看、创建、编辑、标记完成、恢复和删除。所有写入均需确认。
 
-安装器 v2.3.2.2-r1 要求两服务运行 v2.3.2.1。源码基线为 ef0bebec，生产状态待安装日志。
-
-完整解压后双击 `RUN-UPDATE.cmd`。`ROLLBACK.cmd` 恢复 v2.3.2.1 应用并保留当前数据，`PUSH-TO-GITHUB.cmd` 在独立工作区准备审查分支。构建命令为 `python scripts/updater/manage.py build --release 2.3.2.2 --output <ZIP绝对路径>`。见 [版本说明](docs/GARYHUB_V2_3_2_2.md) 和 [验证记录](docs/GARYHUB_V2_3_2_2_TESTS.md)。
+安装器 v2.3.2.3-r1 要求两服务运行 v2.3.2.2。源码基线为 558559e9，生产状态待安装日志。完整解压后双击 RUN-UPDATE.cmd。ROLLBACK.cmd 恢复上版应用，PUSH-TO-GITHUB.cmd 同步源码。构建命令为 `python scripts/updater/manage.py build --release 2.3.2.3 --output <ZIP绝对路径>`。见[版本说明](docs/GARYHUB_V2_3_2_3.md)和[验证记录](docs/GARYHUB_V2_3_2_3_TESTS.md)。
 
 维护日期：2026-11-06（America/Chicago）。
 
