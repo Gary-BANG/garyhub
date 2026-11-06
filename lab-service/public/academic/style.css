@@ -54,3 +54,17 @@
 }
 #personalize[hidden]{display:none}
 @media(max-width:850px){.header-actions #account{display:inline;max-width:9em;overflow:hidden;text-overflow:ellipsis}}
+
+.study-nav-buttons button,.outline-tools button{display:inline-grid;place-items:center;padding:0;width:38px;height:38px;border-radius:8px}
+.study-nav-buttons svg,.outline-tools svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+.outline-head{display:flex;align-items:center;justify-content:space-between;gap:6px}.outline-head h3{margin:0}
+.outline-tools{gap:2px;flex-wrap:nowrap}.outline-tools button{border:0;background:transparent;color:var(--muted)}
+.outline-tools button:hover{color:var(--accent);background:var(--soft)}
+#outlinePanel:not([hidden]){display:flex;flex-direction:column;max-height:calc(100dvh - 78px)}
+#tocItems{overflow:auto;overscroll-behavior:contain;min-height:0}
+#readingProgress{padding:12px 4px 5px;border-top:1px solid var(--line)}
+#readingProgress>div{display:flex;align-items:center;justify-content:space-between}
+#readingProgress strong{font:600 13px/1.4 monospace;color:var(--accent)}
+#readMeter{display:block;width:100%;height:5px;margin:9px 0;accent-color:var(--accent);border:0;border-radius:9px;background:var(--line);overflow:hidden}
+#readMeter::-webkit-progress-bar{background:var(--line)}#readMeter::-webkit-progress-value{background:var(--accent)}
+@media(max-width:850px){#outlinePanel:not([hidden]){max-height:34dvh}#readingProgress{padding:5px 2px}#readMeter{margin:4px 0}}

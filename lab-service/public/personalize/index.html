@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>个性化 · GaryHub</title>
+  <link rel="stylesheet" href="/academic/style.css?v=2.3.2.1"><link rel="stylesheet" href="/personalize/settings.css"><link rel="stylesheet" href="/i18n/i18n.css">
+  <script src="/i18n/dictionary.js"></script><script src="/i18n/i18n.js"></script><script defer src="/personalize/settings.js"></script>
+</head>
+<body>
+<header><a class="brand" href="/">Gary<span>Hub.</span></a><div class="header-actions"><a href="/study/">打开学习中心</a></div></header>
+<main class="preferences">
+  <h1>个性化</h1>
+  <div class="preferences-layout">
+    <nav aria-label="工具设置"><a href="#study" aria-current="page">学习中心</a></nav>
+    <section class="panel" id="study"><h2>学习中心</h2>
+      <form id="preferences"><fieldset disabled>
+        <label class="field">外观<select name="studyTheme"><option value="dark">墨夜</option><option value="light">纸白</option><option value="warm">暖纸</option></select></label>
+        <div class="grid2">
+          <label class="field">正文字号（px）<input name="fontSize" type="number" min="14" max="28" required></label>
+          <label class="field">标题字号（px）<input name="headingSize" type="number" min="20" max="54" required></label>
+        </div>
+        <div class="type-preview"><small>字号预览</small><h3>讲义标题</h3><p>正文将以这个大小显示。</p></div>
+        <button class="primary" type="submit">保存设置</button>
+      </fieldset></form><p id="message" role="status"></p>
+    </section>
+  </div>
+</main>
+</body></html>

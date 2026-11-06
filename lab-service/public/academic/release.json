@@ -1,5 +1,5 @@
 {
-  "version": "v2.3.2.0",
+  "version": "v2.3.2.1",
   "features": [
     "frontmatter",
     "callouts",
@@ -7,6 +7,9 @@
     "github-guide",
     "lecture-outline",
     "reading-preferences",
-    "code-language"
+    "code-language",
+    "reading-progress",
+    "personalization-page",
+    "icon-navigation"
   ]
 }

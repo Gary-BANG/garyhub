@@ -27,7 +27,7 @@ function create({marked,yaml,DOMPurify,katex}){
  const normalizeHeading=s=>clean(s).trim().replace(/\s+/g,' ').toLowerCase(),slug=s=>normalizeHeading(s).replace(/[^\p{L}\p{N}\s_-]/gu,'').replace(/\s+/g,'-');
  function outlines(box){const counts=new Map();return [...box.querySelectorAll('h1,h2,h3,h4,h5,h6')].map((h,i)=>{const copy=h.cloneNode(true);for(const el of copy.querySelectorAll('[data-math]'))el.textContent=el.dataset.math;const text=copy.textContent,base=slug(text),n=counts.get(base)||0;counts.set(base,n+1);return {element:h,id:'heading-'+i,text,slug:base+(n?'-'+n:''),level:Number(h.tagName.slice(1))};});}
  function findHeading(outline,anchor){const key=normalizeHeading(anchor),byId=outline.find(h=>h.id===anchor||h.slug===anchor);if(byId)return byId;const keys=anchor.split('#').map(normalizeHeading);if(keys.length===1)return outline.find(h=>normalizeHeading(h.text)===key||h.slug===slug(anchor));let start=0,end=outline.length,last=null;for(const k of keys){const index=outline.findIndex((h,i)=>i>=start&&i<end&&normalizeHeading(h.text)===k);if(index<0)return null;last=outline[index];start=index+1;const next=outline.findIndex((h,i)=>i>=start&&i<end&&h.level<=last.level);if(next>=0)end=next;}return last;}
- function mount({box,toc,lecture,course,onNavigate,onJump=()=>{},onNotice=()=>{}}){const document=box.ownerDocument;box.innerHTML=html(lecture.content).html;if(toc)toc.replaceChildren();const outline=outlines(box),cache=new Map([[lecture.id,outline]]);
+ function mount({box,toc,actions,lecture,course,onNavigate,onJump=()=>{},onNotice=()=>{}}){const document=box.ownerDocument;box.innerHTML=html(lecture.content).html;if(toc)toc.replaceChildren();const outline=outlines(box),cache=new Map([[lecture.id,outline]]);
  function targetHeading(target,anchor){if(!cache.has(target.id)){const temp=document.createElement('div');temp.innerHTML=html(target.content).html;cache.set(target.id,outlines(temp));}return findHeading(cache.get(target.id),anchor);}
  // Wrap the original nodes so math, Obsidian links and nested callouts keep their handlers.
  const sections=new Map();
@@ -48,10 +48,10 @@ function create({marked,yaml,DOMPurify,katex}){
   h.element.scrollIntoView?.({block:'start'});
  }
  if(toc){
-  if(!outline.length)toc.textContent='这份讲义没有标题';
+  if(!outline.length){syncOutline=()=>{toc.textContent=document.defaultView.GaryHubI18n?.t('这份讲义没有标题')||'这份讲义没有标题';};syncOutline();}
   else {
    const tools=document.createElement('div'),tree=document.createElement('ul');
-   tools.className='outline-tools';tree.className='outline-tree';toc.append(tools,tree);
+   tools.className='outline-tools';tree.className='outline-tree';(actions||toc).append(tools);toc.append(tree);
    const control=()=>{const b=document.createElement('button');b.type='button';tools.append(b);return b;};
    const levels=control(),content=control(),branches=[],stack=[];
    let active=null;
@@ -74,10 +74,16 @@ function create({marked,yaml,DOMPurify,katex}){
     row.append(a);item.append(row);(parent?.children||tree).append(item);stack.push({level:h.level,text:h.text,item,row});
    }
    function setBranch(b,open){b.children.hidden=!open;b.toggle.textContent=open?'▾':'▸';b.toggle.setAttribute('aria-expanded',String(open));}
+   function iconButton(button,icon,label){
+    button.title=label;button.setAttribute('aria-label',label);
+    if(button.dataset.icon===icon)return;
+    button.dataset.icon=icon;button.innerHTML='<svg aria-hidden="true"><use href="/academic/navigation.svg#'+icon+'"></use></svg>';
+   }
    function sync(){
     const allLevels=branches.every(b=>!b.children.hidden),allContent=[...sections.keys()].every(s=>s.open);
-    levels.disabled=!branches.length;levels.textContent=allLevels?'收起目录层级':'展开目录层级';
-    content.textContent=allContent?'收起全部正文':'展开全部正文';
+    levels.disabled=!branches.length;
+    iconButton(levels,allLevels?'levels-close':'levels-open',allLevels?'收起目录层级':'展开目录层级');
+    iconButton(content,allContent?'body-close':'body-open',allContent?'收起全部正文':'展开全部正文');
    }
    syncOutline=sync;
    levels.onclick=()=>{const open=branches.some(b=>b.children.hidden);branches.forEach(b=>setBranch(b,open));sync();};
@@ -99,7 +105,7 @@ function create({marked,yaml,DOMPurify,katex}){
  copy.type='button';copy.textContent='复制代码';copy.onclick=async()=>{try{await document.defaultView.navigator.clipboard.writeText(source);onNotice('代码已复制');}catch{onNotice('复制失败，请选中代码手动复制');}};
  const pre=code.closest('pre');if(!pre.parentElement.classList.contains('code-frame')){pre.before(frame);bar.append(label,copy);frame.append(bar,pre);}
  code.innerHTML=source.split(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|\b(?:def|class|return|import|from|as|if|else|for|while|const|let|function|True|False|None|in|await|async)\b)/g).map((s,i)=>i%2?`<span class="${/^["']/.test(s)?'str':'token'}">${esc(s)}</span>`:esc(s)).join('');}
- return {scrollTo(anchor){const h=findHeading(outline,anchor);if(h)reveal(h);else onNotice('目标标题尚未找到');return !!h;}};
+ return {syncLabels:syncOutline,scrollTo(anchor){const h=findHeading(outline,anchor);if(h)reveal(h);else onNotice('目标标题尚未找到');return !!h;}};
  }
  return {html,mount};
 }

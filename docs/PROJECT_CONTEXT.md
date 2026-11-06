@@ -1,10 +1,11 @@
 # GaryHub 项目档案
 
-维护日期：2026-11-05（America/Chicago）。首次阅读本文件及 UPDATE_WORKFLOW.md，按任务范围读取相关源码。
+维护日期：2026-11-06（America/Chicago）。首次阅读本文件及 UPDATE_WORKFLOW.md，按任务范围读取相关源码。
 
 ## 当前源码与部署证据
 
-- **v2.3.2.0（当前源码）**：分支 `update/garyhub-v2.3.2.0`，源码基于 main `1527368`（PR #34）。安装器 r2 的升级、回滚和源码补丁统一以 v2.3.1.1（PR #34）为基线。维护者贴出的 r1 日志显示其在第 1/8 阶段因要求 v2.3.1.0 而停止，未切换服务。学习中心改为吸顶双入口、完整层级目录与章节折叠，调整统计卡和代码语言栏；阅读外观和字号由现有 Academic state 按账号保存。兼容旧资料及备份。通过两种能力组合的隔离 HTTP、桌面及手机宽度交互检查。本版尚未推送、合并或部署，见 GARYHUB_V2_3_2_0.md 和对应验证记录。
+- **v2.3.2.1（当前源码）**：基线 PR #35（v2.3.2.0，main `c5c0b86`）。学习中心采用四个图标控制课程、目录树与正文，目录底部显示当前讲义的双语进度。账号头像指向 Tools 下的 `/personalize/`；专用接口仅返回阅读偏好，沿用学业数据的身份验证与修订号。两种能力各通过 707 项隔离 HTTP 断言，另验证桌面与手机宽度。适配器 r1，源码已准备、未推送／合并；生产状态待安装记录。见 GARYHUB_V2_3_2_1.md 和对应验证记录。
+- **v2.3.2.0（PR #35 已合并，以下为交付时记录）**：分支 `update/garyhub-v2.3.2.0`，源码基于 main `1527368`（PR #34）。安装器 r2 的升级、回滚和源码补丁统一以 v2.3.1.1（PR #34）为基线。维护者贴出的 r1 日志显示其在第 1/8 阶段因要求 v2.3.1.0 而停止，未切换服务。学习中心改为吸顶双入口、完整层级目录与章节折叠，调整统计卡和代码语言栏；阅读外观和字号由现有 Academic state 按账号保存。兼容旧资料及备份。通过两种能力组合的隔离 HTTP、桌面及手机宽度交互检查。本版尚未推送、合并或部署，见 GARYHUB_V2_3_2_0.md 和对应验证记录。
 - **v2.3.1.1（PR #34 已合并，以下为交付时记录）**：基线 main `ea6a6d8acf7fc716a6de15d3c21afb165faa6e3c`，独立分支 `update/garyhub-v2.3.1.1`。修复 panel.close 撤销答疑：隐藏只收起，重新打开延续授权和记录；按钮改为 switch + 信息图标 tooltip。保留文档/账号变化和一小时到期保护。仅前端行为变化，无新依赖或数据库变更。复用共享更新器，新适配器严格要求 v2.3.1.0，9 项隔离检查及通知保护保持。详见 GARYHUB_V2_3_1_1.md / _TESTS.md。本版 DOM 59、每能力组合 HTTP 661、适配器 6、接线 2 项通过；共享更新器 35 通过/2 项缺 pwsh 跳过。Chromium 被系统拒绝启动，桌面/手机视觉、Windows 与生产现场未验收。本版本地准备，未推送/合并/部署；截图仅为旧版功能使用证据。
 
 - **v2.3.1.0（历史交付记录，现已由 PR #33 合并）**：基础 main `c87e7efcf690fff40a6e4a53b63eac8f5bb6d837`（PR #32 已合并 v2.3.0.4）；独立分支 `update/garyhub-v2.3.1.0`，清单 `releases/2.3.1.0.json`，适配器 `scripts/releases/v2.3.1.0/`，安装器 v2.3.1.0-r1，严格要求两服务运行 v2.3.0.4。成绩规划与学习中心接入现有网站伙伴；订阅用户和管理员可在学习中心授权当前 Markdown，开启“讲义答疑”。对话面板加宽，独立保留最近 10 轮问答，按模型能力开启思考，结合讲义与模型知识讲解。 `assistant-tutor.js` 使用账号/登录会话/令牌/文档指纹/服务商绑定的内存授权，一小时过期、每分钟清理，无新表；退出即清理，重启重授权。Academic 服务从用户自己的已保存 JSON 读取当前 Markdown（60,000 字符上限），不读图片/链接/其他文档；答疑无工具，错误日志脱敏，失败与撤销退回 chat 额度。GLM 4.5+ enabled，5.2/5.3 high；单模型 75 s/总预算 110 s/转发 130 s。两个伴侣面板副本同步，安全 Markdown/公式与手机 CSS。两种能力差异保留；共享更新器未修改，隔离检查增加 tutor-http，共 9 项。相关单元 91、每能力组合 HTTP 661、DOM 39、适配器 6 通过；共享更新器 35 通过/2 个 pwsh 跳过。源码已准备、本地上述范围验证；未推送/合并或部署。真实浏览器、Windows、真实 AI 和生产 HTTPS 待现场。详见 `docs/GARYHUB_V2_3_1_0.md` 与 `_TESTS.md`。
@@ -75,6 +76,7 @@ v1.4.3.1-r1 曾在受保护 HTML 的未登录正文哈希检查失败后回滚�
 | 订阅额度 | calendar-app/entitlements.js、fixed-expenses.js、todos-api.js |
 | Research Dictionary | calendar-app/research-api.js、public/research/、account-admin.js |
 | 讲义答疑（v2.3.1.0） | calendar-app/assistant-tutor.js、assistant-api.js；lab-service/academic.cjs、public/academic/app.js、public/companion/panel.js |
+| 用户个性化 | lab-service/public/personalize/，lab-service/academic.cjs 的 preferences 接口 |
 | 学习中心与讲义 | lab-service/public/academic/；Viewer study-document.mjs 使用既有 academic/state 接口 |
 | Markdown 阅读、章节与目录 | lab-service/public/useful/markdown-viewer/，避免打印 index.html 内嵌第三方 bundle |
 | Tools 入口、搜索与 Dock | lab-service/public/index.html、tools-catalog.js、tools-dock.js、tools-dock.css |
@@ -84,7 +86,7 @@ v1.4.3.1-r1 曾在受保护 HTML 的未登录正文哈希检查失败后回滚�
 | 三个本地实用工具 | lab-service/public/useful/，避免读取 vendor/ 的大文件 |
 | 外站链接 | lab-service/public/sites/；server.cjs 中 sites.garyhub.uk 分支；scripts/sites/capture_thumbnails.py |
 | 网站伙伴（米露等五个角色） | lab-service/public/companion/（Calendar 副本 calendar-app/public/companion/；puppet.js 驱动布丁）；lab-service/test/companion-*.cjs；scripts/companion/slim_rig.py、place_frames.py |
-| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v2.3.2.0/ |
+| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v2.3.2.1/ |
 
 Calendar 使用 Node.js、Express、SQLite；Lab 使用 Node 原生 HTTP，浏览器运行 Python/WASM。生产运行代码须保持 Node 20 兼容。浏览器依赖已本地打包，无需让生产服务器在线安装依赖。
 
@@ -100,9 +102,9 @@ Calendar 使用 Node.js、Express、SQLite；Lab 使用 Node 原生 HTTP，浏�
 
 ## 已有更新机制
 
-统一入口为 `scripts/updater/manage.py`。v2.3.2.0-r2 的清单和 release-config 统一核对 v2.3.1.1；能力覆盖对应有／无 TOTP 两种历史组合。共享打包器使用审阅提交生成两种能力的差分载荷和源码补丁。备份、切换与回滚沿用 deploy_runtime.py。
+统一入口为 `scripts/updater/manage.py`。v2.3.2.1-r1 的清单和 release-config 统一核对 v2.3.2.0；能力覆盖对应有／无 TOTP 两种历史组合。共享打包器使用审阅提交生成两种能力的差分载荷和源码补丁。备份、切换与回滚沿用 deploy_runtime.py。
 
-完整解压后双击 RUN-UPDATE.cmd。安装器按实际版本、源码、能力及有效 Compose 预检，执行离线构建、9 项隔离检查、备份、切换、HTTPS/哈希和全体通知核对。ROLLBACK.cmd 恢复 v2.3.1.1 应用并保留当前用户记录。源码导入器使用独立 worktree 和审查分支。
+完整解压后双击 RUN-UPDATE.cmd。安装器按实际版本、源码、能力及有效 Compose 预检，执行离线构建、9 项隔离检查、备份、切换、HTTPS/哈希和全体通知核对。ROLLBACK.cmd 恢复 v2.3.2.0 应用并保留当前用户记录。源码导入器使用独立 worktree 和审查分支。
 
 Markdown ZIP 在浏览器处理，使用原生 DEFLATE 流，不新增服务器运行依赖。支持普通未加密 ZIP（stored/DEFLATE），不支持 RAR、7z、多卷或 ZIP64；图片仅接受 PNG/JPEG/GIF/WebP，外部图片及 SVG 不加载。ZIP 最多 20 MiB、500 个条目、解压合计 50 MiB、单文件 10 MiB、Markdown 4 MiB。源码编辑和包内文档草稿仅保存在本次页面中，不写回原文件。
 

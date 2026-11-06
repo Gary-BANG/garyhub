@@ -6,7 +6,7 @@
  const name=el('span','正在确认登录…','gh-name'),login=el('a','登录','gh-button'),logout=el('button','退出登录','gh-button'),admin=el('a','用户管理 ↗','gh-button');
  login.href='https://calendar.garyhub.uk/login/?next='+encodeURIComponent(location.href);admin.href='https://tools.garyhub.uk/admin/';admin.target='_blank';admin.rel='noopener';logout.type='button';
  const bell=el('button','🔔','gh-button'),panel=el('section',undefined,'gh-notices'),message=el('span','','gh-message');bell.type='button';bell.setAttribute('aria-label','更新通知');bell.setAttribute('aria-expanded','false');panel.id='gh-notices';panel.setAttribute('aria-label','更新通知');bell.setAttribute('aria-controls',panel.id);panel.hidden=true;message.setAttribute('role','status');
- const personalize=el('a',undefined,'gh-button');personalize.href='https://tools.garyhub.uk/study/?personalize=study';
+ const personalize=el('a',undefined,'gh-button');personalize.href='https://tools.garyhub.uk/personalize/';
  personalize.title='个性化';personalize.setAttribute('aria-label','个性化');personalize.hidden=true;
  personalize.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="9" r="3"/><path d="M5.5 19a7 7 0 0 1 13 0"/></svg>';
  mount.append(personalize,name,login,admin,...(scope?[bell]:[]),logout,message,panel);login.hidden=logout.hidden=admin.hidden=bell.hidden=true;
