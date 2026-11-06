@@ -26,7 +26,7 @@ const TIME = /^(\d{1,2}):([0-5]\d)$/, MODEL = /^[A-Za-z0-9][A-Za-z0-9._:-]{1,63}
 const TIERS = ['standard', 'subscriber', 'admin'], KINDS = ['chat', 'data', 'search'];
 // chat guards every message (including small talk and navigation); data and search count once per message that uses them.
 const DEFAULT_QUOTAS = {chat:{standard:200, subscriber:200, admin:500}, data:{standard:30, subscriber:50, admin:200}, search:{standard:5, subscriber:30, admin:100}};
-const DATA_TOOLS = new Set(['list_tasks', 'add_task', 'delete_task']);
+const DATA_TOOLS = new Set(['list_tasks', 'add_task', 'delete_task', 'update_task', 'complete_task', 'add_expense', 'add_fixed_expense', 'set_pending_category']);
 const fail = (message, status = 400, code) => { throw Object.assign(Error(message), {status, code}); };
 
 async function migrateAssistant(db) {
@@ -47,6 +47,18 @@ async function migrateAssistant(db) {
     kind TEXT NOT NULL CHECK(kind IN ('add_task','delete_task')),payload TEXT NOT NULL,
     state TEXT NOT NULL DEFAULT 'pending' CHECK(state IN ('pending','running','done','cancelled')),
     expires_at INTEGER NOT NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)`);
+  // Widen the original CHECK while retaining pending cards and their expiry.
+  const schema = await db.get("SELECT sql FROM sqlite_master WHERE name='assistant_actions'");
+  if (!schema.sql.includes("'update_task'")) {
+    await db.run('BEGIN IMMEDIATE');
+    try {
+      await db.run('ALTER TABLE assistant_actions RENAME TO assistant_actions_old');
+      await db.run(schema.sql.replace("'add_task','delete_task'", "'add_task','delete_task','update_task','complete_task','add_expense','add_fixed_expense'"));
+      await db.run('INSERT INTO assistant_actions SELECT * FROM assistant_actions_old');
+      await db.run('DROP TABLE assistant_actions_old');
+      await db.run('COMMIT');
+    } catch (error) { await db.run('ROLLBACK'); throw error; }
+  }
   await db.run(`CREATE TABLE IF NOT EXISTS assistant_quota(user_id INTEGER NOT NULL,day TEXT NOT NULL,kind TEXT NOT NULL,
     count INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(user_id,day,kind))`);
   await db.run('CREATE TABLE IF NOT EXISTS assistant_memory(user_id INTEGER PRIMARY KEY,turns TEXT NOT NULL,updated_at INTEGER NOT NULL)');
@@ -113,7 +125,14 @@ const fn = (name, description, properties, required) =>
   ({type:'function', function:{name, description, parameters:{type:'object', properties, required, additionalProperties:false}}});
 function toolList(pages, search = false) {
   const date = {type:'string', description:'YYYY-MM-DD'};
+  const str = {type:'string'};
+  const expense = {amount:str, currency:{type:'string',enum:['CNY','USD','CAD','HKD']}, category:str, notes:str};
   const tools = [
+    fn('update_task','Edit only supplied fields on an existing task. For time use HH:MM.',{task_id:str,title:str,time:str,start_date:date,end_date:date,note:str,category:str},['task_id']),
+    fn('complete_task','Mark an existing calendar task done.',{task_id:str},['task_id']),
+    fn('set_pending_category','Replace the pending add card with the requested category.',{card_id:str,category:str},['card_id','category']),
+    fn('add_expense','Prepare one expense. Ask for missing amount, currency and category. Never infer currency or category.',{...expense,date},['amount','currency','category']),
+    fn('add_fixed_expense','Create a recurring expense definition after collecting all fields.',{...expense,name:str,period:{type:'string',enum:['monthly','yearly']}},['name','amount','currency','category','period']),
     fn('list_tasks', `List the user's calendar tasks that overlap a date range of at most ${MAX_RANGE_DAYS} days. Use it before answering questions about the schedule and to find the task_id before deleting.`,
       {from:date, to:date, keyword:{type:'string', description:'Optional text that must appear in the title or note'}}, ['from', 'to']),
     fn('add_task', 'Prepare a new calendar task. It is saved only after the user presses Confirm, so never say it has been added.',
@@ -136,6 +155,8 @@ function systemPrompt({now, lang, name, pages, search}) {
     `你是 GaryHub 网站上的伙伴“${name}”，帮已登录用户查看、添加和删除日程（Calendar 里的事项），也能把用户带到站内页面${search ? '，并能联网搜索新闻和时事' : ''}。`,
     `现在是 ${now.date}（${now.weekday}）${now.time}，用户时区 ${now.zone}。“今天”“明天”“下周三”等都按这个日期换算成 YYYY-MM-DD。`,
     '规则：',
+    '修改或完成日程先查询，多个候选先追问。任何写入只生成确认卡。新增日程未指定分类时说明目前未分类，列出现有分类，询问想选哪项或直接确认；补充分类用 set_pending_category 和原卡 ID。',
+    '支出和固定开支必须由用户明确给出分类和币种，不得从用途、账号或地区推断。一次问齐缺失项。固定开支还要名称和月付或年付周期，只创建项目。普通支出日期默认用户当地今天。',
     '- 查日程用 list_tasks；添加用 add_task；删除时先用 list_tasks 找到 task_id，再用 delete_task。',
     '- add_task 和 delete_task 只会生成待确认的卡片，用户点“确认”后才生效。回复时请用户确认，绝不能说已经添加或删除。',
     '- 缺少日期、或同名事项不止一个时，先简短追问，不要猜。',
@@ -250,13 +271,18 @@ async function listTasks(userId, args) {
     note:row.note ? row.note.slice(0, 200) : undefined})), more:rows.length > 40};
 }
 
-async function propose(userId, kind, payload, summary) {
+async function propose(userId, kind, payload, summary, previousId) {
   const id = crypto.randomUUID();
+  if (previousId) {
+    const result=await run("UPDATE assistant_actions SET id=?,payload=? WHERE id=? AND user_id=? AND kind='add_task' AND state='pending' AND expires_at>?",[id,JSON.stringify({...payload,summary}),previousId,userId,Date.now()]);
+    if (!result.changes) fail('日程卡已失效');
+    return {id,kind,summary,replaces:previousId};
+  }
   await run('INSERT INTO assistant_actions(id,user_id,kind,payload,expires_at) VALUES(?,?,?,?,?)',
     [id, userId, kind, JSON.stringify({...payload, summary}), Date.now() + ACTION_TTL]);
   return {id, kind, summary};
 }
-async function proposeAdd(userId, args) {
+async function proposeAdd(userId, args, previousId) {
   const time = hhmm(args.time, 'time'), reminder = hhmm(args.reminder_time, 'reminder_time');
   const title = String(args.title || '').trim().slice(0, 120);
   let category = null;
@@ -274,8 +300,68 @@ async function proposeAdd(userId, args) {
       note:String(args.note || ''), category_id:category?.id || null, status:'todo', reminder_enabled:!!reminder,
       reminder:reminder ? {frequency:1, time_1:reminder} : undefined});
   } catch (error) { fail(error.message); }
-  return propose(userId, 'add_task', {item}, {title:item.title, start_date:item.startDate, end_date:item.endDate,
-    category:category?.name || null, reminder_time:reminder, note:item.note || null});
+  return propose(userId, 'add_task', {item,args}, {title:item.title, start_date:item.startDate, end_date:item.endDate,
+    category:category?.name || null, reminder_time:reminder, note:item.note || null,...(!category ? {choices:(await all('SELECT name FROM categories WHERE user_id=? ORDER BY name',[userId])).map(row=>row.name)} : {})}, previousId);
+}
+async function prepareChange(kind,args,ctx) {
+  const uid=ctx.userId;
+  if (kind==='add_expense' || kind==='add_fixed_expense') {
+    const fixed=kind==='add_fixed_expense';
+    const {money,date}=require('./ledger-api');
+    const missing=[];
+    if (!args.amount) missing.push('金额');
+    if (!args.category) missing.push('分类');
+    if (!args.currency) missing.push('币种');
+    if (fixed && !args.name) missing.push('名称');
+    if (fixed && !args.period) missing.push('每月或每年');
+    const choices=(await ctx.ledger.categories(uid)).filter(c=>c.active && c.type==='expense');
+    if (missing.length) fail('请向用户询问：'+missing.join('、')+(missing.includes('分类')?'。可选分类：'+choices.map(c=>c.name).join('、'):''));
+    money(args.amount);
+    const category=choices.filter(c=>c.id===args.category || c.name===args.category);
+    if (category.length!==1) fail('请明确选择支出分类：'+choices.map(c=>c.name).join('、'));
+    if (!require('./fx-rates').CURRENCIES.includes(args.currency)) fail('请提供币种 CNY/USD/CAD/HKD');
+    const currencyWords={USD:['usd','美元','美金','us dollar'],CNY:['cny','rmb','人民币','yuan'],CAD:['cad','加元','加拿大元','canadian dollar'],HKD:['hkd','港币','港元','hong kong dollar']};
+    const categoryWords=[category[0].id,category[0].name];
+    if (!currencyWords[args.currency].some(word=>ctx.userWords.includes(word))) missing.push('币种');
+    if (!categoryWords.some(word=>ctx.userWords.includes(word.toLowerCase()))) missing.push('分类（'+choices.map(c=>c.name).join('、')+'）');
+    if (missing.length) fail('请用户明确提供'+missing.join('和'));
+    const body={amount:args.amount,currency:args.currency,notes:args.notes||'',categoryId:category[0].id};
+    if (fixed) {
+      if (!args.name?.trim() || args.name.length>80 || !['monthly','yearly'].includes(args.period)) fail('请提供固定开支名称与月付或年付周期');
+      Object.assign(body,{name:args.name,period:args.period,active:true});
+    } else Object.assign(body,{kind:'expense',date:date(args.date||ctx.day)});
+    if (typeof body.notes!=='string' || body.notes.length>(fixed?800:1000)) fail('备注过长');
+    return propose(uid,kind,{body},{title:fixed?body.name:body.notes,amount:body.amount,currency:body.currency,category:category[0].name,period:body.period,start_date:body.date,end_date:body.date,note:fixed?body.notes:null});
+  }
+  const before=await get('SELECT id,title,start_date,end_date,status,note,category_id FROM tasks WHERE id=? AND user_id=?',[args.task_id,uid]);
+  if (!before) fail('请先查找日程');
+  const after={...before}, changes=[];
+  if (kind==='complete_task') {
+    if (before.status==='done') fail('此日程已完成');
+    after.status='done';
+  } else {
+    for (const field of ['title','note','start_date','end_date']) if (args[field]!==undefined) after[field]=args[field];
+    if (args.start_date && !args.end_date && before.start_date===before.end_date) after.end_date=after.start_date;
+    if (args.title && !args.time) {
+      const prefix=before.title.match(/^\d{1,2}:\d{2}\s+/);
+      if (prefix && !/^\d{1,2}:\d{2}\s+/.test(after.title)) after.title=prefix[0]+after.title;
+    }
+    if (args.time) after.title=hhmm(args.time,'time')+' '+after.title.replace(/^\d{1,2}:\d{2}\s+/,'');
+    if (args.category) {
+      const cat=await get('SELECT id FROM categories WHERE user_id=? AND name_normalized=?',[uid,args.category.trim().toLocaleLowerCase('und')]);
+      if (!cat) fail('日程分类不存在');
+      after.category_id=cat.id;
+    }
+    try {validateTask(after);} catch(error){fail(error.message);}
+    for (const key of ['title','start_date','end_date','note','category_id']) if(before[key]!==after[key]) {
+      if(key==='category_id'){
+        const previous=await get('SELECT name FROM categories WHERE user_id=? AND id=?',[uid,before.category_id]);
+        changes.push((previous?.name||'未分类')+' → '+args.category);
+      } else changes.push((before[key]||'—')+' → '+(after[key]||'—'));
+    }
+    if (!changes.length) fail('请说明要修改的内容');
+  }
+  return propose(uid,kind,{before,after},{title:after.title,start_date:after.start_date,end_date:after.end_date,note:changes.join(' · ')});
 }
 async function proposeDelete(userId, args) {
   const task = await get('SELECT id,title,start_date,end_date FROM tasks WHERE id=? AND user_id=?', [String(args.task_id || ''), userId]);
@@ -307,11 +393,20 @@ async function runTool(call, ctx, result) {
   try {
     switch (name) {
       case 'list_tasks': return await listTasks(ctx.userId, args);
-      case 'add_task': case 'delete_task': {
+      case 'add_task': case 'delete_task': case 'update_task': case 'complete_task': case 'set_pending_category': case 'add_expense': case 'add_fixed_expense': {
         if (result.actions.length >= 5) return {error:'at most five changes per message'};
-        const action = name === 'add_task' ? await proposeAdd(ctx.userId, args) : await proposeDelete(ctx.userId, args);
+        let action;
+        if (name==='add_task') action=await proposeAdd(ctx.userId,args);
+        else if (name==='delete_task') action=await proposeDelete(ctx.userId,args);
+        else if (name==='set_pending_category') {
+          const row=await get("SELECT payload FROM assistant_actions WHERE user_id=? AND id=? AND kind='add_task' AND state='pending'",[ctx.userId,args.card_id]);
+          if (!row || !args.category) fail('请选择有效的日程草稿和分类');
+          const draft=JSON.parse(row.payload).args;
+          if (!draft) fail('请重新创建旧版草稿');
+          action=await proposeAdd(ctx.userId,{...draft,category:args.category},args.card_id);
+        } else action=await prepareChange(name,args,ctx);
         result.actions.push(action);
-        return {status:'waiting_for_user_confirmation', summary:action.summary};
+        return {status:'waiting_for_user_confirmation', summary:action.summary,card_id:action.id};
       }
       case 'open_page':
         if (!ctx.pages.some(page => page.id === args.page)) return {error:'unknown page'};
@@ -358,7 +453,7 @@ async function recall(userId) {
 const remember = (userId, turns) => run(`INSERT INTO assistant_memory(user_id,turns,updated_at) VALUES(?,?,?)
   ON CONFLICT(user_id) DO UPDATE SET turns=excluded.turns,updated_at=excluded.updated_at`, [userId, JSON.stringify(turns.slice(-MEMORY_ROUNDS * 2)), Date.now()]);
 const cardNote = actions => actions.length ? `（已生成待确认卡片：${actions.map(action =>
-  `${action.kind === 'add_task' ? '添加' : '删除'} ${action.summary.title} ${action.summary.start_date}`).join('；')}）` : '';
+  `${action.kind==='add_task'?'添加':action.kind==='delete_task'?'删除':action.kind} ${action.summary.title||''} ${action.summary.start_date||''} [${action.id}]`).join('；')}）` : '';
 
 async function logCall(call, userId, tier, outcome, kinds, tools) {
   await run(`INSERT INTO assistant_calls(id,user_id,created_at,tier,outcome,kinds,tools,model,fallback,rounds,prompt_tokens,completion_tokens,searches,ms)
@@ -382,7 +477,7 @@ async function purge() {
   await run('DELETE FROM assistant_errors WHERE created_at<?', [cutoff]);
 }
 
-function registerAssistant(app, {requireLogin, requireAdmin}) {
+function registerAssistant(app, {requireLogin, requireAdmin, ledger}) {
   const route = (source, handler) => async (req, res, next) => {
     try { await handler(req, res); }
     catch (error) {
@@ -415,9 +510,12 @@ function registerAssistant(app, {requireLogin, requireAdmin}) {
     const viewer = {role:tier === 'admin' ? 'admin' : 'user', accountTier:tier === 'subscriber' ? 'subscriber' : 'standard'};
     const pages = knowledge.entries.filter(entry => knowledge.permitted(entry, viewer)).map(entry => ({id:entry.id, name:entry.name[input.lang]}));
     const search = !!s.search_enabled && quotas.search[tier] > 0;
-    const ctx = {userId:user.id, day:now.date, tier, quotas, charged:new Set(['chat']), call, s, search, pages};
+    const ctx = {ledger,userId:user.id, day:now.date, tier, quotas, charged:new Set(['chat']), call, s, search, pages};
     const tools = toolList(pages, search), result = {reply:'', actions:[], pages:[], sources:[], limited:null}, used = [];
     const memory = await recall(user.id);
+    // Only use user messages since the most recent proposed action as evidence of supplied fields.
+    const latestCard=memory.findLastIndex(turn=>turn.role==='assistant' && turn.content.includes('已生成待确认卡片'));
+    ctx.userWords=[...memory.slice(latestCard+1).filter(turn=>turn.role==='user').map(turn=>turn.content),input.message].join(' ').toLowerCase();
     const messages = [{role:'system', content:systemPrompt({now, lang:input.lang, name:input.name, pages, search})}, ...memory, {role:'user', content:input.message}];
     try {
       for (let round = 0; round < MAX_ROUNDS && !result.reply && !result.limited; round++) {
@@ -479,18 +577,29 @@ function registerAssistant(app, {requireLogin, requireAdmin}) {
       const payload = JSON.parse(action.payload);
       if (action.kind === 'add_task') {
         const item = payload.item;
-        // The category may have been deleted since the card was shown; the task then stays uncategorised.
-        if (item.categoryId && !await get('SELECT 1 FROM categories WHERE id=? AND user_id=?', [item.categoryId, userId])) item.categoryId = null;
+        // Preserve the category the user reviewed.
+        if (item.categoryId && !await get('SELECT 1 FROM categories WHERE id=? AND user_id=?', [item.categoryId, userId])) fail('分类已删除，请重新选择并确认',409);
         const task = await createTask(userId, item);
         await run("UPDATE assistant_actions SET state='done' WHERE id=?", [id]);
         return res.json({ok:true, kind:action.kind, task:{id:task.id, title:task.title, start_date:task.start_date, end_date:task.end_date}});
       }
+      if (action.kind==='update_task' || action.kind==='complete_task') {
+        const {before,after}=payload;
+        const changed=await run(`UPDATE tasks SET title=?,start_date=?,end_date=?,note=?,category_id=?,status=?,completed_at=CASE WHEN ?='done' THEN COALESCE(completed_at,CURRENT_TIMESTAMP) ELSE completed_at END,updated_at=CURRENT_TIMESTAMP
+          WHERE id=? AND user_id=? AND title=? AND start_date=? AND end_date=? AND note IS ? AND category_id IS ? AND status=?
+          AND (? IS NULL OR EXISTS(SELECT 1 FROM categories WHERE id=? AND user_id=?))`,
+          [after.title,after.start_date,after.end_date,after.note,after.category_id,after.status,after.status,before.id,userId,before.title,before.start_date,before.end_date,before.note,before.category_id,before.status,after.category_id,after.category_id,userId]);
+        if (!changed.changes) fail('日程或分类已变化，请重新查询',409);
+      } else if (action.kind==='add_expense' || action.kind==='add_fixed_expense') {
+        await ledger.create(req,{...payload.body,requestId:id},action.kind==='add_fixed_expense');
+      } else if (action.kind==='delete_task') {
       const removed = await run('DELETE FROM tasks WHERE id=? AND user_id=?', [payload.taskId, userId]);
-      await run("UPDATE assistant_actions SET state='done' WHERE id=?", [id]);
       if (!removed.changes) fail('这个事项已经不存在了', 409);
+      } else fail('未知操作',400);
+      await run("UPDATE assistant_actions SET state='done' WHERE id=?",[id]);
       res.json({ok:true, kind:action.kind});
     } catch (error) {
-      if (!error.status) await run("UPDATE assistant_actions SET state='pending' WHERE id=? AND state='running'", [id]);
+      await run("UPDATE assistant_actions SET state=? WHERE id=? AND state='running'", [error.status?'cancelled':'pending',id]);
       throw error;
     }
   }));
