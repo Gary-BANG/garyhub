@@ -101,6 +101,7 @@ app.use("/api", (req, res, next) => {
   next();
 });
 
+require("./stock-api").register(app,require("./db"));
 app.use(express.static(PUBLIC_DIR));
 
 function requireLogin(req, res, next) {
@@ -160,7 +161,7 @@ async function resolveTargetUserId(req) {
 }
 
 app.get("/health", (req, res) => {
-  res.json({ ok: true, hubVersion: "2.3.2.3" });
+  res.json({ ok: true, hubVersion: "2.4.0.1" });
 });
 
 // 登录
@@ -699,6 +700,7 @@ initDb()
   .then(() => migrateProfile(require("./db")))
   .then(() => migrateTotp(require("./db")))
   .then(() => migrateLedger(require("./db")))
+  .then(() => require("./db").run(require("./stock-api").schema))
   .then(() => migrateTodos(require("./db")))
   .then(() => migrateResearch(require("./db")))
   .then(() => migrateToolAccess(require("./db")))
