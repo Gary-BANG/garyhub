@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_version": "2.3.2.3",
-  "manifest": "releases/2.3.2.3.json",
+  "source_version": "2.4.0.1",
+  "manifest": "releases/2.4.0.1.json",
   "production_status": "not_yet_deployed"
 }

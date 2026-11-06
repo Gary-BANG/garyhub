@@ -33,6 +33,12 @@ function Assert-Branch {
  $paths=Git-Read -At $Repo -Arguments @('diff','--name-only',('origin/main...'+$Reference),'--')
  $unexpected=@($paths -split "`r?`n" | Where-Object {$_ -and $_ -notin $manifest.files.PSObject.Properties.Name})
  if($unexpected.Count){throw ('Branch contains unrelated changes: '+($unexpected -join ', '))}
+ if($exact){
+  $actual=Git-Read -At $Repo -Arguments @('rev-parse',($Reference+'^{tree}'))
+  if($actual -ne $manifest.target_tree){throw 'Review branch tree differs from the verified release.'}
+  & git -C $Repo merge-base --is-ancestor $mainTip $Reference
+  if($LASTEXITCODE -ne 0){throw 'Existing review branch was prepared on a different main commit.'}
+ }
 }
 try {
  if(-not(Get-Command git -ErrorAction SilentlyContinue)){
@@ -53,7 +59,7 @@ try {
  if(-not $packageDirectory.PSIsContainer){throw 'PackageRoot must be an extracted directory.'}
  $PackageRoot=$packageDirectory.FullName
  $manifest=Get-Content -LiteralPath (Join-Path $PackageRoot 'manifest.json') -Raw | ConvertFrom-Json
- if($manifest.schema_version -ne 1 -or $manifest.repository -ne 'Gary-BANG/garyhub' -or $manifest.branch -notmatch '^(?:chore|update)/[a-z0-9][a-z0-9._-]{0,100}$'){throw 'Unexpected package manifest.'}
+ if($manifest.schema_version -notin @(1,2) -or $manifest.repository -ne 'Gary-BANG/garyhub' -or $manifest.branch -notmatch '^(?:chore|update)/[a-z0-9][a-z0-9._-]{0,100}$'){throw 'Unexpected package manifest.'}
  foreach($p in $manifest.package_files.PSObject.Properties){Assert-PackageFile -Relative $p.Name -Expected $p.Value}
  if($manifest.commit_message -match '[\r\n]' -or -not $manifest.commit_message -or $manifest.commit_message.Length -gt 160){throw 'Invalid commit message.'}
  if($manifest.base_commit -notmatch '^[0-9a-f]{40}$'){throw 'Invalid reviewed base commit.'}
@@ -63,7 +69,27 @@ try {
  Git-Do -At $Repo -Arguments @('fetch','origin','main')
  & git -C $Repo merge-base --is-ancestor $manifest.base_commit origin/main
  if($LASTEXITCODE -ne 0){throw 'Remote main does not contain the reviewed base; no patch applied.'}
+ $mainTip=Git-Read -At $Repo -Arguments @('rev-parse','origin/main')
  $branch=$manifest.branch
+ $patchName='changes.patch'
+ $exact=($manifest.schema_version -eq 2)
+ if($exact){
+  $tree=Git-Read -At $Repo -Arguments @('rev-parse',($mainTip+'^{tree}'))
+  if($manifest.target_tree -notmatch '^[0-9a-f]{40}$'){throw 'Invalid target tree.'}
+  if($tree -eq $manifest.target_tree){
+   Write-Host ('ALREADY SYNCED: origin/main contains the verified source tree. No push required.')
+   exit 0
+  }
+  $choice=$manifest.source_patches.PSObject.Properties[$tree]
+  if(-not $choice){throw ('Unrecognized source tree on origin/main ('+$mainTip+'); no worktree or branch created.')}
+  $patchName=[string]$choice.Value
+  if($patchName -notmatch '^changes(?:-from-[0-9a-f]{40})?\.patch$' -or -not $manifest.package_files.PSObject.Properties[$patchName]){
+   throw 'Unverified checkpoint patch.'
+  }
+  # A later PR may put another supported checkpoint on main between runs.
+  if($patchName -ne 'changes.patch'){$branch=$branch+'-from-'+$tree.Substring(0,8)}
+  Write-Host ('SOURCE_CHECKPOINT='+$mainTip+'  PATCH='+$patchName)
+ }
  $localRef='refs/heads/'+$branch
  & git -C $Repo show-ref --verify --quiet $localRef
  $exists=$LASTEXITCODE -eq 0
@@ -79,13 +105,16 @@ try {
   [IO.Directory]::CreateDirectory($workRoot) | Out-Null
   $work=Join-Path $workRoot ('workflow-'+[Guid]::NewGuid().ToString('N'))
   Write-Host '2/4 Preparing the reviewed changes in a separate worktree...'
-  Git-Do -At $Repo -Arguments @('worktree','add','-b',$branch,$work,'origin/main')
+  Git-Do -At $Repo -Arguments @('-c','core.autocrlf=false','worktree','add','--detach',$work,$mainTip)
   Write-Host ('REVIEW_WORKTREE='+$work)
-  $patch=Join-Path $PackageRoot 'changes.patch'
-  Git-Do -At $work -Arguments @('apply','--check',$patch)
-  Git-Do -At $work -Arguments @('apply',$patch)
+  $patch=Join-Path $PackageRoot $patchName
+  Git-Do -At $work -Arguments @('-c','core.autocrlf=false','apply','--index','--check',$patch)
+  Git-Do -At $work -Arguments @('-c','core.autocrlf=false','apply','--index',$patch)
   $paths=@($manifest.files.PSObject.Properties.Name)
-  Git-Do -At $work -Arguments (@('add','--')+$paths)
+  if($exact){
+   $tree=Git-Read -At $work -Arguments @('write-tree')
+   if($tree -ne $manifest.target_tree){throw 'Staged source differs from the complete reviewed release; branch not created.'}
+  }
   $staged=Git-Read -At $work -Arguments @('diff','--cached','--name-only')
   $actual=@($staged -split "`r?`n" | Where-Object {$_})
   $unexpected=@($actual | Where-Object {$_ -notin $paths})
@@ -93,7 +122,9 @@ try {
   if($actual.Count -eq 0){throw 'No staged changes; main may already contain this workflow.'}
   Git-Do -At $work -Arguments @('diff','--cached','--check')
   Git-Do -At $work -Arguments @('commit','-m',$manifest.commit_message)
-  Assert-Branch -Reference $localRef
+  $commit=Git-Read -At $work -Arguments @('rev-parse','HEAD')
+  Assert-Branch -Reference $commit
+  Git-Do -At $work -Arguments @('checkout','-b',$branch,$commit)
  }
  Write-Host '3/4 Package branch and exact changed-file content verified.'
  if($PrepareOnly){Write-Host ('PREPARED: '+$branch+'. No remote push performed.');exit 0}

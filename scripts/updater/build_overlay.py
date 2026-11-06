@@ -54,7 +54,21 @@ def build(root, here, output):
         raise RuntimeError('Commit and review source changes before building')
     if output.exists():
         raise RuntimeError('Existing output preserved; choose a new ZIP path')
-    paths = [p for p in git('diff', '--name-only', base, 'HEAD', '--').decode().splitlines() if p]
+    installed = base
+    if config.get('installed_baseline_tree'):
+        import gzip
+        with tempfile.TemporaryDirectory() as tmp:
+            env = dict(os.environ, GIT_INDEX_FILE=str(Path(tmp)/'index'))
+            def index(*args, data=None):
+                return subprocess.run(['git', '-C', str(root), *args], input=data, env=env,
+                                      stdout=subprocess.PIPE, check=True).stdout
+            index('read-tree', base)
+            patch = source_bytes(root, str((here/'installed-baseline.patch.gz').relative_to(root)))
+            index('apply', '--cached', '--binary', '-', data=gzip.decompress(patch))
+            installed = index('write-tree').decode().strip()
+            if installed != config['installed_baseline_tree']:
+                raise RuntimeError('Installed baseline tree differs from review')
+    paths = [p for p in git('diff', '--name-only', installed, 'HEAD', '--').decode().splitlines() if p]
     runtime = [p for p in paths if p.startswith(('calendar-app/', 'lab-service/')) and not p.endswith('/Dockerfile')]
     if not runtime:
         raise RuntimeError('No reviewed application changes found')
@@ -65,7 +79,7 @@ def build(root, here, output):
         if variant == '1.3.4.1':
             choices.insert(0, config['baseline_adapter']+'/variant-overrides/'+variant+'/'+path)
         for choice in choices:
-            p = subprocess.run(['git', '-C', str(root), 'show', base+':'+choice], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+            p = subprocess.run(['git', '-C', str(root), 'show', installed+':'+choice], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
             if p.returncode == 0:
                 return p.stdout
         return None
@@ -110,7 +124,11 @@ def build(root, here, output):
     push=importlib.util.module_from_spec(spec);spec.loader.exec_module(push);push.ROOT=root
     pr_body=source_bytes(root,str((here/'PR-DESCRIPTION.md').relative_to(root))).decode()
     with contextlib.redirect_stdout(io.StringIO()):
-        push.build(base,'update/garyhub-v'+version,work/'git-source.zip',config.get('source_subject','Add bilingual useful tools and Markdown ZIP preview'),pr_body)
+        branch = config.get('source_branch', 'update/garyhub-v'+version)
+        checkpoints = [installed] if config.get('support_installed_source_checkpoint') else None
+        push.build(base, branch, work/'git-source.zip',
+                   config.get('source_subject','Add bilingual useful tools and Markdown ZIP preview'),
+                   pr_body, alternate_trees=checkpoints)
     with zipfile.ZipFile(work/'git-source.zip') as z:
         for name in z.namelist():
             relative='/'.join(name.split('/')[1:])

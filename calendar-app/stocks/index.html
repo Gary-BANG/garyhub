@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A 股行情 · GaryHub</title>
+  <link rel="stylesheet" href="/stocks/style.css">
+  <script defer src="/stocks/charts.js"></script><script defer src="/stocks/app.js"></script>
+</head>
+<body><main>
+  <nav><a href="https://tools.garyhub.uk/">← GaryHub Tools</a></nav>
+  <h1>A 股行情</h1>
+  <form id="search">
+    <label for="query">查找股票</label>
+    <div class="row"><input id="query" maxlength="24" placeholder="六位代码或股票简称" autocomplete="off" required><button>搜索</button></div>
+  </form>
+  <div id="results"></div>
+  <section class="card"><header><h2>我的分组</h2><button id="add" disabled>新建分组</button></header><div id="tabs"></div><div id="list"></div></section>
+  <section id="detail" class="card" hidden aria-label="个股详情">
+    <div class="detail-heading"><div><h2 id="stock-name"></h2><p id="stock-code" class="code"></p></div><div id="quote-time" class="meta"></div></div>
+    <div id="snapshot"></div>
+    <div id="watch-controls" class="row"></div>
+    <details id="book-panel"><summary>五档盘口</summary><div id="book-body" class="panel-body"></div></details>
+    <details id="minute-panel"><summary>盘中分时</summary><div id="minute-body" class="panel-body"></div></details>
+    <details id="history-panel"><summary>近月日 K、均线与成交量</summary><div id="history-body" class="panel-body"></div></details>
+    <details id="finance-panel"><summary>公司财务</summary><div id="finance-body" class="panel-body"></div></details>
+  </section>
+  <p id="notice" role="status" aria-live="polite"></p>
+</main></body></html>

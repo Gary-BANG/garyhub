@@ -16,16 +16,30 @@ def git(*args):
     return subprocess.check_output(['git', '-C', str(ROOT), *args])
 
 
-def build(base, branch, output, subject, pr_body):
+def build(base, branch, output, subject, pr_body, *, target='HEAD', alternate_trees=None, readme_text=None):
     if not re.fullmatch(r'(chore|update)/[a-z0-9][a-z0-9._-]{0,100}', branch):
         raise ValueError('Choose a review branch under chore/ or update/')
     if not subject or len(subject) > 160 or '\n' in subject or '\r' in subject:
         raise ValueError('Use a short single-line commit subject')
     base = git('rev-parse', '--verify', base + '^{commit}').decode().strip()
-    git('merge-base', '--is-ancestor', base, 'HEAD')
-    # Only committed changes are exported. Never include runtime or untracked data.
-    paths = git('diff', '--name-only', '--no-renames', '-z', base, 'HEAD').decode().strip('\0').split('\0')
-    paths = [p for p in paths if p]
+    target = git('rev-parse', '--verify', target + '^{commit}').decode().strip()
+    git('merge-base', '--is-ancestor', base, target)
+    base_tree = git('rev-parse', base + '^{tree}').decode().strip()
+    target_tree = git('rev-parse', target + '^{tree}').decode().strip()
+    # An installer can ship several reviewed source checkpoints while retaining
+    # its independent, stricter server version and image preflight.
+    patches = {base_tree: 'changes.patch'}
+    if alternate_trees is not None:
+        for tree in alternate_trees:
+            if not re.fullmatch('[0-9a-f]{40}', tree) or git('cat-file', '-t', tree).strip() != b'tree':
+                raise ValueError('Expected a reviewed Git tree for the source checkpoint')
+            if tree not in (base_tree, target_tree):
+                patches[tree] = 'changes-from-' + tree + '.patch'
+    paths = set()
+    for tree in patches:
+        names = git('diff', '--name-only', '--no-renames', '-z', tree, target).decode().split('\0')
+        paths.update(name for name in names if name)
+    paths = sorted(paths)
     if not paths:
         raise ValueError('No committed changes to package')
     files = {}
@@ -36,17 +50,17 @@ def build(base, branch, output, subject, pr_body):
             raise ValueError('Refusing private input: ' + name)
         if '/data/' in '/' + name and not name.startswith('lab-service/public/lab/data/'):
             raise ValueError('Runtime data requires review: ' + name)
-        entry = git('ls-tree', 'HEAD', '--', name).decode().split()
+        entry = git('ls-tree', target, '--', name).decode().split()
         if not entry or entry[0] != '100644':
             raise ValueError('Only ordinary source files are supported; review deletions/links/modes: ' + name)
-        data = git('show', 'HEAD:' + name)
+        data = git('show', target + ':' + name)
         files[name] = {'git_blob': entry[2], 'sha256': hashlib.sha256(data).hexdigest()}
-    patch = git('diff', '--binary', '--full-index', '--no-renames', base, 'HEAD', '--', *paths)
     ps = git('show', 'HEAD:scripts/updater/push-source.ps1')
     root = Path(tempfile.mkdtemp(prefix='garyhub-push-')) / 'GaryHub-Workflow-GitHub-Push'
     root.mkdir()
     (root/'Push-GitHub.ps1').write_bytes(ps)
-    (root/'changes.patch').write_bytes(patch)
+    for tree, name in patches.items():
+        (root/name).write_bytes(git('diff', '--binary', '--full-index', '--no-renames', tree, target, '--', *paths))
     (root/'PR-DESCRIPTION.md').write_text(pr_body, encoding='utf-8')
     cmd = '@echo off\nsetlocal\nchcp 65001 >nul\npowershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0Push-GitHub.ps1" -PackageRoot "%~dp0."\nset "PUSH_RESULT=%ERRORLEVEL%"\necho.\npause\nexit /b %PUSH_RESULT%\n'
     (root/'PUSH-TO-GITHUB.cmd').write_bytes(cmd.replace('\n', '\r\n').encode())
@@ -64,11 +78,13 @@ def build(base, branch, output, subject, pr_body):
 
 本包仅提交固定更新流程、项目档案及统一工具；应用版本仍为 1.3.6.0。验证记录位于 docs/UPDATE_WORKFLOW_VALIDATION.md。
 '''
-    (root/'README.md').write_text(readme, encoding='utf-8')
+    (root/'README.md').write_text(readme_text or readme, encoding='utf-8')
     manifest = {'schema_version': 1, 'repository': 'Gary-BANG/garyhub', 'base_commit': base,
-                'source_commit': git('rev-parse', 'HEAD').decode().strip(), 'branch': branch,
+                'source_commit': target, 'branch': branch,
                 'commit_message': subject, 'files': files,
                 'package_files': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in root.iterdir() if p.is_file()}}
+    if alternate_trees is not None:
+        manifest.update(schema_version=2, target_tree=target_tree, source_patches=patches)
     (root/'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf-8')
     output = Path(output).resolve()
     if output.exists():
