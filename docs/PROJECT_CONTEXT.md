@@ -4,7 +4,9 @@
 
 ## 当前源码与部署证据
 
-- **v2.4.0.1（当前源码）** A 股详情新增换手率、量比、振幅、TTM 市盈率、市净率、总市值及流通市值，支持五档盘口、盘中分时、带成交量和 MA5/10/20 的近月日 K，并可切换最近四份已披露财报。 安装基线为已经现场核验的 v2.4.0.0；r2 源码以 PR #38 的 8d97771 和已交付的 v2.4.0.0 文件树为准。两种能力组合均复用现有部署、回滚及通知保护；上线待现场证据。见 GARYHUB_V2_4_0_1_TESTS.md。
+- **v2.4.0.2（当前源码，本地已验证）** 基于 PR #39 的 main `8df09118e3f4d7a7c8d00f4c2cc79b13849ca50c`，独立分支 `update/garyhub-v2.4.0.2`。A 股行情改为图标栏、可收起搜索／收藏窄栏和宽内容区；新增有界模糊建议、代码片段／拼音缩写、暖色日夜主题及指标缩写。管理员通过独立 `stock_vip`／`stock_vip_version` 设置 A 股 VIP，只给开通用户显示标识；不改变订阅 gate，AI 选股后续开发。管理写入保留身份、CSRF、Origin、修订号和审计；账号删除清单补入既有 `stock_lists`。新适配器复用共享更新器，严格要求实际 v2.4.0.1，两种能力各十组隔离检查。相关单元、双能力 HTTP、桌面及手机响应式布局、VIP 管理与持久化检查通过；共享更新器 37 通过／2 个 pwsh 跳过。源码已准备／本地已验证，尚未推送、合并或部署；最新生产证据仍为下述 v2.4.0.0。详见 GARYHUB_V2_4_0_2.md 与 _TESTS.md。
+
+- **v2.4.0.1（PR #39 已合并，生产待验证）** A 股详情新增换手率、量比、振幅、TTM 市盈率、市净率、总市值及流通市值，支持五档盘口、盘中分时、带成交量和 MA5/10/20 的近月日 K，并可切换最近四份已披露财报。 安装基线为已经现场核验的 v2.4.0.0；r2 源码以 PR #38 的 8d97771 和已交付的 v2.4.0.0 文件树为准。两种能力组合均复用现有部署、回滚及通知保护；上线待现场证据。见 GARYHUB_V2_4_0_1_TESTS.md。
 - **v2.4.0.0（2026-11-06 生产已核验）** 新增独立 A 股行情工具。订阅用户可按代码或名称查行情、查看近月日 K，创建最多 3 个分组，每组 5 只股票。临时行情仅缓存在内存。 用户提交的 v2.4.0.0-r1 日志显示八阶段完成，SOURCE_BASELINE=1.3.4.2，8 个账号收到通知。其后的 Windows 源码准备在 apply --check 停止，GitHub 已由 PR #38 更新至 v2.3.2.3。v2.4.0.0 源码另由 PR #38 起点的专用同步包提交审查。
 - **v2.3.2.3（上版源码）** 基线 main 558559e9。伙伴可查询、记录或纠正体重与运动，按周或月汇总运动。待办及子项支持查看、创建、编辑、标记完成、恢复和删除。所有写入均需确认。 参见 GARYHUB_V2_3_2_3_TESTS.md。待实机安装。
 - **v2.3.2.2（PR #37 已合并）** 基线 ef0bebec。网站伙伴可修改日程、标记完成、记录支出和添加按月或按年的固定开支。未分类日程可直接确认，也可在对话中选择已有分类。记账需要明确币种和分类，核对卡片后保存。 本地验证范围见 GARYHUB_V2_3_2_2_TESTS.md。生产待验证。
@@ -90,7 +92,8 @@ v1.4.3.1-r1 曾在受保护 HTML 的未登录正文哈希检查失败后回滚�
 | 三个本地实用工具 | lab-service/public/useful/，避免读取 vendor/ 的大文件 |
 | 外站链接 | lab-service/public/sites/；server.cjs 中 sites.garyhub.uk 分支；scripts/sites/capture_thumbnails.py |
 | 网站伙伴（米露等五个角色） | lab-service/public/companion/（Calendar 副本 calendar-app/public/companion/；puppet.js 驱动布丁）；lab-service/test/companion-*.cjs；scripts/companion/slim_rig.py、place_frames.py |
-| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v2.3.2.1/ |
+| A 股行情与 VIP | calendar-app/stocks/、stock-market.js、stock-api.js、account-admin.js、hub-api.js；lab-service/public/admin.js |
+| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v2.4.0.2/ |
 
 Calendar 使用 Node.js、Express、SQLite；Lab 使用 Node 原生 HTTP，浏览器运行 Python/WASM。生产运行代码须保持 Node 20 兼容。浏览器依赖已本地打包，无需让生产服务器在线安装依赖。
 
@@ -106,9 +109,9 @@ Calendar 使用 Node.js、Express、SQLite；Lab 使用 Node 原生 HTTP，浏�
 
 ## 已有更新机制
 
-统一入口为 `scripts/updater/manage.py`。v2.3.2.1-r1 的清单和 release-config 统一核对 v2.3.2.0；能力覆盖对应有／无 TOTP 两种历史组合。共享打包器使用审阅提交生成两种能力的差分载荷和源码补丁。备份、切换与回滚沿用 deploy_runtime.py。
+统一入口为 `scripts/updater/manage.py`。v2.4.0.2-r1 的清单和 release-config 统一核对 v2.4.0.1，以已合并 main `8df0911` 为审阅源码基线；能力覆盖对应有／无 TOTP 两种历史组合，基础适配器为 v2.4.0.1。共享更新器未修改。
 
-完整解压后双击 RUN-UPDATE.cmd。安装器按实际版本、源码、能力及有效 Compose 预检，执行离线构建、9 项隔离检查、备份、切换、HTTPS/哈希和全体通知核对。ROLLBACK.cmd 恢复 v2.3.2.0 应用并保留当前用户记录。源码导入器使用独立 worktree 和审查分支。
+完整解压后双击 RUN-UPDATE.cmd。安装器按实际版本、源码、能力及有效 Compose 预检，执行离线构建、十组隔离检查、备份、切换、HTTPS/哈希和全体通知核对。ROLLBACK.cmd 恢复 v2.4.0.1 应用并保留当前用户记录，新增 VIP 列保留但旧版不使用。源码导入器使用独立 worktree 和审查分支，不强推或自动合并。
 
 Markdown ZIP 在浏览器处理，使用原生 DEFLATE 流，不新增服务器运行依赖。支持普通未加密 ZIP（stored/DEFLATE），不支持 RAR、7z、多卷或 ZIP64；图片仅接受 PNG/JPEG/GIF/WebP，外部图片及 SVG 不加载。ZIP 最多 20 MiB、500 个条目、解压合计 50 MiB、单文件 10 MiB、Markdown 4 MiB。源码编辑和包内文档草稿仅保存在本次页面中，不写回原文件。
 

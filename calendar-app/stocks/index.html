@@ -1,28 +1,49 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="day">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>A 股行情 · GaryHub</title>
-  <link rel="stylesheet" href="/stocks/style.css">
-  <script defer src="/stocks/charts.js"></script><script defer src="/stocks/app.js"></script>
+  <meta name="theme-color" content="#f3eee5"><title>A 股行情 · GaryHub</title>
+  <link rel="stylesheet" href="/stocks/style.css?v=2.4.0.2">
+  <script defer src="/stocks/charts.js?v=2.4.0.2"></script><script defer src="/stocks/app.js?v=2.4.0.2"></script>
 </head>
-<body><main>
-  <nav><a href="https://tools.garyhub.uk/">← GaryHub Tools</a></nav>
-  <h1>A 股行情</h1>
-  <form id="search">
-    <label for="query">查找股票</label>
-    <div class="row"><input id="query" maxlength="24" placeholder="六位代码或股票简称" autocomplete="off" required><button>搜索</button></div>
-  </form>
-  <div id="results"></div>
-  <section class="card"><header><h2>我的分组</h2><button id="add" disabled>新建分组</button></header><div id="tabs"></div><div id="list"></div></section>
-  <section id="detail" class="card" hidden aria-label="个股详情">
-    <div class="detail-heading"><div><h2 id="stock-name"></h2><p id="stock-code" class="code"></p></div><div id="quote-time" class="meta"></div></div>
-    <div id="snapshot"></div>
-    <div id="watch-controls" class="row"></div>
-    <details id="book-panel"><summary>五档盘口</summary><div id="book-body" class="panel-body"></div></details>
-    <details id="minute-panel"><summary>盘中分时</summary><div id="minute-body" class="panel-body"></div></details>
-    <details id="history-panel"><summary>近月日 K、均线与成交量</summary><div id="history-body" class="panel-body"></div></details>
-    <details id="finance-panel"><summary>公司财务</summary><div id="finance-body" class="panel-body"></div></details>
-  </section>
-  <p id="notice" role="status" aria-live="polite"></p>
-</main></body></html>
+<body>
+  <a class="skip" href="#workspace">跳到行情内容</a>
+  <header class="topbar">
+    <a class="brand" href="https://tools.garyhub.uk/" aria-label="GaryHub Tools"><svg viewBox="0 0 28 28" aria-hidden="true"><path d="M4 21V7h7M7 18l6-6 4 3 7-9M18 6h6v6"/></svg><span>GaryHub<span class="brand-dot">.</span></span></a>
+    <div class="product-title"><span>A 股行情</span><small>A-share market</small></div>
+    <div class="topbar-actions"><span id="vip" class="vip" hidden>A 股 VIP</span><button id="theme" class="theme-button" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.2A8.5 8.5 0 0 1 8.8 4a8.5 8.5 0 1 0 11.2 11.2Z"/></svg><span id="theme-label">夜间</span></button></div>
+  </header>
+  <div id="shell" class="shell" data-drawer="search">
+    <nav class="rail" aria-label="行情工具栏">
+      <button id="search-toggle" class="rail-button" type="button" aria-label="搜索股票" title="搜索股票" aria-controls="drawer" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><span>搜索</span></button>
+      <button id="favorites-toggle" class="rail-button" type="button" aria-label="我的收藏" title="我的收藏" aria-controls="drawer" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.3.9-4.6 4.5 1.1 6.3-5.6-3-5.6 3 1.1-6.3L3 9.6l6.2-.9Z"/></svg><span>收藏</span></button>
+      <a class="rail-button rail-back" href="https://tools.garyhub.uk/" aria-label="返回 Tools" title="返回 Tools"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H4m7-7-7 7 7 7"/></svg><span>Tools</span></a>
+    </nav>
+    <button id="drawer-shade" class="drawer-shade" type="button" aria-label="收起侧栏" hidden></button>
+    <aside id="drawer" class="drawer" aria-label="股票搜索与收藏">
+      <div class="drawer-heading"><h2 id="drawer-title">查找股票</h2><button id="drawer-close" type="button" class="icon-button" aria-label="收起侧栏" title="收起侧栏"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button></div>
+      <section id="search-pane" aria-label="搜索股票">
+        <form id="search"><label class="sr-only" for="query">股票代码、名称或拼音缩写</label><div class="search-field"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><input id="query" maxlength="24" placeholder="代码 / 名称 / 拼音缩写" autocomplete="off" enterkeyhint="search"><button type="submit" aria-label="提交搜索">查找</button></div></form>
+        <p class="search-help">支持模糊匹配，如 300、平银、PAYH</p><p id="search-status" class="meta" role="status" aria-live="polite">输入关键词，查找沪深京 A 股。</p><div id="results" class="search-results"></div>
+      </section>
+      <section id="favorites-pane" aria-label="我的收藏分组" hidden>
+        <div class="group-heading"><p>我的分组 <small>最多 3 组 · 每组 5 只</small></p><button id="add" type="button" disabled>新建</button></div><div id="tabs" class="group-tabs"></div><div id="list"></div>
+      </section>
+      <p class="drawer-foot">再次点击工具图标，即可收起侧栏。</p>
+    </aside>
+    <main id="workspace" class="workspace" tabindex="-1">
+      <div class="workspace-heading"><div><span class="eyebrow">MARKET / WATCH</span><h1>个股观察</h1></div><span class="market-tag">沪 · 深 · 京</span></div>
+      <section id="empty" class="empty-state"><div class="empty-chart" aria-hidden="true"><svg viewBox="0 0 320 120"><path class="empty-grid" d="M0 30h320M0 60h320M0 90h320"/><path class="empty-line" d="m2 93 35-14 27 8 29-36 30 13 34-26 33 8 30-23 33 10 35-24 30 7"/></svg></div><p class="eyebrow">YOUR NEXT PERSPECTIVE</p><h2>从一只股票开始。</h2><p>搜索代码、名称或拼音缩写，<br>在同一个工作台里查看行情、盘口与财报。</p><div class="empty-actions"><button id="start-search" type="button">查找股票 <span aria-hidden="true">↗</span></button><button id="start-favorites" type="button">打开我的收藏</button></div><small>报价显示源站时间 · 红涨绿跌</small></section>
+      <section id="detail" class="stock-detail" hidden aria-label="个股详情">
+        <div class="detail-heading"><div><h2 id="stock-name"></h2><p id="stock-code" class="code"></p></div><div id="quote-time" class="meta"></div></div><div id="snapshot"></div><div id="watch-controls" class="row"></div>
+        <div class="analysis-grid">
+          <details id="minute-panel" class="analysis-panel"><summary>盘中分时 <small>INTRADAY</small></summary><div id="minute-body" class="panel-body"></div></details>
+          <details id="book-panel" class="analysis-panel"><summary>五档盘口 <small>ORDER BOOK</small></summary><div id="book-body" class="panel-body"></div></details>
+          <details id="history-panel" class="analysis-panel full-panel"><summary>近月日 K、均线与成交量 <small>OHLC · MA · VOL</small></summary><div id="history-body" class="panel-body"></div></details>
+          <details id="finance-panel" class="analysis-panel full-panel"><summary>公司财务 <small>FINANCIALS</small></summary><div id="finance-body" class="panel-body"></div></details>
+        </div>
+      </section>
+      <p id="notice" class="notice" role="status" aria-live="polite"></p><footer class="workspace-footer"><span>GaryHub · A 股行情</span><span>数据来源：腾讯行情 / 东方财富</span></footer>
+    </main>
+  </div>
+</body></html>
