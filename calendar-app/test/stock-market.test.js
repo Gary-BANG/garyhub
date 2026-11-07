@@ -1,6 +1,38 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {market}=require('../stock-market');
+test('Fuzzy suggestions normalize full-width codes, spaces and exchange prefixes; match name subsequences and pinyin',async()=>{
+  const terms=[];
+  const api=market({request:async url=>{
+    const q=new URL(url).searchParams.get('input');terms.push(q);
+    const rows=q==='平银'?[]:[
+      {Code:'000001',Classify:'AStock',MktNum:'0',Name:'平安银行',PinYin:'PAYH'},
+      {Code:'601318',Classify:'AStock',MktNum:'1',Name:'中国平安',PinYin:'ZGPA'},
+      {Code:'000001',Classify:'Index',Name:'上证指数'},
+      {Code:'00700',Classify:'HKStock',Name:'腾讯控股'}];
+    return Response.json({QuotationCodeTable:{Status:0,Data:rows}});
+  }});
+  assert.deepEqual(await api.search('平银'),[{symbol:'sz000001',name:'平安银行'}]);
+  assert.deepEqual(terms,['平银','平']);
+  assert.deepEqual(await api.search(' PA YH '),[{symbol:'sz000001',name:'平安银行'}]);
+  assert.deepEqual(await api.search('ＳＺ ０００００１'),[{symbol:'sz000001',name:'平安银行'}]);
+  assert.deepEqual(await api.search('安银'),[{symbol:'sz000001',name:'平安银行'}]);
+  assert.deepEqual(await api.search('1318'),[{symbol:'sh601318',name:'中国平安'}]);
+  const count=terms.length;await api.search('payh');assert.equal(terms.length,count);
+  for(const q of [[],null,'  ','x'.repeat(25)])assert.throws(()=>api.search(q),e=>e.status===400);
+});
+test('Fuzzy matching is bounded, deduplicated and does not retain suggestion candidates past idle expiry',async()=>{
+  let now=1,calls=0;
+  const api=market({clock:()=>now,request:async()=>{
+    calls++;
+    const rows=calls===1?[{Code:'000001',MktNum:'0',Classify:'AStock',Name:'平安银行',PinYin:'PAYH'}]:[];
+    return Response.json({QuotationCodeTable:{Status:0,Data:rows}});
+  }});
+  assert.equal((await api.search('平安')).length,1);
+  now+=21*60_000;
+  assert.deepEqual(await api.search('平银'),[]);
+  assert.equal(calls,3);
+});
 test('Search, quote cache, stale fallback, idle expiry, single-symbol K lines',async()=>{
   let now=1,calls=[],offline=false;
   const api=market({clock:()=>now,request:async input=>{

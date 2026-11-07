@@ -1,11 +1,11 @@
 'use strict';
 const crypto=require('node:crypto'),path=require('node:path');
 const {hashPassword,verifyPassword}=require('./auth-utils');
-const owned=['music_preferences','music_tracks','reading_links','research_projects','fixed_expense_posts','fixed_expenses','password_reset_requests','reminder_deliveries','notifications','email_verifications','events','tasks','categories','diary_entries','weight_entries','exercise_entries','hub_permissions','ledger_entries','ledger_categories','todo_lists','totp_grants','totp_entries','assistant_usage','assistant_actions','assistant_quota','assistant_memory','assistant_calls','assistant_errors'];
+const owned=['stock_lists','music_preferences','music_tracks','reading_links','research_projects','fixed_expense_posts','fixed_expenses','password_reset_requests','reminder_deliveries','notifications','email_verifications','events','tasks','categories','diary_entries','weight_entries','exercise_entries','hub_permissions','ledger_entries','ledger_categories','todo_lists','totp_grants','totp_entries','assistant_usage','assistant_actions','assistant_quota','assistant_memory','assistant_calls','assistant_errors'];
 const error=(message,status=400)=>{throw Object.assign(Error(message),{status});};
 function connection(){const sqlite=require('sqlite3'),raw=new sqlite.Database(path.join(require('./db').dataDir,'calendar.sqlite'));raw.configure('busyTimeout',5000);return {run:(s,p=[])=>new Promise((y,n)=>raw.run(s,p,function(e){e?n(e):y(this);})),get:(s,p=[])=>new Promise((y,n)=>raw.get(s,p,(e,r)=>e?n(e):y(r))),all:(s,p=[])=>new Promise((y,n)=>raw.all(s,p,(e,r)=>e?n(e):y(r)))};}
 async function migrateAccounts(db){
- const cols=await db.all('PRAGMA table_info(users)');for(const [name,def] of [['auth_version','INTEGER NOT NULL DEFAULT 0'],['must_change_password','INTEGER NOT NULL DEFAULT 0'],['deletion_pending','INTEGER NOT NULL DEFAULT 0']])if(!cols.some(c=>c.name===name))await db.run(`ALTER TABLE users ADD COLUMN ${name} ${def}`);
+ const cols=await db.all('PRAGMA table_info(users)');for(const [name,def] of [['auth_version','INTEGER NOT NULL DEFAULT 0'],['must_change_password','INTEGER NOT NULL DEFAULT 0'],['deletion_pending','INTEGER NOT NULL DEFAULT 0'],['stock_vip','INTEGER NOT NULL DEFAULT 0 CHECK(stock_vip IN (0,1))'],['stock_vip_version','INTEGER NOT NULL DEFAULT 0']])if(!cols.some(c=>c.name===name))await db.run(`ALTER TABLE users ADD COLUMN ${name} ${def}`);
  await db.run(`CREATE TABLE IF NOT EXISTS admin_user_deletions(id TEXT PRIMARY KEY,user_id INTEGER NOT NULL,actor_id INTEGER NOT NULL,token_hash TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'pending',created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,completed_at TEXT)`);
  await db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_user_deletion_pending ON admin_user_deletions(user_id) WHERE status='pending'`);
  await db.run(`CREATE TABLE IF NOT EXISTS admin_operations(id TEXT PRIMARY KEY,actor_id INTEGER NOT NULL,target_id INTEGER NOT NULL,action TEXT NOT NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)`);
@@ -25,6 +25,20 @@ function registerAccounts(app,{requireLogin,requireAdmin,sessionStore,db=connect
  async function preview(user){await schema();const counts={};for(const table of owned){if(await db.get("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",[table]))counts[table]=(await db.get(`SELECT COUNT(*) AS n FROM ${table} WHERE user_id=?`,[user.id])).n;}return {id:user.id,username:user.username,email:user.email||null,counts,authVersion:user.auth_version,deletionPending:!!user.deletion_pending,otherData:['Lab 练习进度','课程、成绩、讲义和学习进度','Calendar 联动记录','网络授权和订阅链接','登录会话','Reading 关联；Miniflux 原阅读数据按备份策略保留'],backupNotice:'已有受限备份按原保留策略保存；本操作清理当前在线数据'};}
  app.get('/api/hub/admin/users/:id/deletion-preview',...route(requireAdmin,async(req,res)=>{const user=await target(req);await protectedTarget(req,user);res.json(await preview(user));}));
  const changeStatus=async(req,res)=>{const a=await actor(req);if(typeof req.body.enabled!=='boolean')error('状态无效');const user=await transaction(async()=>{const u=await target(req);version(req,u);if(u.deletion_pending)error('账号正在删除，不能重新启用',409);if(!req.body.enabled)await protectedTarget(req,u);await db.run('UPDATE users SET enabled=?,auth_version=auth_version+1 WHERE id=?',[Number(req.body.enabled),u.id]);await audit(a,u.id,req.body.enabled?'enable':'disable');return u;});await purge(user.id);res.json({ok:true});};
+ // A-share VIP is independent of the account subscription. A separate revision
+ // prevents two admin pages from silently overwriting each other's choice.
+ app.put('/api/hub/admin/users/:id/stock-vip',...route(requireAdmin,async(req,res)=>{
+  const {vip,expectedStockVipVersion}=req.body;
+  if(typeof vip!=='boolean'||!Number.isSafeInteger(expectedStockVipVersion)||expectedStockVipVersion<0)error('VIP 参数无效');
+  const result=await transaction(async()=>{
+   const a=await actor(req),u=await target(req);version(req,u);
+   if(u.deletion_pending||u.stock_vip_version!==expectedStockVipVersion)error('VIP 或账号状态已变化，请刷新后重试',409);
+   if(u.stock_vip===Number(vip))return {vip,stockVipVersion:u.stock_vip_version};
+   await db.run('UPDATE users SET stock_vip=?,stock_vip_version=stock_vip_version+1 WHERE id=?',[Number(vip),u.id]);
+   await audit(a,u.id,vip?'stock-vip:enable':'stock-vip:disable');
+   return {vip,stockVipVersion:u.stock_vip_version+1};
+  });res.json({ok:true,...result});
+ }));
  app.put('/api/hub/admin/users/:id/status',...route(requireAdmin,changeStatus));
  app.put('/api/admin/users/:id/status',...route(requireAdmin,changeStatus));
  app.post('/api/hub/admin/users/:id/reset-password',...route(requireAdmin,async(req,res)=>{

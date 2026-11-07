@@ -2,9 +2,9 @@
 
 window.StockCharts = (() => {
   const ns = 'http://www.w3.org/2000/svg';
-  const W = 540, left = 57, right = W-12, top = 18, priceBottom = 153;
+  const W = 540, left = 76, right = W-12, top = 18, priceBottom = 153;
   const volumeTop = 175, volumeBottom = 213;
-  const colors = {rise:'#b53c3b',fall:'#17705a',line:'#155f88',ma5:'#906500',ma10:'#7759a5',ma20:'#1f7094'};
+  const colors = Object.fromEntries(['rise','fall','line','ma5','ma10','ma20'].map(key=>[key,'var(--'+(key==='line'?'chart-line':key)+')']));
   const fmt = (n,d=2) => Number.isFinite(n) ? n.toLocaleString('zh-CN',{maximumFractionDigits:d}) : '—';
   const hhmm = value => value.slice(0,2)+':'+value.slice(2);
   const element = (tag,text) => Object.assign(document.createElement(tag),{textContent:text});
@@ -20,14 +20,14 @@ window.StockCharts = (() => {
     return shape(svg,'line',{x1,y1,x2,y2,stroke,...extra});
   }
   function label(svg,x,y,text,align='start') {
-    shape(svg,'text',{x,y,'text-anchor':align,fill:'#50645d','font-size':14},text);
+    shape(svg,'text',{x,y,'text-anchor':align,fill:'var(--chart-ink)','font-size':14},text);
   }
   function axes(svg,values) {
     let low=Math.min(...values),high=Math.max(...values);
     if(low===high){const pad=Math.max(0.01,Math.abs(high)*0.005);low-=pad;high+=pad;}
     const y=v=>priceBottom-(v-low)/(high-low)*(priceBottom-top);
     for(const value of [high,(low+high)/2,low]){
-      line(svg,left,y(value),right,y(value),'#dce5e1');
+      line(svg,left,y(value),right,y(value),'var(--chart-grid)');
       label(svg,left-5,y(value)+4,fmt(value),'end');
     }
     return y;
@@ -41,7 +41,7 @@ window.StockCharts = (() => {
   }
   function explore(frame,xs,topY,bottomY,describe) {
     const {svg,readout}=frame;
-    const marker=line(svg,0,topY,0,bottomY,'#4c6158',{'stroke-dasharray':'3 3','pointer-events':'none'});
+    const marker=line(svg,0,topY,0,bottomY,'var(--chart-ink)',{'stroke-dasharray':'3 3','pointer-events':'none'});
     let current=xs.length-1;
     function select(index){
       current=Math.max(0,Math.min(xs.length-1,index));
@@ -75,7 +75,7 @@ window.StockCharts = (() => {
     const values=bars.flatMap(b=>[b[3],b[4]]).concat(...Object.values(averages).map(a=>a.filter(Number.isFinite)));
     const y=axes(svg,values),maxVolume=Math.max(0,...volumes.filter(Number.isFinite));
     label(svg,left-5,volumeTop+10,'量','end');
-    line(svg,left,volumeBottom,right,volumeBottom,'#dce5e1');
+    line(svg,left,volumeBottom,right,volumeBottom,'var(--chart-grid)');
     bars.forEach(([,open,close,high,low],i)=>{
       const color=close>=open?colors.rise:colors.fall,x=xs[i],w=Math.min(14,spacing*0.54);
       line(svg,x,y(low),x,y(high),color,{'stroke-width':1.4});
@@ -99,8 +99,8 @@ window.StockCharts = (() => {
     label(svg,left,235,bars[0][0].slice(5));label(svg,right,235,bars.at(-1)[0].slice(5),'end');
     explore(chart,xs,top,volumeBottom,i=>{
       const [date,open,close,high,low]=bars[i];
-      return date+'　开 '+fmt(open)+'　高 '+fmt(high)+'　低 '+fmt(low)+'　收 '+fmt(close)+
-        '　量 '+fmt(volumes[i],0)+' 手　'+['ma5','ma10','ma20'].map(k=>k.toUpperCase()+' '+fmt(averages[k][i])).join('　');
+      return date+'　开 O '+fmt(open)+'　高 H '+fmt(high)+'　低 L '+fmt(low)+'　收 C '+fmt(close)+
+        '　量 VOL '+fmt(volumes[i],0)+' 手　'+['ma5','ma10','ma20'].map(k=>k.toUpperCase()+' '+fmt(averages[k][i])).join('　');
     });
     root.append(element('small',data.source+' · '+data.adjust+' · '+bars.length+' 个交易日 · 红涨绿跌，均线按收盘价计算'));
     return root;
@@ -118,7 +118,7 @@ window.StockCharts = (() => {
     const x=t=>left+(exchangeMinute(t)-exchangeMinute(first))/(exchangeMinute(last)-exchangeMinute(first))*(right-left);
     const xs=times.map(x),prices=points.map(p=>p[1]);
     const y=axes(svg,Number.isFinite(previous)?[...prices,previous]:prices);
-    if(Number.isFinite(previous))line(svg,left,y(previous),right,y(previous),'#7d8e85',{'stroke-dasharray':'4 4'});
+    if(Number.isFinite(previous))line(svg,left,y(previous),right,y(previous),'var(--chart-ink)',{'stroke-dasharray':'4 4'});
     let path='';
     points.forEach(([,price],i)=>{
       const gap=i===0||times[i]-times[i-1]>1;

@@ -6,6 +6,20 @@ const DAY_COUNT = 22;
 const HISTORY_COUNT = DAY_COUNT + 19;
 const WINDOWS = [5, 10, 20];
 
+const searchKey = value => String(value || '').normalize('NFKC').toLowerCase()
+  .replace(/[\s·_-]+/gu,'').replace(/^(sh|sz|bj)(?=\d)/,'');
+function matchRank(row, query) {
+  const code=row.symbol.slice(2),name=searchKey(row.name),pinyin=searchKey(row.pinyin);
+  if(query===code || query===name)return 100;
+  if(code.startsWith(query))return 90;
+  if(name.startsWith(query))return 85;
+  if(pinyin && pinyin.startsWith(query))return 80;
+  if(code.includes(query) || name.includes(query))return 70;
+  // A subsequence accepts e.g. 平银 for 平安银行 without changing the stock ID.
+  const subsequence=text=>{let i=0;for(const c of text)if(c===query[i])i++;return i===query.length;};
+  return subsequence(name) || (pinyin && subsequence(pinyin)) ? 50 : 0;
+}
+
 function number(value) {
   if (typeof value !== 'number' && (typeof value !== 'string' || !value.trim())) return null;
   const n = Number(value);
@@ -75,10 +89,11 @@ function dailyHistory(rows, source, adjust) {
 }
 
 function market({request = fetch, clock = Date.now} = {}) {
-  const cache = new Map(), pending = new Map();
+  const cache = new Map(), pending = new Map(), candidates = new Map();
   const idle = 20 * 60_000;
   function sweep() {
     for (const [key, entry] of cache) if (clock() - entry.used >= idle) cache.delete(key);
+    for (const [key, entry] of candidates) if (clock() - entry.used >= idle) candidates.delete(key);
   }
   const timer = setInterval(sweep, 60_000);
   timer.unref();
@@ -109,17 +124,31 @@ function market({request = fetch, clock = Date.now} = {}) {
     return new TextDecoder(encoding).decode(await response.arrayBuffer());
   }
   function search(input) {
-    const q = typeof input === 'string' ? input.trim() : '';
-    if (!q || q.length > 24) throw fail(400, '请输入股票简称或代码');
+    const q = typeof input === 'string' ? searchKey(input) : '';
+    if (!q || q.length > 24 || input.length > 48) throw fail(400, '请输入股票简称或代码');
     return cached('search:'+q, 300_000, async () => {
-      const url = new URL('https://searchapi.eastmoney.com/api/suggest/get');
-      url.search = new URLSearchParams({input:q, type:'14', count:'15',token:'D43BF722C8E33BDC906FB84D85E326E8'});
-      const table = JSON.parse(await get(url)).QuotationCodeTable;
-      if (table.Status !== 0) throw Error('search');
-      return (table.Data || []).filter(row => row.Classify === 'AStock' || row.SecurityTypeName === '京A').map(row => {
-        const prefix = /^(?:[48]|92)/.test(row.Code) ? 'bj' : row.MktNum === '1' ? 'sh' : 'sz';
-        return {symbol:prefix+row.Code, name:row.Name};
-      }).filter(row => symbolPattern.test(row.symbol));
+      async function suggest(term) {
+        const url = new URL('https://searchapi.eastmoney.com/api/suggest/get');
+        url.search = new URLSearchParams({input:term,type:'14',count:'50',token:'D43BF722C8E33BDC906FB84D85E326E8'});
+        const table = JSON.parse(await get(url)).QuotationCodeTable;
+        if (table.Status !== 0 || (table.Data != null && !Array.isArray(table.Data))) throw Error('search');
+        for(const row of (table.Data || []).slice(0,50)) {
+          if(row.Classify !== 'AStock' && row.SecurityTypeName !== '京A')continue;
+          const prefix = /^(?:[48]|92)/.test(row.Code) ? 'bj' : String(row.MktNum) === '1' ? 'sh' : 'sz';
+          const symbol=prefix+row.Code;
+          if(!symbolPattern.test(symbol) || typeof row.Name!=='string')continue;
+          candidates.delete(symbol);
+          if(candidates.size>=512)candidates.delete(candidates.keys().next().value);
+          candidates.set(symbol,{symbol,name:row.Name,pinyin:row.PinYin || row.SecurityPinYin,used:clock()});
+        }
+      }
+      await suggest(q);
+      const matching=()=>[...candidates.values()].filter(row=>matchRank(row,q)>0);
+      // A bounded broad suggestion supplies candidates when an abbreviated name
+      // has no direct hit. This is a suggestion search, not a full-market scan.
+      if(!matching().length && q.length>1)await suggest(q[0]);
+      return matching().sort((a,b)=>matchRank(b,q)-matchRank(a,q) || a.symbol.localeCompare(b.symbol))
+        .slice(0,15).map(({symbol,name})=>({symbol,name}));
     });
   }
   function quote(symbol) {
