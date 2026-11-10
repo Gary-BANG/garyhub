@@ -4,7 +4,7 @@
 
 ## 当前源码与部署证据
 
-- **v2.4.0.4（当前源码，本地已验证）** 基于 PR #41 的 main `0a5e86e20330166e546dbfede1d99dcb73ec7a2f`，独立分支 `update/garyhub-v2.4.0.4`；清单 `releases/2.4.0.4.json`，适配器 `scripts/releases/v2.4.0.4/`（baseline_adapter v2.4.0.3，安装器 v2.4.0.4-r1，严格要求实际 v2.4.0.3，沿用 v2.4.0.3 的十组隔离检查及其 `sites-http.cjs`）。讲义答疑授权改为随提问续期：`assistant-tutor.js` 在提问通过令牌／会话／过期／指纹／忙碌检查后执行 `grant.expires = Date.now() + TTL`（`TTL` 仍 60 分钟），成功回答返回 `expiresAt`；已过期授权不会被续期。`panel.js` 用 `armTutor` 在发出提问时把本地计时器重设为一小时，收到回答后按 `expiresAt` 校准；授权说明中英文同步改写。`deploy.py` 核对两个容器中的续期代码。构建机无 Node：实际 `assistant-tutor.js` 与 `panel.js` 在浏览器中用替身运行验证（16 项、11 项），单元测试新增的续期用例未在 Node 中运行；适配器 10 项、共享更新器（WSL）通过。无数据库、依赖、Caddy 或 Compose 变化。源码已准备／本地已验证，尚未推送、合并或部署。详见 GARYHUB_V2_4_0_4.md 与 _TESTS.md。
+- **v2.4.0.4（当前源码，本地已验证）** 基于 PR #41 的 main `0a5e86e20330166e546dbfede1d99dcb73ec7a2f`，独立分支 `update/garyhub-v2.4.0.4`；清单 `releases/2.4.0.4.json`，适配器 `scripts/releases/v2.4.0.4/`（baseline_adapter v2.4.0.3，安装器 v2.4.0.4-r2，严格要求实际 v2.4.0.3，沿用 v2.4.0.3 的十组隔离检查及其 `sites-http.cjs`）。r1 于 2026-11-10 通过第 1–5 阶段后在第 6 阶段报 `Command failed: curl` 并自动回滚到 v2.4.0.3（记录与凭据保留，未发通知）；共享运行时不记录 curl 响应，无法确定失败的请求，且请求与已成功的 v2.4.0.3-r2 完全相同。r2 在本版 `deploy.py` 中包装 `runtime.run`：curl 遇连接／超时／429／5xx 间隔 5 秒最多试 4 次，仍失败则报出主机、路径、退出码与 HTTP 状态。以后的适配器可沿用此包装。讲义答疑授权改为随提问续期：`assistant-tutor.js` 在提问通过令牌／会话／过期／指纹／忙碌检查后执行 `grant.expires = Date.now() + TTL`（`TTL` 仍 60 分钟），成功回答返回 `expiresAt`；已过期授权不会被续期。`panel.js` 用 `armTutor` 在发出提问时把本地计时器重设为一小时，收到回答后按 `expiresAt` 校准；授权说明中英文同步改写。`deploy.py` 核对两个容器中的续期代码。构建机无 Node：实际 `assistant-tutor.js` 与 `panel.js` 在浏览器中用替身运行验证（16 项、11 项），单元测试新增的续期用例未在 Node 中运行；适配器 10 项、共享更新器（WSL）通过。无数据库、依赖、Caddy 或 Compose 变化。源码已准备／本地已验证，尚未推送、合并或部署。详见 GARYHUB_V2_4_0_4.md 与 _TESTS.md。
 
 - **v2.4.0.3（PR #41 已合并为 main `0a5e86e`；2026-11-10 三个域名 `/health` 返回 2.4.0.3，r2 安装输出与通知人数未收录）** 基于 PR #40 的 main `aa0bd193428551d57e69ad9767ba914368a1576b`，独立分支 `update/garyhub-v2.4.0.3`；清单 `releases/2.4.0.3.json`，适配器 `scripts/releases/v2.4.0.3/`（baseline_adapter v2.4.0.2，安装器 v2.4.0.3-r2，严格要求实际 v2.4.0.2，沿用十组隔离检查）。r1 于 2026-11-10 在服务器第 3 阶段 `sites-http.cjs` 停止（v2.1.0.0 的套件要求主页 Elsewhere 链接不带 `target`），未备份、未切换；r2 改用本版自己的 `tests/sites-http.cjs`，并在适配器测试中把隔离套件的 HTML 字面量断言与页面比对。改动页面标记前，先在全部隔离套件中搜索该标记的字面量。伙伴面板 `panel.js`／`panel.css`：输入框改为 `<textarea>`，随内容增高到 144 px（六行）后滚动，回车发送、Shift+回车换行并避开输入法选字；`maxLength` 为本地向导 200／AI 500／答疑 4,000；在 id 以 `gh-companion` 开头的元素之外单击（移动不超过 6 px）即 `close(false)`，`pet.js` 的 `onClose(refocus)` 据此不抢焦点。讲义答疑等待各加 30 秒：`assistant-api.js` 的 `TUTOR_ROUND_TIMEOUT` 105 秒、`assistant-tutor.js` 的 `deadline` 140 秒、`lab-service/academic.cjs` 转发 160 秒；普通聊天限值和一小时固定授权（`TTL`）未变。主页 Elsewhere 与外站页两个课程链接加 `target="_blank" rel="noopener"`（写在 `data-thumb` 之后，以兼容缩略图脚本和 sites-http 的匹配）。`deploy.py` 额外核对运行容器内的三层等待值和主页链接。无数据库、依赖、Caddy 或 Compose 变化。构建机无 Node／Docker：浏览器交互、适配器 12 项、共享更新器（WSL，37 通过／2 个 pwsh 跳过）已验证，Node 单元测试与十组隔离 HTTP 检查留给安装器现场执行。本机检出为 `core.autocrlf=true`，`.css`／`.cjs`／`.svg` 会检出为 CRLF：资源哈希须按 Git 存储内容计算，随包文件须保持 LF（适配器测试已覆盖）。详见 GARYHUB_V2_4_0_3.md 与 _TESTS.md。
 
@@ -113,7 +113,7 @@ Calendar 使用 Node.js、Express、SQLite；Lab 使用 Node 原生 HTTP，浏�
 
 ## 已有更新机制
 
-统一入口为 `scripts/updater/manage.py`。v2.4.0.4-r1 的清单和 release-config 统一核对 v2.4.0.3，以已合并 main `0a5e86e` 为审阅源码基线；能力覆盖对应有／无 TOTP 两种历史组合，基础适配器为 v2.4.0.3。共享更新器未修改。
+统一入口为 `scripts/updater/manage.py`。v2.4.0.4-r2 的清单和 release-config 统一核对 v2.4.0.3，以已合并 main `0a5e86e` 为审阅源码基线；能力覆盖对应有／无 TOTP 两种历史组合，基础适配器为 v2.4.0.3。共享更新器未修改。
 
 完整解压后双击 RUN-UPDATE.cmd。安装器按实际版本、源码、能力及有效 Compose 预检，执行离线构建、十组隔离检查、备份、切换、HTTPS/哈希和全体通知核对。ROLLBACK.cmd 恢复 v2.4.0.3 应用并保留当前用户记录；本版没有数据库变化。源码导入器使用独立 worktree 和审查分支，不强推或自动合并。
 

@@ -1,7 +1,7 @@
 {
   "version": "2.4.0.4",
   "requires_release": "2.4.0.3",
-  "installer_build": "v2.4.0.4-r1",
+  "installer_build": "v2.4.0.4-r2",
   "reviewed_base_commit": "0a5e86e20330166e546dbfede1d99dcb73ec7a2f",
   "baseline_adapter": "scripts/releases/v2.4.0.3",
   "source_subject": "Renew study Q&A consent for an hour with each question",

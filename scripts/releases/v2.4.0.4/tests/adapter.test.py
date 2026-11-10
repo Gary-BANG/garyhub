@@ -1,5 +1,7 @@
-import hashlib,json,re,subprocess,unittest
+import hashlib,importlib.util,json,re,subprocess,types,unittest
 from pathlib import Path
+try:import fcntl
+except ImportError:fcntl=None
 ROOT=Path(__file__).resolve().parents[4]
 HERE=ROOT/'scripts/releases/v2.4.0.4'
 CONFIG=json.loads((HERE/'release-config.json').read_text(encoding='utf-8'))
@@ -13,7 +15,7 @@ class ReleaseTests(unittest.TestCase):
   m=json.loads((ROOT/'releases/2.4.0.4.json').read_text(encoding='utf-8'))
   self.assertEqual(CONFIG['requires_release'],'2.4.0.3');self.assertEqual(CONFIG['baseline_adapter'],'scripts/releases/v2.4.0.3')
   self.assertEqual(BASE,m['reviewed_base_commit']);self.assertFalse(m['production_verified'])
-  self.assertEqual(CONFIG['installer_build'],'v2.4.0.4-r1');self.assertEqual(m['installer_revision'],'r1');self.assertNotIn('installed_baseline_tree',CONFIG)
+  self.assertEqual(CONFIG['installer_build'],'v2.4.0.4-r2');self.assertEqual(m['installer_revision'],'r2');self.assertNotIn('installed_baseline_tree',CONFIG)
   self.assertEqual(json.loads((ROOT/'releases/current.json').read_text())['manifest'],'releases/2.4.0.4.json')
  def test_runtime_and_asset_hashes(self):
   for group in ['asset_checksums','protected_asset_checksums','admin_asset_checksums','sites_asset_checksums']:
@@ -78,6 +80,34 @@ class ReleaseTests(unittest.TestCase):
   for needle in ['grant.busy = true; grant.expires = Date.now() + TTL;','function armTutor(grant, at)',"verb==='chat'?160000:10000"]:self.assertIn(needle,deploy)
   self.assertNotIn('host_hooks',CONFIG)
   self.assertEqual(git('diff','--name-only',BASE,'--','scripts/updater').decode().strip(),'')
+ @unittest.skipUnless(fcntl,'deploy_runtime.py needs Linux')
+ def test_phase_six_curl_retries_and_names_the_request(self):
+  spec=importlib.util.spec_from_file_location('deploy_0404_under_test',HERE/'deploy.py');deploy=importlib.util.module_from_spec(spec);spec.loader.exec_module(deploy)
+  self.assertIs(deploy.runtime.run,deploy.checked_run);self.assertIs(deploy.checks.d,deploy.runtime);self.assertIs(deploy.runtime.verify_https,deploy.verify)
+  deploy.CURL_PAUSE=0;calls=[]
+  def fake(results):
+   queue=list(results)
+   def shared(args,check=True):
+    calls.append([str(a) for a in args]);code,err,out=queue.pop(0)
+    return types.SimpleNamespace(returncode=code,stderr=err,stdout=out)
+   return shared
+  # A timeout right after the switch, then success: retried and returned, through the shared https().
+  deploy._shared_run=fake([(28,b'curl: (28) Operation timed out',b''),(0,b'',b'<html>')]);calls.clear()
+  self.assertEqual(deploy.runtime.https('tools.garyhub.uk','/companion/panel.js?v=2.4.0.4'),b'<html>');self.assertEqual(len(calls),2)
+  self.assertIn('--fail',calls[0])
+  # Prior checks call d.run for status codes; a passing curl is returned untouched.
+  deploy._shared_run=fake([(0,b'',b'401')]);calls.clear();self.assertEqual(deploy.checks.status('calendar.garyhub.uk','/api/stocks/status'),b'401');self.assertEqual(len(calls),1)
+  # A 404 is a real failure: no retry, and the message names host and path without the query.
+  deploy._shared_run=fake([(22,b'curl: (22) The requested URL returned error: 404',b'')]);calls.clear()
+  with self.assertRaises(RuntimeError) as caught:deploy.runtime.https('garyhub.uk','/companion/pet.js?v=2.4.0.4&secret=x')
+  self.assertEqual(str(caught.exception),'HTTPS check failed: https://garyhub.uk/companion/pet.js (curl exit 22, HTTP 404, 1 attempt)');self.assertEqual(len(calls),1)
+  # A persistent 503 is retried four times, then reported.
+  deploy._shared_run=fake([(22,b'curl: (22) The requested URL returned error: 503',b'')]*4);calls.clear()
+  with self.assertRaises(RuntimeError) as caught:deploy.runtime.https('calendar.garyhub.uk','/privacy-ledger-release.json')
+  self.assertIn('(curl exit 22, HTTP 503, 4 attempts)',str(caught.exception));self.assertEqual(len(calls),4)
+  # check=False callers still get the result back; other commands pass straight through.
+  deploy._shared_run=fake([(7,b'',b'')]*4);calls.clear();self.assertEqual(deploy.runtime.run(['curl','https://tools.garyhub.uk/'],False).returncode,7)
+  deploy._shared_run=fake([(1,b'',b'')]);calls.clear();self.assertEqual(deploy.runtime.run(['docker','ps'],False).returncode,1);self.assertEqual(len(calls),1)
  def test_installer_version_placeholders_and_completion(self):
   s=(HERE/'Install-GaryHub.template.ps1').read_text(encoding='utf-8-sig')
   for key in ['RELEASE_VERSION','REQUIRES_VERSION','PACKAGE_SHA256','INSTALLER_BUILD_ID']:self.assertIn(key,s)
