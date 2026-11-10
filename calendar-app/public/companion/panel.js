@@ -60,7 +60,7 @@
     let ai = null, busy = false, disclosed = false, statusTicket = 0;
     let tutor = null, consent = null, tutorTicket = 0, tutorStarting = false, lastAnchor = null, tutorExpiry = null;
     const study = window.GaryHubStudyContext;
-    const tutorText = () => lang === 'en' ? {start:'Study Q&A',stop:'Exit Q&A',subscriber:'Subscribers only',open:'Open a Markdown in Study Hub',off:'Enable AI in admin settings first',active:'10 rounds · reasoning when supported',accept:'Authorize this document',cancel:'Cancel',placeholder:'Ask about this document (up to 4,000 characters)',confirm:title=>`Allow the assistant to read “${title}”? When you ask a question, this Markdown and the last 10 rounds will be sent to ${ai?.provider || 'the configured AI provider'}. This session expires after one hour and is cleared from server memory. Hiding the chat keeps this session. Switching document or turning off Q&A ends sharing and clears it. Images and linked documents are not read.`,ended:'Q&A ended. The document is no longer shared.',enabled:title=>`Study Q&A: ${title}. You can ask for explanations, examples or a walkthrough.`,chips:['Explain the key ideas','Walk me through an example','Which prerequisites should I review?']} : {start:'讲义答疑',stop:'退出答疑',subscriber:'订阅用户专享',open:'请在学习中心打开 Markdown 讲义',off:'请先由管理员启用 AI',active:'10 轮记忆 · 按模型能力开启思考',accept:'授权当前讲义并开启',cancel:'取消',placeholder:'针对这篇讲义提问（最多 4,000 字符）',confirm:title=>`允许伙伴读取《${title}》吗？提问时，这篇 Markdown 和最近 10 轮对话会发送给${ai?.provider || '已配置的 AI 服务商'}。本次会话只在服务器内存中暂存，一小时后过期清理；收起对话框会保留会话，切换讲义或关闭答疑开关才会停止共享并清空本次记忆。不读取图片和链接中的其他文档。`,ended:'已结束讲义答疑，当前讲义不再共享。',enabled:title=>`正在答疑：《${title}》。可以问概念、例题或推导步骤。`,chips:['解释这篇讲义的核心概念','用一个例子带我理解','我需要先掌握哪些知识？']};
+    const tutorText = () => lang === 'en' ? {start:'Study Q&A',stop:'Exit Q&A',subscriber:'Subscribers only',open:'Open a Markdown in Study Hub',off:'Enable AI in admin settings first',active:'10 rounds · reasoning when supported',accept:'Authorize this document',cancel:'Cancel',placeholder:'Ask about this document (up to 4,000 characters)',confirm:title=>`Allow the assistant to read “${title}”? When you ask a question, this Markdown and the last 10 rounds will be sent to ${ai?.provider || 'the configured AI provider'}. This session is kept only in server memory and lasts one hour; each question extends it to one hour from then, so it ends after an hour without questions. Hiding the chat keeps this session. Switching document or turning off Q&A ends sharing and clears it. Images and linked documents are not read.`,ended:'Q&A ended. The document is no longer shared.',enabled:title=>`Study Q&A: ${title}. You can ask for explanations, examples or a walkthrough.`,chips:['Explain the key ideas','Walk me through an example','Which prerequisites should I review?']} : {start:'讲义答疑',stop:'退出答疑',subscriber:'订阅用户专享',open:'请在学习中心打开 Markdown 讲义',off:'请先由管理员启用 AI',active:'10 轮记忆 · 按模型能力开启思考',accept:'授权当前讲义并开启',cancel:'取消',placeholder:'针对这篇讲义提问（最多 4,000 字符）',confirm:title=>`允许伙伴读取《${title}》吗？提问时，这篇 Markdown 和最近 10 轮对话会发送给${ai?.provider || '已配置的 AI 服务商'}。本次会话只在服务器内存中暂存，有效一小时，每次提问都会从提问时起续期一小时，连续一小时不提问后过期清理；收起对话框会保留会话，切换讲义或关闭答疑开关才会停止共享并清空本次记忆。不读取图片和链接中的其他文档。`,ended:'已结束讲义答疑，当前讲义不再共享。',enabled:title=>`正在答疑：《${title}》。可以问概念、例题或推导步骤。`,chips:['解释这篇讲义的核心概念','用一个例子带我理解','我需要先掌握哪些知识？']};
     const more = $('.more'), menu = $('.menu'), picker = $('.picker');
 
     const say = (key, replyLang, vars) => voices.line(character, replyLang, key, vars);
@@ -341,17 +341,24 @@
       try {
         const grant = await study.start(expected);
         if (ticket !== tutorTicket || expected.key !== study.current()?.key || expected.accountId !== user?.id) { study.stop(grant).catch(() => {}); return; }
-        tutor = grant; clearTimeout(tutorExpiry); tutorExpiry = setTimeout(() => { if (tutor === grant) stopTutor(); }, Math.max(0, grant.expiresAt - Date.now())); consent = null; log.replaceChildren(); bubble('bot', tutorText().enabled(grant.title)); chrome(); place(lastAnchor);
+        tutor = grant; grant.ttl = Math.max(0, grant.expiresAt - Date.now()); armTutor(grant, grant.expiresAt); consent = null; log.replaceChildren(); bubble('bot', tutorText().enabled(grant.title)); chrome(); place(lastAnchor);
       } catch (error) { if (ticket === tutorTicket) { consent = null; bubble('bot', error.message); } }
       finally { if (ticket === tutorTicket) tutorStarting = false; renderTutor(); }
     });
+    // The server renews a grant to one hour from each accepted question; the panel ends its side when it lapses.
+    function armTutor(grant, at) {
+      clearTimeout(tutorExpiry);
+      tutorExpiry = setTimeout(() => { if (tutor === grant) stopTutor(); }, Math.min(Math.max(0, at - Date.now()), 2147483647));
+    }
     async function askTutor(message) {
       const grant = tutor, ticket = tutorTicket, replyLang = lang;
       busy = true; input.disabled = true; renderTutor();
+      armTutor(grant, Date.now() + grant.ttl);
       const wait = bubble('bot', ui[lang].ai.thinking); wait.classList.add('waiting'); scrollDown();
       try {
         const data = await study.chat(grant, message, replyLang);
         if (ticket !== tutorTicket || grant !== tutor) return;
+        if (Number.isFinite(data.expiresAt)) armTutor(grant, data.expiresAt);
         const node = bubble('bot', data.reply);
         // Use existing local Markdown libraries; allow formatting only, no URLs, images, HTML events or embedded content.
         if (window.marked && window.DOMPurify) node.querySelector('.text').innerHTML = DOMPurify.sanitize(marked.parse(data.reply), {

@@ -20,6 +20,11 @@ test('tutor grants expire, do not survive restart, recheck entitlements and neve
   const ask=token=>post(a,'chat',{token,fingerprint:fingerprint(doc),message:'question'});
   const grant=(await start()).body;
   now+=3600001;assert.equal((await ask(grant.token)).body.code,'consent');assert.equal(calls,0);
+  // Each accepted question renews the grant to one hour from then; an hour without questions ends it.
+  const sliding=(await start()).body;now+=59*60000;
+  const kept=await ask(sliding.token);assert.equal(kept.status,200);assert.equal(kept.body.expiresAt,now+3600000);
+  now+=59*60000;assert.equal((await ask(sliding.token)).status,200,'renewed past the original hour');
+  now+=3600001;assert.equal((await ask(sliding.token)).body.code,'consent','idle for an hour');assert.equal(calls,2);calls=0;charged=0;
   const next=(await start()).body;
   const restarted=serve();await new Promise(r=>restarted.once('listening',r));assert.equal((await post(restarted,'chat',{token:next.token,fingerprint:fingerprint(doc),message:'question'})).body.code,'consent');
   allow=false;assert.equal((await ask(next.token)).body.code,'quota');assert.equal(calls,0);allow=true;
