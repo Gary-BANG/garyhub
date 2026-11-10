@@ -21,6 +21,9 @@ const PROVIDERS = {
   zai:{label:'Z.ai', url:'https://api.z.ai/api/paas/v4/chat/completions', search:'https://api.z.ai/api/paas/v4/web_search'}
 };
 const ACTION_TTL = 15 * 60_000, MAX_ROUNDS = 4, ROUND_TIMEOUT = 25_000, SEARCH_TIMEOUT = 15_000, REQUEST_BUDGET = 110_000;
+// Study tutoring reasons over a whole document: one model may take 105 s, the message 140 s
+// (assistant-tutor.js), and Lab waits 160 s for Calendar (lab-service/academic.cjs).
+const TUTOR_ROUND_TIMEOUT = 105_000;
 const MAX_RANGE_DAYS = 92, MEMORY_ROUNDS = 5, MAX_SEARCHES = 2, LOG_DAYS = 30;
 const TIME = /^(\d{1,2}):([0-5]\d)$/, MODEL = /^[A-Za-z0-9][A-Za-z0-9._:-]{1,63}$/;
 const TIERS = ['standard', 'subscriber', 'admin'], KINDS = ['chat', 'data', 'search'];
@@ -237,7 +240,7 @@ async function think(s, call, messages, tools) {
     const left = call.deadline - Date.now();
     if (left < 3000) break;
     try {
-      const {message, usage: used} = await complete(s, models[index], messages, tools, call.tutor ? 4096 : 1024, Math.min(call.tutor ? 75000 : ROUND_TIMEOUT, left), !!call.tutor);
+      const {message, usage: used} = await complete(s, models[index], messages, tools, call.tutor ? 4096 : 1024, Math.min(call.tutor ? TUTOR_ROUND_TIMEOUT : ROUND_TIMEOUT, left), !!call.tutor);
       Object.assign(call, {model:models[index], fallback:index > 0, rounds:call.rounds + 1,
         promptTokens:call.promptTokens + (Number(used.prompt_tokens) || 0), completionTokens:call.completionTokens + (Number(used.completion_tokens) || 0)});
       return message;

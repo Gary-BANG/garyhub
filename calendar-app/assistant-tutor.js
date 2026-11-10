@@ -62,7 +62,7 @@ function registerTutor(app, {requireLogin, settings, ready, provider, account, q
       const s = await settings(); if (!ready(s)) fail('AI 助手尚未启用', 503, 'disabled');
       if (s.provider !== grant.provider) { grants.delete(userId); fail('AI 服务商已变化，请重新授权当前讲义', 409, 'consent'); }
       quotas = quotasOf(s); await purge();
-      call = {id:crypto.randomUUID(), started:Date.now(), deadline:Date.now() + 110000, model:null, fallback:false,
+      call = {id:crypto.randomUUID(), started:Date.now(), deadline:Date.now() + 140000, model:null, fallback:false,
         rounds:0, promptTokens:0, completionTokens:0, searches:0, failures:[], tutor:true};
       charged = await charge(userId, now.date, 'chat', quotas.chat[tier]);
       if (!charged) fail('今天的 AI 对话次数已用完，明天再来吧', 429, 'quota');

@@ -4,7 +4,7 @@
   font:14px/1.5 system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink)}
 :host([data-theme=dark]){--bg:#1e2020;--paper:#272929;--ink:#ece6db;--muted:#aaa294;--line:#45453f;--shadow:0 14px 40px #0008}
 *{box-sizing:border-box}
-button,input{font:inherit;color:inherit}
+button,input,textarea{font:inherit;color:inherit}
 .avatar{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--companion-accent);color:#fff;font-weight:600;font-size:17px;flex:none}
 .launcher{display:grid;place-items:center;width:58px;height:58px;padding:0;border:0;border-radius:50%;background:var(--paper);box-shadow:var(--shadow);cursor:pointer;margin-left:auto}
 .launcher .avatar{width:48px;height:48px;font-size:20px}
@@ -66,15 +66,16 @@ header{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 14px;bord
 .sources{display:flex;flex-wrap:wrap;gap:4px 10px;margin:6px 0 0;font-size:12px}
 .sources-label{color:var(--muted)}
 .sources a{color:var(--companion-accent,#a76b38);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.composer input:disabled{opacity:.6}
+.composer textarea:disabled{opacity:.6}
 .chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 10px}
 .chips.inline{padding:0}
 .chip{padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:var(--paper);cursor:pointer;font-size:13px}
 .chip:hover{border-color:var(--companion-accent)}
-.composer{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
-.composer input{flex:1;min-width:0;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:var(--bg);outline:none}
-.composer input:focus{border-color:var(--companion-accent)}
-.send{padding:0 14px;border:0;border-radius:999px;background:var(--companion-accent);color:#fff;font-weight:600;cursor:pointer}
+.composer{display:flex;align-items:flex-end;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
+/* One line to start; panel.js grows it with the text and it scrolls after six lines. */
+.composer textarea{display:block;flex:1;min-width:0;max-height:144px;padding:8px 12px;border:1px solid var(--line);border-radius:19px;background:var(--bg);outline:none;resize:none;overflow-y:auto;overflow-wrap:anywhere}
+.composer textarea:focus{border-color:var(--companion-accent)}
+.send{height:39px;flex:none;padding:0 14px;border:0;border-radius:999px;background:var(--companion-accent);color:#fff;font-weight:600;cursor:pointer}
 @media (max-width:600px){
   :host{left:0;right:0;bottom:0}
   .launcher{width:48px;height:48px;margin:0 max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) auto}
