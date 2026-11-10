@@ -1,6 +1,8 @@
 'use strict';
 // Consent is short-lived, bound to one login and one document. No document or tutor transcript
 // is written to SQLite, logs or ordinary assistant memory. A restart requires fresh consent.
+// A grant lasts one hour from consent; every accepted question renews it to one hour from then,
+// so an idle grant ends an hour after the last question.
 const crypto = require('node:crypto');
 const {rateLimit} = require('./rate-limit');
 const MAX_DOCUMENT = 60000, TTL = 60 * 60_000, ROUNDS = 10;
@@ -56,7 +58,7 @@ function registerTutor(app, {requireLogin, settings, ready, provider, account, q
     if (grant.busy) fail('正在回答上一条问题，请稍候', 409, 'in_progress');
     const message = typeof req.body.message === 'string' ? req.body.message.trim() : '';
     if (!message || message.length > 4000) fail('问题需为 1–4,000 字符');
-    grant.busy = true;
+    grant.busy = true; grant.expires = Date.now() + TTL;
     let charged = false, call, quotas;
     try {
       const s = await settings(); if (!ready(s)) fail('AI 助手尚未启用', 503, 'disabled');
@@ -85,7 +87,7 @@ Use Markdown for readable paragraphs, lists and code. Do not embed images or HTM
       grant.turns = [...grant.turns, {role:'user', content:message}, {role:'assistant', content:reply}].slice(-ROUNDS * 2);
       await logCall(call, userId, tier, 'ok', ['chat'], ['study_tutor']); await logFailures(call, userId, true);
       const params = reasoning(call.model, 4096, true);
-      res.json({reply, memoryRounds:ROUNDS, fallback:call.fallback, reasoning:params.reasoning_effort || (params.thinking ? 'enabled' : 'unavailable'),
+      res.json({reply, expiresAt:grant.expires, memoryRounds:ROUNDS, fallback:call.fallback, reasoning:params.reasoning_effort || (params.thinking ? 'enabled' : 'unavailable'),
         quota:await usage(userId, now.date, tier, quotas), counted:['chat']});
     } catch (error) {
       if (charged) await refund(userId, now.date, 'chat');
