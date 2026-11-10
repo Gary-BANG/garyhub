@@ -1,7 +1,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const A=require('./public/academic/core.js');
-const RELEASE='v2.4.0.2';
+const RELEASE='v2.4.0.3';
 const err=(status,message)=>Object.assign(Error(message),{status});
 function atomic(file,value){const tmp=file+'.'+crypto.randomUUID()+'.tmp';const fd=fs.openSync(tmp,'wx',0o600);try{fs.writeFileSync(fd,JSON.stringify(value));fs.fsyncSync(fd);}finally{fs.closeSync(fd);}fs.renameSync(tmp,file);}
 async function readBody(req,max=24*1024*1024){let size=0;const parts=[];for await(const p of req){size+=p.length;if(size>max)throw err(413,'上传内容过大');parts.push(p);}try{return JSON.parse(Buffer.concat(parts).toString());}catch{throw err(400,'请求格式无效');}}
@@ -65,7 +65,7 @@ function createAcademic({DATA,identity,validCsrf,calendar,json}){
     payload.message=input.message;payload.lang=input.lang;
    }
   }
-  const r=await calendar(req,'/api/assistant/tutor/'+verb,'POST',JSON.stringify(payload),verb==='chat'?130000:10000);
+  const r=await calendar(req,'/api/assistant/tutor/'+verb,'POST',JSON.stringify(payload),verb==='chat'?160000:10000);
   json(res,r.status,await r.json());return true;
  }
  if(route==='state'&&req.method==='PUT'){const next=store.save(user.id,input);json(res,200,{revision:next.revision,updatedAt:next.updatedAt});return true;}

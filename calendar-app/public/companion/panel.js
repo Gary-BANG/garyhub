@@ -49,11 +49,11 @@
         <div class="tutor-consent" hidden><p></p><button class="tutor-accept" type="button"></button><button class="tutor-cancel" type="button"></button></div>
         <div class="log" role="log" aria-live="polite"></div>
         <div class="chips"></div>
-        <form class="composer"><input type="text" maxlength="200" autocomplete="off" enterkeyhint="send"><button class="send" type="submit"></button></form>
+        <form class="composer"><textarea rows="1" maxlength="200" autocomplete="off" enterkeyhint="send"></textarea><button class="send" type="submit"></button></form>
       </section>
       <button class="launcher" type="button" aria-expanded="false" aria-controls="panel"><span class="avatar" aria-hidden="true"></span></button>`;
     const $ = selector => root.querySelector(selector);
-    const panel = $('.panel'), log = $('.log'), input = $('input'), launcher = $('.launcher');
+    const panel = $('.panel'), log = $('.log'), input = $('textarea'), launcher = $('.launcher');
     let lang = window.GaryHubI18n?.language === 'en' ? 'en' : 'zh';
     let user = window.GaryHubIdentity?.user || null, memory = {}, menuItems = [], pickerSpec = null;
     // ai: the server's assistant status for this account, including today's allowances.
@@ -72,7 +72,8 @@
       for (const avatar of root.querySelectorAll('.avatar')) avatar.textContent = who.name[lang].slice(0, 1);
       $('.name').textContent = who.name[lang]; $('.subtitle').textContent = tutor ? tutorText().start : aiOn() ? t.ai.subtitle : t.subtitle;
       $('.close').setAttribute('aria-label', t.close); $('.send').textContent = t.send;
-      input.maxLength = tutor ? 4000 : 200;
+      // The server accepts 4,000 characters for study questions and 500 for the assistant.
+      input.maxLength = tutor ? 4000 : aiOn() ? 500 : 200;
       input.placeholder = tutor ? tutorText().placeholder : aiOn() ? t.ai.placeholder : say('placeholder', lang); input.setAttribute('aria-label', t.input);
       log.setAttribute('aria-label', t.log); panel.setAttribute('aria-label', t.launcher(who.name[lang]));
       launcher.setAttribute('aria-label', t.launcher(who.name[lang])); launcher.title = launcher.getAttribute('aria-label');
@@ -267,16 +268,23 @@
     function open() {
       panel.hidden = false; launcher.setAttribute('aria-expanded', 'true'); host.dataset.open = '';
       if (!log.childElementCount) { bubble('bot', say('greet', lang)); scrollDown(); }
-      disclose();
+      disclose(); fit();
       input.focus({preventScroll:true});
     }
-    function close() {
+    // refocus:false leaves the focus where an outside click put it.
+    function close(refocus = true) {
       if (panel.hidden) return;
       if (!tutor) stopTutor(false);
       toggleMenu(false); hidePicker();
       panel.hidden = true; launcher.setAttribute('aria-expanded', 'false'); delete host.dataset.open;
-      if (host.dataset.launcher === 'off') handlers.onClose?.(); else launcher.focus({preventScroll:true});
+      if (host.dataset.launcher === 'off') handlers.onClose?.(refocus); else if (refocus) launcher.focus({preventScroll:true});
     }
+    // The composer grows with its text up to the CSS max-height, then scrolls.
+    function fit() {
+      input.style.height = 'auto';
+      if (!panel.hidden) input.style.height = input.scrollHeight + 2 + 'px';
+    }
+    function submit() { const text = input.value; input.value = ''; fit(); ask(text); }
     function place(anchor) {
       lastAnchor = anchor;
       const sides = ['left', 'top', 'right', 'bottom'];
@@ -370,14 +378,35 @@
     });
 
     launcher.addEventListener('click', () => panel.hidden ? open() : close());
-    $('.close').addEventListener('click', close);
+    $('.close').addEventListener('click', () => close());
+    // A plain click or tap outside the companion puts the panel away. Drags do not, so selecting
+    // text or scrolling the page keeps it open; the pet and its tab handle their own clicks.
+    let outside = null;
+    const within = event => event.composedPath().some(node => typeof node.id === 'string' && node.id.startsWith('gh-companion'));
+    document.addEventListener('pointerdown', event => {
+      outside = panel.hidden || event.button || within(event) ? null : {id:event.pointerId, x:event.clientX, y:event.clientY};
+    }, true);
+    document.addEventListener('pointerup', event => {
+      const start = outside; outside = null;
+      if (!start || start.id !== event.pointerId || panel.hidden || within(event) || Math.hypot(event.clientX - start.x, event.clientY - start.y) > 6) return;
+      close(false);
+    }, true);
+    document.addEventListener('pointercancel', () => { outside = null; }, true);
     more.addEventListener('click', () => toggleMenu());
     root.addEventListener('keydown', event => {
       if (event.key !== 'Escape' || panel.hidden) return;
       event.stopPropagation();
       if (!menu.hidden) { toggleMenu(false); more.focus(); } else if (!picker.hidden) { hidePicker(); more.focus(); } else close();
     });
-    $('.composer').addEventListener('submit', event => { event.preventDefault(); const text = input.value; input.value = ''; ask(text); });
+    $('.composer').addEventListener('submit', event => { event.preventDefault(); submit(); });
+    input.addEventListener('input', fit);
+    // The wrap changes with the panel width: opening, study mode and a resized window.
+    if (window.ResizeObserver) new ResizeObserver(fit).observe(panel);
+    // Enter sends and Shift+Enter starts a new line; Enter that confirms an IME candidate does neither.
+    input.addEventListener('keydown', event => {
+      if (event.key !== 'Enter' || event.shiftKey || event.isComposing || event.keyCode === 229) return;
+      event.preventDefault(); submit();
+    });
     document.addEventListener('garyhub:language', event => { lang = event.detail?.language === 'en' ? 'en' : 'zh'; chrome(); });
     // A different account must not see the previous account's conversation or suggestions.
     function setUser(next = null) {

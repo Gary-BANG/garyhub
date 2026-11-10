@@ -90,7 +90,7 @@
     let puppet = null, faceOverride = {eyes:null, mouth:null}, painted = '';
     let raf = 0, last = 0, lastRender = 0, lastActive = performance.now(), blinkTimer = 0;
     const handlers = {
-      onClose:() => { hit.setAttribute('aria-expanded', 'false'); hit.focus({preventScroll:true}); },
+      onClose:(refocus = true) => { hit.setAttribute('aria-expanded', 'false'); if (refocus) hit.focus({preventScroll:true}); },
       onReply:result => react(result.kind)
     };
     const chat = sharedChat || chatApi.mount({character:id, target, launcher:false});
