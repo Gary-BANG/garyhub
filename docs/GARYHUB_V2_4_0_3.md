@@ -42,13 +42,13 @@
 - 主页“其他”菜单的 “Elsewhere ↗”（`lab-service/public/homepage.html`）。
 - 外站链接页 `sites.garyhub.uk` 上的两个课程网站（`lab-service/public/sites/index.html`）。
 
-三处均加 `target="_blank" rel="noopener"`。`target`／`rel` 放在 `data-thumb` 之后，`scripts/sites/capture_thumbnails.py` 与隔离检查读取链接的写法不受影响。页面内返回 GaryHub 的链接和伙伴推荐卡片仍在当前标签页打开。
+三处均加 `target="_blank" rel="noopener"`。隔离检查使用本版自己的 `tests/sites-http.cjs`，要求这三处链接带这两个属性（安装器 r1 沿用旧套件，在第 3 阶段因主页链接断言停止，未改动生产；r2 修正，见验证记录）。`target`／`rel` 放在 `data-thumb` 之后，`scripts/sites/capture_thumbnails.py` 与隔离检查读取链接的写法不受影响。页面内返回 GaryHub 的链接和伙伴推荐卡片仍在当前标签页打开。
 
 ## 安装、回滚与源码
 
 完整解压 `GaryHub_v2.4.0.3_upgrade.zip`，在 Windows 双击 `RUN-UPDATE.cmd`。两服务必须实际运行 **v2.4.0.2**。2026-11-10 三个域名的公开 `/health` 均返回 `hubVersion: 2.4.0.2`；v2.4.0.2 的安装输出未收录于本仓库。版本、源码、能力或有效 Compose 不匹配时安装器停止。
 
-本版注册自己的小型适配器 `scripts/releases/v2.4.0.3/`，复用共享 `build_overlay.py`、`deploy_runtime.py`、Windows 安装入口和源码导入器，基线能力覆盖来自 v2.4.0.2；不修改共享更新器、数据库结构、生产依赖、Caddy、DNS 或 Compose。安装执行严格预检、离线镜像构建、十组隔离 HTTP 检查、一致备份、切换、HTTPS／资源哈希，核对运行中容器确实带有新的三层等待值和主页新标签页链接，并向全体启用账号发布站内通知、核对人数与去重。
+本版注册自己的小型适配器 `scripts/releases/v2.4.0.3/`（安装器 v2.4.0.3-r2），复用共享 `build_overlay.py`、`deploy_runtime.py`、Windows 安装入口和源码导入器，基线能力覆盖来自 v2.4.0.2；不修改共享更新器、数据库结构、生产依赖、Caddy、DNS 或 Compose。安装执行严格预检、离线镜像构建、十组隔离 HTTP 检查、一致备份、切换、HTTPS／资源哈希，核对运行中容器确实带有新的三层等待值和主页新标签页链接，并向全体启用账号发布站内通知、核对人数与去重。
 
 `ROLLBACK.cmd` 恢复安装前 v2.4.0.2 应用和有效配置，保留当前用户记录。`PUSH-TO-GITHUB.cmd` 使用独立 worktree 和审查分支，保留现有工作区，不强推、不自动合并 main。Windows 安装、真实 Docker 切换／回滚与生产通知人数需要安装现场日志确认。
 

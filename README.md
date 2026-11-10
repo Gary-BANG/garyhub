@@ -4,7 +4,7 @@ GaryHub 是使用统一账号的个人工作空间，包含日历与私人记录
 
 **当前源码版本 v2.4.0.3。** 伙伴对话输入框改为多行：自动换行、随内容增高到六行后在框内滚动，回车发送、Shift+回车换行；点击对话框以外的空白处即可收起对话框。讲义答疑的三层等待各延长 30 秒（单模型 105 秒、整条问题 140 秒、Lab 转发 160 秒）。主页 Elsewhere 入口与外站链接页的课程网站改为在新标签页打开。
 
-本版源码基于 PR #40（v2.4.0.2，main `aa0bd19`），源码已准备、本地验证，尚未推送／合并／部署。安装器严格要求两服务运行 v2.4.0.2：2026-11-10 三个域名的公开 `/health` 均返回 2.4.0.2，但 v2.4.0.2 的安装输出与通知人数未收录；已收到完整安装输出的最新版本仍为 v2.4.0.0（八阶段完成、8 个通知接收账号）。完整解压后双击 `RUN-UPDATE.cmd`，回滚用 `ROLLBACK.cmd`，源码审查分支同步用 `PUSH-TO-GITHUB.cmd`。构建：`python scripts/updater/manage.py build --release 2.4.0.3 --output <ZIP绝对路径>`。见[版本说明](docs/GARYHUB_V2_4_0_3.md)与[验证记录](docs/GARYHUB_V2_4_0_3_TESTS.md)；上一版见 [v2.4.0.2 说明](docs/GARYHUB_V2_4_0_2.md)。
+本版源码基于 PR #40（v2.4.0.2，main `aa0bd19`），源码已准备、本地验证，尚未推送／合并／部署。安装器 v2.4.0.3-r2（r1 在服务器隔离检查阶段停止，未改动生产）严格要求两服务运行 v2.4.0.2：2026-11-10 三个域名的公开 `/health` 均返回 2.4.0.2，但 v2.4.0.2 的安装输出与通知人数未收录；已收到完整安装输出的最新版本仍为 v2.4.0.0（八阶段完成、8 个通知接收账号）。完整解压后双击 `RUN-UPDATE.cmd`，回滚用 `ROLLBACK.cmd`，源码审查分支同步用 `PUSH-TO-GITHUB.cmd`。构建：`python scripts/updater/manage.py build --release 2.4.0.3 --output <ZIP绝对路径>`。见[版本说明](docs/GARYHUB_V2_4_0_3.md)与[验证记录](docs/GARYHUB_V2_4_0_3_TESTS.md)；上一版见 [v2.4.0.2 说明](docs/GARYHUB_V2_4_0_2.md)。
 
 维护日期：2026-11-10（America/Chicago）。
 

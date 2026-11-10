@@ -13,7 +13,7 @@ class ReleaseTests(unittest.TestCase):
   m=json.loads((ROOT/'releases/2.4.0.3.json').read_text(encoding='utf-8'))
   self.assertEqual(CONFIG['requires_release'],'2.4.0.2');self.assertEqual(CONFIG['baseline_adapter'],'scripts/releases/v2.4.0.2')
   self.assertEqual(BASE,m['reviewed_base_commit']);self.assertFalse(m['production_verified'])
-  self.assertEqual(CONFIG['installer_build'],'v2.4.0.3-r1');self.assertNotIn('installed_baseline_tree',CONFIG)
+  self.assertEqual(CONFIG['installer_build'],'v2.4.0.3-r2');self.assertEqual(m['installer_revision'],'r2');self.assertNotIn('installed_baseline_tree',CONFIG)
   self.assertEqual(json.loads((ROOT/'releases/current.json').read_text())['manifest'],'releases/2.4.0.3.json')
  def test_runtime_and_asset_hashes(self):
   for group in ['asset_checksums','protected_asset_checksums','admin_asset_checksums','sites_asset_checksums']:
@@ -67,6 +67,22 @@ class ReleaseTests(unittest.TestCase):
   links=re.findall(r'<a class="site" href="(https://[^"]+)" data-thumb="[^"]+" target="_blank" rel="noopener">',page)
   self.assertEqual(len(links),2);self.assertEqual(len(re.findall(r'<a class="site" ',page)),2)
   self.assertIn('<a href="https://sites.garyhub.uk/" target="_blank" rel="noopener">',text(ROOT/'lab-service/public/homepage.html'))
+ def test_isolated_suites_expect_the_markup_this_release_ships(self):
+  # r1 stopped in phase 3: the v2.1.0.0 sites check still expected the homepage link without target.
+  # Node is not available on the build machine, so hold every whole HTML literal that the isolated
+  # suites look for against the pages in this commit.
+  self.assertEqual(CONFIG['test_inputs']['sites-http.cjs'],'scripts/releases/v2.4.0.3/tests/sites-http.cjs')
+  pages=[text(p) for folder in ['lab-service/public','calendar-app/public','calendar-app/stocks'] for p in sorted((ROOT/folder).rglob('*.html')) if 'vendor' not in p.parts]
+  checked=0
+  for name,path in CONFIG['test_inputs'].items():
+   if not name.endswith('-http.cjs'):continue
+   for literal in re.findall(r"\.includes\('(<[^'+]*>[^'+]*)'\)",text(ROOT/path)):
+    with self.subTest(suite=name,literal=literal):self.assertTrue(any(literal in page for page in pages));checked+=1
+  self.assertGreaterEqual(checked,1)
+  suite=text(ROOT/CONFIG['test_inputs']['sites-http.cjs'])
+  self.assertIn('<a href="https://sites.garyhub.uk/" target="_blank" rel="noopener"><strong>Elsewhere ↗</strong>',suite)
+  self.assertIn('data-thumb="([^"]+)" target="_blank" rel="noopener">/g',suite)
+  before=git('show',BASE+':scripts/releases/v2.1.0.0/tests/sites-http.cjs');self.assertEqual(before,stored(ROOT/'scripts/releases/v2.1.0.0/tests/sites-http.cjs'))
  def test_shared_runtime_and_isolation_inputs(self):
   self.assertEqual(len(CONFIG['isolation_checks']),10)
   for path in list(CONFIG['test_inputs'].values())+list(CONFIG['support_files'].values()):self.assertTrue((ROOT/path).is_file())

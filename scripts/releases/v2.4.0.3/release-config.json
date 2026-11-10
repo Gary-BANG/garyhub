@@ -1,7 +1,7 @@
 {
   "version": "2.4.0.3",
   "requires_release": "2.4.0.2",
-  "installer_build": "v2.4.0.3-r1",
+  "installer_build": "v2.4.0.3-r2",
   "reviewed_base_commit": "aa0bd193428551d57e69ad9767ba914368a1576b",
   "baseline_adapter": "scripts/releases/v2.4.0.2",
   "source_subject": "Add a multi-line companion composer, outside-click dismissal and longer study Q&A waits",
@@ -375,7 +375,7 @@
     "asset-checks.json": "scripts/releases/v2.4.0.3/release-config.json",
     "music-http.cjs": "scripts/releases/v1.4.3.2/tests/music-http.cjs",
     "companion-http.cjs": "scripts/releases/v2.0.1.0/tests/companion-http.cjs",
-    "sites-http.cjs": "scripts/releases/v2.1.0.0/tests/sites-http.cjs",
+    "sites-http.cjs": "scripts/releases/v2.4.0.3/tests/sites-http.cjs",
     "assistant-http.cjs": "scripts/releases/v2.3.2.3/tests/assistant-http.cjs",
     "notifications-http.cjs": "scripts/releases/v2.3.0.4/tests/notifications-http.cjs",
     "tutor-http.cjs": "scripts/releases/v2.3.1.0/tests/tutor-http.cjs",
