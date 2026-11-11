@@ -1,0 +1,60 @@
+/* Homepage hero, orbit and entry cards. */
+.hero{position:relative;min-height:calc(100vh - 72px);display:flex;align-items:center;padding:72px 0 56px}
+.hero-inner{position:relative;display:grid;justify-items:center;text-align:center}
+.orbit{position:absolute;left:50%;top:50%;width:min(860px,120vw);aspect-ratio:2.6/1;transform:translate(-50%,-56%) rotate(-12deg);pointer-events:none}
+.orbit::before,.orbit::after{content:"";position:absolute;inset:0;border-radius:50%;border:1px solid #7aa7ff33;box-shadow:0 0 40px #7aa7ff12 inset}
+.orbit::after{inset:12% 9%;border-color:#b48cff26}
+.orbit .planet{position:absolute;inset:0;animation:orbit 26s linear infinite}
+.orbit .planet::before{content:"";position:absolute;left:50%;top:-5px;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:#dfe9ff;box-shadow:0 0 12px 4px #7aa7ffaa,0 0 30px 10px #7aa7ff44}
+.orbit .planet.p2{inset:12% 9%;animation-duration:38s;animation-direction:reverse}
+.orbit .planet.p2::before{width:7px;height:7px;margin-left:-3.5px;top:-3.5px;background:#f1e3ff;box-shadow:0 0 10px 3px #b48cffaa}
+@keyframes orbit{to{transform:rotate(360deg)}}
+.eyebrow{position:relative;display:inline-flex;align-items:center;gap:10px;margin:0 0 22px;padding:6px 14px;border:1px solid #7aa7ff40;border-radius:999px;background:#0b1233a6;color:#b9c8ff;font-size:13px;letter-spacing:3px;text-transform:uppercase;font-weight:700}
+.eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent-3);box-shadow:0 0 10px var(--accent-3);animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+.title{position:relative;margin:0;font-size:clamp(58px,11vw,148px);line-height:1;letter-spacing:-.04em;font-weight:800;background:linear-gradient(180deg,#ffffff 15%,#b9c8ff 60%,#7d8fd6 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 28px #6f8cff40)}
+.title em{font-style:normal;background:linear-gradient(100deg,#7aa7ff,#b48cff 55%,#5ce1e6);-webkit-background-clip:text;background-clip:text;color:transparent}
+.tagline{position:relative;max-width:640px;text-wrap:balance;margin:26px 0 0;color:#c7d0ee;font-size:clamp(17px,2.2vw,21px);line-height:1.75}
+.hero .actions{position:relative;display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin-top:36px}
+.scroll-cue{position:absolute;left:50%;bottom:22px;width:24px;height:38px;margin-left:-12px;border:1.5px solid #ffffff40;border-radius:14px}
+.scroll-cue::after{content:"";position:absolute;left:50%;top:8px;width:3px;height:8px;margin-left:-1.5px;border-radius:2px;background:#cfd8ff;animation:cue 1.8s ease-in-out infinite}
+@keyframes cue{0%{opacity:0;transform:translateY(-3px)}40%{opacity:1}100%{opacity:0;transform:translateY(12px)}}
+
+.portals{padding:24px 0 96px}
+.portals-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:26px}
+.portals-head h2{margin:0;font-size:clamp(26px,3vw,34px);letter-spacing:-.02em}
+.portals-head p{margin:0;color:var(--muted)}
+.section-tag{display:block;margin-bottom:6px;color:var(--accent);font-size:13px;letter-spacing:3px;font-weight:700;text-transform:uppercase}
+.portal-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+.portal{--mx:50%;--my:50%;--glow:#7aa7ff;position:relative;display:flex;flex-direction:column;gap:10px;min-height:236px;padding:26px 24px 22px;border-radius:20px;text-decoration:none;color:var(--ink);background:linear-gradient(160deg,#121b42cc,#0a1028cc);border:1px solid #ffffff1a;overflow:hidden;isolation:isolate;transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .35s,box-shadow .35s}
+.portal::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(420px circle at var(--mx) var(--my),color-mix(in srgb,var(--glow) 28%,transparent),transparent 60%);opacity:0;transition:opacity .35s}
+.portal::after{content:"";position:absolute;inset:-1px;z-index:-2;border-radius:inherit;padding:1px;background:radial-gradient(260px circle at var(--mx) var(--my),var(--glow),transparent 70%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .35s}
+.portal:hover,.portal:focus-visible{transform:translateY(-6px);border-color:color-mix(in srgb,var(--glow) 55%,transparent);box-shadow:0 22px 50px #0008,0 0 42px color-mix(in srgb,var(--glow) 30%,transparent)}
+.portal:hover::before,.portal:focus-visible::before,.portal:hover::after,.portal:focus-visible::after{opacity:1}
+.portal .icon{display:grid;place-items:center;width:50px;height:50px;border-radius:14px;background:color-mix(in srgb,var(--glow) 16%,transparent);border:1px solid color-mix(in srgb,var(--glow) 40%,transparent);color:var(--glow)}
+.portal .icon svg{width:26px;height:26px}
+.portal h3{margin:8px 0 0;font-size:21px;letter-spacing:-.01em}
+.portal .en{color:var(--faint);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
+.portal p{margin:0;color:var(--muted);font-size:15px;line-height:1.65}
+.portal .go{margin-top:auto;display:inline-flex;align-items:center;gap:6px;color:var(--glow);font-weight:650;font-size:14px}
+.portal .go::after{content:"→";transition:transform .3s}
+.portal:hover .go::after{transform:translateX(4px)}
+html[data-language=en] .portal .en{display:none}
+.portal.tools{--glow:#7aa7ff}.portal.calendar{--glow:#5ce1e6}.portal.study{--glow:#b48cff}.portal.sites{--glow:#ffcf8a}
+
+@media(max-width:1020px){.portal-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){
+ .hero{min-height:calc(100svh - 96px);padding:56px 0 64px}
+ .orbit{width:150vw;transform:translate(-50%,-60%) rotate(-12deg)}
+ .eyebrow{letter-spacing:2px;font-size:12px}
+ .portals{padding-bottom:72px}
+ .portals-head{flex-direction:column;align-items:flex-start;gap:6px}
+ .portal-grid{grid-template-columns:1fr;gap:14px}
+ .portal{min-height:0}
+ .scroll-cue{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+ .orbit .planet,.eyebrow::before,.scroll-cue::after{animation:none}
+ .portal,.portal::before,.portal::after{transition:none}
+ .portal:hover,.portal:focus-visible{transform:none}
+}

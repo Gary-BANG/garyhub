@@ -4,7 +4,9 @@
 
 ## 当前源码与部署证据
 
-- **v2.4.0.4（当前源码，本地已验证）** 基于 PR #41 的 main `0a5e86e20330166e546dbfede1d99dcb73ec7a2f`，独立分支 `update/garyhub-v2.4.0.4`；清单 `releases/2.4.0.4.json`，适配器 `scripts/releases/v2.4.0.4/`（baseline_adapter v2.4.0.3，安装器 v2.4.0.4-r2，严格要求实际 v2.4.0.3，沿用 v2.4.0.3 的十组隔离检查及其 `sites-http.cjs`）。r1 于 2026-11-10 通过第 1–5 阶段后在第 6 阶段报 `Command failed: curl` 并自动回滚到 v2.4.0.3（记录与凭据保留，未发通知）；共享运行时不记录 curl 响应，无法确定失败的请求，且请求与已成功的 v2.4.0.3-r2 完全相同。r2 在本版 `deploy.py` 中包装 `runtime.run`：curl 遇连接／超时／429／5xx 间隔 5 秒最多试 4 次，仍失败则报出主机、路径、退出码与 HTTP 状态。以后的适配器可沿用此包装。讲义答疑授权改为随提问续期：`assistant-tutor.js` 在提问通过令牌／会话／过期／指纹／忙碌检查后执行 `grant.expires = Date.now() + TTL`（`TTL` 仍 60 分钟），成功回答返回 `expiresAt`；已过期授权不会被续期。`panel.js` 用 `armTutor` 在发出提问时把本地计时器重设为一小时，收到回答后按 `expiresAt` 校准；授权说明中英文同步改写。`deploy.py` 核对两个容器中的续期代码。构建机无 Node：实际 `assistant-tutor.js` 与 `panel.js` 在浏览器中用替身运行验证（16 项、11 项），单元测试新增的续期用例未在 Node 中运行；适配器 10 项、共享更新器（WSL）通过。无数据库、依赖、Caddy 或 Compose 变化。源码已准备／本地已验证，尚未推送、合并或部署。详见 GARYHUB_V2_4_0_4.md 与 _TESTS.md。
+- **v2.4.1.0（当前源码，本地已验证）** 基于 PR #42 的 main `97ad2f22761547f216b0794915debb1ac3cfc17e`，独立分支 `update/garyhub-v2.4.1.0`；清单 `releases/2.4.1.0.json`，适配器 `scripts/releases/v2.4.1.0/`（baseline_adapter v2.4.0.4，安装器 v2.4.1.0-r2，严格要求实际 v2.4.0.4；r1 于 2026-11-10 在第 3 阶段 `developer-http.cjs` 登录遇 429 停止（前十组已用掉共享地址 12 次登录额度中的 11 次），未备份、未切换；r2 让本组用专用测试地址 `192.0.2.241` 登录。以后新增登录的隔离套件也应使用自己的 `X-Forwarded-For` 测试地址；`deploy.py` 以支持文件 `prior_0404.py` 载入 v2.4.0.4 适配器，沿用其全部核对与 curl 重试）。主页 `homepage.html` 改为星空主题：`public/home/cosmos.js`（Canvas 三层视差星空、指针附近星座线、流星；`data-cosmos="calm"` 为少星无流星；减少动态效果只绘一帧；后台标签页暂停）、`home/site.css`（深空主题、页头、菜单，主页与开发者页共用）、`home/home.css`（标题、轨道、四张入口卡片）、`home/site.js`（“更多”菜单与卡片指针发光）。主页不再含个人资料、访问码按钮或占位框。个人资料移到 garyhub.uk/developer/（`public/developer/`，伙伴 `quiet`）：`developer.js` 读取 `/api/hub/developer-profile`，只渲染返回的栏目并连续编号，全部不可见时显示“你无权访问”（有访问码时附输入按钮），不出现“已隐藏”字样，全部 `textContent`。`homepage-privacy.cjs` 新增该路由：沿用 Calendar `/api/hub/profile-access` 的规则，只返回允许的 identity／education／projects／skills（来自私有 `/lab/developer-profile.json`）与 academics（来自 `profile-private.json`），`access` 不含规则列表与修订号；旧 `/api/hub/profile-content` 与 `homepage-protected.json` 保留以便回滚。`server.cjs`（含 1.3.4.1 覆盖）：`/developer/` 与 `home/`、`developer/` 资源加入主页主机白名单，`/developer` 302 到 `/developer/`，其他主机的 `/developer…` 返回 404。正式双语文案在被 `.gitignore` 排除的 `lab-service/developer-profile.json`（示例 `docs/developer-profile.example.json`），作为 `support_files` 随升级包上传，第 1 阶段校验后由 prepare 钩子放入 Tools/Lab 载荷；源码同步不含它，构建需本机存在该文件。管理页隐私面板改名“开发者档案访问控制”，预览链接指向开发者页；伙伴知识新增 `developer`（两份副本相同）；字典补充新文案；隔离检查新增 `developer-http.cjs`，共十一组。无数据库、依赖、Caddy 或 Compose 变化。构建机无 Node：页面在浏览器中以模拟接口验证，`homepage-privacy.cjs` 过滤函数与伙伴 865 项用例在浏览器中运行通过；适配器 14 项、共享更新器（WSL）通过。2026-11-10 tools／calendar `/health` 返回 2.4.0.4。源码已准备／本地已验证，尚未推送、合并或部署。详见 GARYHUB_V2_4_1_0.md 与 _TESTS.md。
+
+- **v2.4.0.4（PR #42 已合并为 main `97ad2f2`；2026-11-10 tools／calendar `/health` 返回 2.4.0.4，r2 安装输出与通知人数未收录）** 基于 PR #41 的 main `0a5e86e20330166e546dbfede1d99dcb73ec7a2f`，独立分支 `update/garyhub-v2.4.0.4`；清单 `releases/2.4.0.4.json`，适配器 `scripts/releases/v2.4.0.4/`（baseline_adapter v2.4.0.3，安装器 v2.4.0.4-r2，严格要求实际 v2.4.0.3，沿用 v2.4.0.3 的十组隔离检查及其 `sites-http.cjs`）。r1 于 2026-11-10 通过第 1–5 阶段后在第 6 阶段报 `Command failed: curl` 并自动回滚到 v2.4.0.3（记录与凭据保留，未发通知）；共享运行时不记录 curl 响应，无法确定失败的请求，且请求与已成功的 v2.4.0.3-r2 完全相同。r2 在本版 `deploy.py` 中包装 `runtime.run`：curl 遇连接／超时／429／5xx 间隔 5 秒最多试 4 次，仍失败则报出主机、路径、退出码与 HTTP 状态。以后的适配器可沿用此包装。讲义答疑授权改为随提问续期：`assistant-tutor.js` 在提问通过令牌／会话／过期／指纹／忙碌检查后执行 `grant.expires = Date.now() + TTL`（`TTL` 仍 60 分钟），成功回答返回 `expiresAt`；已过期授权不会被续期。`panel.js` 用 `armTutor` 在发出提问时把本地计时器重设为一小时，收到回答后按 `expiresAt` 校准；授权说明中英文同步改写。`deploy.py` 核对两个容器中的续期代码。构建机无 Node：实际 `assistant-tutor.js` 与 `panel.js` 在浏览器中用替身运行验证（16 项、11 项），单元测试新增的续期用例未在 Node 中运行；适配器 10 项、共享更新器（WSL）通过。无数据库、依赖、Caddy 或 Compose 变化。源码已准备／本地已验证，尚未推送、合并或部署。详见 GARYHUB_V2_4_0_4.md 与 _TESTS.md。
 
 - **v2.4.0.3（PR #41 已合并为 main `0a5e86e`；2026-11-10 三个域名 `/health` 返回 2.4.0.3，r2 安装输出与通知人数未收录）** 基于 PR #40 的 main `aa0bd193428551d57e69ad9767ba914368a1576b`，独立分支 `update/garyhub-v2.4.0.3`；清单 `releases/2.4.0.3.json`，适配器 `scripts/releases/v2.4.0.3/`（baseline_adapter v2.4.0.2，安装器 v2.4.0.3-r2，严格要求实际 v2.4.0.2，沿用十组隔离检查）。r1 于 2026-11-10 在服务器第 3 阶段 `sites-http.cjs` 停止（v2.1.0.0 的套件要求主页 Elsewhere 链接不带 `target`），未备份、未切换；r2 改用本版自己的 `tests/sites-http.cjs`，并在适配器测试中把隔离套件的 HTML 字面量断言与页面比对。改动页面标记前，先在全部隔离套件中搜索该标记的字面量。伙伴面板 `panel.js`／`panel.css`：输入框改为 `<textarea>`，随内容增高到 144 px（六行）后滚动，回车发送、Shift+回车换行并避开输入法选字；`maxLength` 为本地向导 200／AI 500／答疑 4,000；在 id 以 `gh-companion` 开头的元素之外单击（移动不超过 6 px）即 `close(false)`，`pet.js` 的 `onClose(refocus)` 据此不抢焦点。讲义答疑等待各加 30 秒：`assistant-api.js` 的 `TUTOR_ROUND_TIMEOUT` 105 秒、`assistant-tutor.js` 的 `deadline` 140 秒、`lab-service/academic.cjs` 转发 160 秒；普通聊天限值和一小时固定授权（`TTL`）未变。主页 Elsewhere 与外站页两个课程链接加 `target="_blank" rel="noopener"`（写在 `data-thumb` 之后，以兼容缩略图脚本和 sites-http 的匹配）。`deploy.py` 额外核对运行容器内的三层等待值和主页链接。无数据库、依赖、Caddy 或 Compose 变化。构建机无 Node／Docker：浏览器交互、适配器 12 项、共享更新器（WSL，37 通过／2 个 pwsh 跳过）已验证，Node 单元测试与十组隔离 HTTP 检查留给安装器现场执行。本机检出为 `core.autocrlf=true`，`.css`／`.cjs`／`.svg` 会检出为 CRLF：资源哈希须按 Git 存储内容计算，随包文件须保持 LF（适配器测试已覆盖）。详见 GARYHUB_V2_4_0_3.md 与 _TESTS.md。
 
@@ -89,6 +91,7 @@ v1.4.3.1-r1 曾在受保护 HTML 的未登录正文哈希检查失败后回滚�
 | 用户个性化 | lab-service/public/personalize/，lab-service/academic.cjs 的 preferences 接口 |
 | 学习中心与讲义 | lab-service/public/academic/；Viewer study-document.mjs 使用既有 academic/state 接口 |
 | Markdown 阅读、章节与目录 | lab-service/public/useful/markdown-viewer/，避免打印 index.html 内嵌第三方 bundle |
+| 主页（星空）与开发者档案 | lab-service/public/homepage.html、home/、developer/；homepage-privacy.cjs；calendar-app/profile-access.js；私有 lab-service/developer-profile.json（不入库） |
 | Tools 入口、搜索与 Dock | lab-service/public/index.html、tools-catalog.js、tools-dock.js、tools-dock.css |
 | 跨站跳转 | 两服务的 public/auth-redirect.js |
 | ECE 470 Lab | lab-service/server.cjs、public/lab/app.js、math-markdown.mjs、cloud.js、core.js |
@@ -97,7 +100,7 @@ v1.4.3.1-r1 曾在受保护 HTML 的未登录正文哈希检查失败后回滚�
 | 外站链接 | lab-service/public/sites/；server.cjs 中 sites.garyhub.uk 分支；scripts/sites/capture_thumbnails.py |
 | 网站伙伴（米露等五个角色） | lab-service/public/companion/（Calendar 副本 calendar-app/public/companion/；puppet.js 驱动布丁）；lab-service/test/companion-*.cjs；scripts/companion/slim_rig.py、place_frames.py |
 | A 股行情与 VIP | calendar-app/stocks/、stock-market.js、stock-api.js、account-admin.js、hub-api.js；lab-service/public/admin.js |
-| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v2.4.0.4/ |
+| 安装、打包、回滚 | scripts/updater/；当前适配器 scripts/releases/v2.4.1.0/ |
 
 Calendar 使用 Node.js、Express、SQLite；Lab 使用 Node 原生 HTTP，浏览器运行 Python/WASM。生产运行代码须保持 Node 20 兼容。浏览器依赖已本地打包，无需让生产服务器在线安装依赖。
 
@@ -109,13 +112,13 @@ Calendar 使用 Node.js、Express、SQLite；Lab 使用 Node 原生 HTTP，浏�
 - Calendar 统一账号；共享 Cookie `garyhub.shared.sid`、`.garyhub.uk`、HttpOnly、Secure、SameSite=Lax。保留明确 Origin 与 CSRF 校验。
 - Lab 数据按用户独立保存，乐观修订号控制并发。分发为追加独立副本，保留作答与历史，禁止覆盖接收人空间。
 - 服务器存在有 TOTP / 无 TOTP 两种历史组合。当前适配器的标识 1.3.4.2 / 1.3.4.1 代表能力组合，不代表当前应用版本。
-- 不提交 `.env`、私有 Compose、数据库、会话、密钥、邮件授权、生产备份、homepage-protected.json、profile-private.json。
+- 不提交 `.env`、私有 Compose、数据库、会话、密钥、邮件授权、生产备份、homepage-protected.json、profile-private.json、developer-profile.json。
 
 ## 已有更新机制
 
-统一入口为 `scripts/updater/manage.py`。v2.4.0.4-r2 的清单和 release-config 统一核对 v2.4.0.3，以已合并 main `0a5e86e` 为审阅源码基线；能力覆盖对应有／无 TOTP 两种历史组合，基础适配器为 v2.4.0.3。共享更新器未修改。
+统一入口为 `scripts/updater/manage.py`。v2.4.1.0-r2 的清单和 release-config 统一核对 v2.4.0.4，以已合并 main `97ad2f2` 为审阅源码基线；能力覆盖对应有／无 TOTP 两种历史组合，基础适配器为 v2.4.0.4。共享更新器未修改。
 
-完整解压后双击 RUN-UPDATE.cmd。安装器按实际版本、源码、能力及有效 Compose 预检，执行离线构建、十组隔离检查、备份、切换、HTTPS/哈希和全体通知核对。ROLLBACK.cmd 恢复 v2.4.0.3 应用并保留当前用户记录；本版没有数据库变化。源码导入器使用独立 worktree 和审查分支，不强推或自动合并。
+完整解压后双击 RUN-UPDATE.cmd。安装器按实际版本、源码、能力及有效 Compose 预检，校验包内私有开发者档案，执行离线构建、十一组隔离检查、备份、切换、HTTPS/哈希、主页与开发者档案核对和全体通知核对。ROLLBACK.cmd 恢复 v2.4.0.4 应用（旧主页与资料片段）并保留当前用户记录与访问规则；本版没有数据库变化。源码导入器使用独立 worktree 和审查分支，不强推或自动合并。
 
 Markdown ZIP 在浏览器处理，使用原生 DEFLATE 流，不新增服务器运行依赖。支持普通未加密 ZIP（stored/DEFLATE），不支持 RAR、7z、多卷或 ZIP64；图片仅接受 PNG/JPEG/GIF/WebP，外部图片及 SVG 不加载。ZIP 最多 20 MiB、500 个条目、解压合计 50 MiB、单文件 10 MiB、Markdown 4 MiB。源码编辑和包内文档草稿仅保存在本次页面中，不写回原文件。
 

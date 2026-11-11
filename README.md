@@ -2,9 +2,9 @@
 
 GaryHub 是使用统一账号的个人工作空间，包含日历与私人记录、账本、待办、学习工具和服务器工具。仓库保存应用源码、脱敏文档与可复现更新器；正式服务通过经过验证的升级包部署，GitHub 合并不会自动更新服务器。
 
-**当前源码版本 v2.4.0.4。** 学习中心讲义答疑的授权改为随提问续期：授权后有效一小时，每次提问都从提问时起重新计一小时，连续一小时不提问才过期。v2.4.0.3 的多行伙伴输入框（回车发送、Shift+回车换行）、点击空白处收起对话框、讲义答疑三层等待（单模型 105 秒、整条问题 140 秒、Lab 转发 160 秒）以及外站链接新标签页打开均保留。
+**当前源码版本 v2.4.1.0。** 主页 garyhub.uk 改为星空主题（三层视差星空、星座线、流星、星云与轨道，四张发光入口卡片：工具台、日历与记录、学习中心、外站与课程），不再放个人资料；个人资料移到导航“更多”菜单里的“开发者档案”（garyhub.uk/developer/），改写为正式双语介绍，只显示当前身份可见的栏目：全部不可见时显示“你无权访问”，部分可见时按可见栏目连续编号，不提示其余部分。访问规则、访问码与 GPA／排名单独授权不变。
 
-本版源码基于 PR #41（v2.4.0.3，main `0a5e86e`），源码已准备、本地验证，尚未推送／合并／部署。安装器 v2.4.0.4-r2（r1 在第 6 阶段 HTTPS 核对失败后自动回滚到 v2.4.0.3，记录未受影响）严格要求两服务运行 v2.4.0.3：2026-11-10 三个域名的公开 `/health` 均返回 2.4.0.3，但 v2.4.0.3-r2 的安装输出与通知人数未收录；已收到完整安装输出的最新版本仍为 v2.4.0.0（八阶段完成、8 个通知接收账号）。完整解压后双击 `RUN-UPDATE.cmd`，回滚用 `ROLLBACK.cmd`，源码审查分支同步用 `PUSH-TO-GITHUB.cmd`。构建：`python scripts/updater/manage.py build --release 2.4.0.4 --output <ZIP绝对路径>`。见[版本说明](docs/GARYHUB_V2_4_0_4.md)与[验证记录](docs/GARYHUB_V2_4_0_4_TESTS.md)；上一版见 [v2.4.0.3 说明](docs/GARYHUB_V2_4_0_3.md)。
+本版源码基于 PR #42（v2.4.0.4，main `97ad2f2`），源码已准备、本地验证，尚未推送／合并／部署。安装器 v2.4.1.0-r2（r1 在第 3 阶段隔离检查因登录频率限制停止，生产未改动）严格要求两服务运行 v2.4.0.4：2026-11-10 tools 与 calendar 的公开 `/health` 均返回 2.4.0.4，但 v2.4.0.4-r2 的安装输出与通知人数未收录；已收到完整安装输出的最新版本仍为 v2.4.0.0（八阶段完成、8 个通知接收账号）。完整解压后双击 `RUN-UPDATE.cmd`，回滚用 `ROLLBACK.cmd`，源码审查分支同步用 `PUSH-TO-GITHUB.cmd`。构建：`python scripts/updater/manage.py build --release 2.4.1.0 --output <ZIP绝对路径>`（需本机私有 `lab-service/developer-profile.json`）。见[版本说明](docs/GARYHUB_V2_4_1_0.md)与[验证记录](docs/GARYHUB_V2_4_1_0_TESTS.md)；上一版见 [v2.4.0.4 说明](docs/GARYHUB_V2_4_0_4.md)。
 
 维护日期：2026-11-10（America/Chicago）。
 
@@ -12,7 +12,8 @@ GaryHub 是使用统一账号的个人工作空间，包含日历与私人记录
 
 | 入口 | 功能 | 源码 |
 |---|---|---|
-| [GaryHub](https://garyhub.uk) | 个人主页、统一账号与站内通知 | `lab-service/public/homepage.html`、`calendar-app/` |
+| [GaryHub](https://garyhub.uk) | 星空主页与入口、统一账号与站内通知 | `lab-service/public/homepage.html`、`lab-service/public/home/`、`calendar-app/` |
+| [开发者档案](https://garyhub.uk/developer/) | 按访问规则显示的开发者简介、教育背景、学业成绩、研究与项目、专业技能 | `lab-service/public/developer/`、`lab-service/homepage-privacy.cjs`、`calendar-app/profile-access.js` |
 | [Calendar](https://calendar.garyhub.uk) | 日历事项、日记、健康记录、私人账本、固定开支、Todo、Research Dictionary、个人音乐库 | `calendar-app/` |
 | [Tools](https://tools.garyhub.uk) | 可搜索工具图标与 Dock；学习中心、成绩规划、Markdown Viewer、PDF 浅灰转换、图片局部消除、Reading、服务器监控、AI 日志及权限控制工具 | `lab-service/` |
 | [ECE 470 Lab](https://lab.garyhub.uk/lab/) | 机器人学练习、题库导入、代码运行、个人进度与作业分发 | `lab-service/public/lab/` |
@@ -22,6 +23,7 @@ Calendar 使用 Node.js 20、Express 与 SQLite；Tools/Lab 使用 Node 原生 H
 
 ## 当前功能与使用边界
 
+- 主页与开发者档案（v2.4.1.0）：主页只放站点入口，不含个人信息；星空在“减少动态效果”时静止，后台标签页暂停。开发者档案的正式文案保存在服务器 `/lab/developer-profile.json`（源码仓库只有格式示例 `docs/developer-profile.example.json`，私有文件随升级包上传）。管理员在 Tools 用户管理页的“开发者档案访问控制”分别为路人、普通用户和订阅用户设置默认可见栏目与访问码，管理员始终可见，访问码解锁 24 小时，“预览”打开对应身份看到的开发者档案。服务器只返回允许的栏目；页面只在 garyhub.uk 提供。
 - A 股行情：Tools → A 股行情（`https://calendar.garyhub.uk/stocks/`），继续限定订阅账号。左栏检索／收藏切换，宽屏详情默认展示分时与五档盘口，日 K 与财报按展开读取；暖色日夜主题覆盖图表。每人最多 3 组 × 5 只。A 股 VIP 在用户管理独立开关，未开通账号不显示普通等级。
 
 - 成绩规划与学习中心接入现有网站伙伴；订阅用户和管理员可在学习中心授权当前 Markdown，开启“讲义答疑”。对话面板加宽，独立保留最近 10 轮问答，按模型能力开启思考，结合讲义与模型知识讲解。 仅当前讲义（最多 60,000 字符）在明确同意后发给所选 AI 服务商；图片、链接和其他文档不读取。授权有效一小时，每次提问都从提问时起续期一小时，连续一小时不提问才到期（v2.4.0.4），关闭答疑开关/切换文档后清除本次答疑，收起对话框保留会话；换服务商需重新授权。单个模型最多等待 105 秒、整条问题 140 秒、Lab 转发 160 秒（v2.4.0.3）。Markdown 和公式复用现有本地渲染组件，答疑不使用日程操作或搜索工具。
@@ -111,7 +113,7 @@ Windows 工作区若启用 `core.autocrlf`，请在 `core.autocrlf=false` 的独
 
 Calendar 数据挂载 `/app/data`，Lab 数据挂载 `/data`，实际宿主路径须现场核对。保留现有共享登录 Cookie、明确 Origin、CSRF、TOTP 能力组合、R2 只读配置挂载和 Reading／监控／VPN 集成。Caddy 是 HTTPS 入口；相关外部服务与网络配置按既有配置继承。
 
-不得提交 `.env`、私有 Compose、数据库、会话、密钥、邮件授权、生产备份、`homepage-protected.json` 或 `profile-private.json`。GitHub 不是数据库备份；恢复数据库前必须评估备份之后的用户操作。
+不得提交 `.env`、私有 Compose、数据库、会话、密钥、邮件授权、生产备份、`homepage-protected.json`、`profile-private.json` 或 `developer-profile.json`。GitHub 不是数据库备份；恢复数据库前必须评估备份之后的用户操作。
 
 ## 文档导航
 

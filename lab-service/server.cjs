@@ -81,7 +81,7 @@ const server = http.createServer(async (req,res)=>{
     if(await academic(req,res,url))return;
     if(['/grades','/grades/','/study','/study/'].includes(url.pathname))url.pathname='/academic/index.html';
     url.pathname=decodeURIComponent(url.pathname);
-    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"2.4.0.4"});
+    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"2.4.1.0"});
     if(url.pathname.startsWith('/sub/')) {
       if(req.method!=='GET') return json(res,405,{message:'Method not allowed'});
       const sub=connections.subscription(url.pathname.slice(5));
@@ -210,8 +210,11 @@ const server = http.createServer(async (req,res)=>{
       if(user.role!=='admin')return json(res,403,{message:'需要管理员权限'});
     }
     const isHome=(req.headers.host||'').split(':')[0]==='garyhub.uk';
+    // The developer profile page lives on the homepage host only; its content comes from /api/hub/developer-profile.
+    if(!isHome&&/^\/developer(?:\/|$)/i.test(url.pathname))return json(res,404,{message:'Not found'});
+    if(isHome&&url.pathname==='/developer'){res.writeHead(302,{Location:'/developer/'+url.search,'Cache-Control':'no-store'});return res.end();}
     // The homepage host serves its own page assets plus the companion bundle and the public tool catalogue it reads.
-    if(isHome&&!/^\/companion\/[\w.\/-]+$/.test(url.pathname)&&!['/','/index.html','/tools-catalog.js','/hub-account.js','/auth-redirect.js','/hub-account.css','/profile-privacy.js','/profile-privacy.css','/login.html','/login.js','/password-reset.js','/password-reset.css','/hub.css','/ambient-music.js','/ambient-music.css','/ambient.mp3','/i18n/dictionary.js','/i18n/i18n.js','/i18n/i18n.css'].includes(url.pathname))return json(res,404,{message:'Not found'});
+    if(isHome&&!/^\/companion\/[\w.\/-]+$/.test(url.pathname)&&!['/','/index.html','/developer/','/developer/index.html','/developer/developer.css','/developer/developer.js','/home/site.css','/home/home.css','/home/cosmos.js','/home/site.js','/tools-catalog.js','/hub-account.js','/auth-redirect.js','/hub-account.css','/profile-privacy.js','/profile-privacy.css','/login.html','/login.js','/password-reset.js','/password-reset.css','/hub.css','/ambient-music.js','/ambient-music.css','/ambient.mp3','/i18n/dictionary.js','/i18n/i18n.js','/i18n/i18n.css'].includes(url.pathname))return json(res,404,{message:'Not found'});
     let name=decodeURIComponent(url.pathname); if(name.endsWith('/')) name+='index.html';
     if(isHome&&name==='/index.html')name='/homepage.html';
     if(['/admin','/admin/','/admin/index.html'].includes(name))name='/admin.html';

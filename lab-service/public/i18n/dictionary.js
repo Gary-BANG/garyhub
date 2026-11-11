@@ -48,3 +48,35 @@ Object.assign(window.GARYHUB_TRANSLATIONS,{
   "正文将以这个大小显示。": "Lecture text will appear at this size.",
   "打开学习中心": "Open Study Hub"
 });
+
+Object.assign(window.GARYHUB_TRANSLATIONS,{
+ "开发者简介、教育背景与项目经历": "Developer bio, education and projects",
+ "个人数字空间": "Personal Digital Space",
+ "工具、日程、学习与记录，汇聚于同一片星空。": "Tools, schedules, study and records, gathered under one sky.",
+ "一个账号，连接所有日常所需。": "One account for everything you need each day.",
+ "进入工具台": "Enter Tools",
+ "浏览全部入口": "Browse all destinations",
+ "从这里出发": "Start here",
+ "选择一个入口，开始今天的工作与学习。": "Pick a destination to begin today's work and study.",
+ "工具台": "Tools",
+ "实用工具、成绩规划与网络服务，按需取用。": "Useful tools, grade planning and network services, ready when you need them.",
+ "日历与记录": "Calendar & Records",
+ "日程、待办、账本与日记，记录生活的每一天。": "Schedules, to-dos, ledgers and journals for every day of your life.",
+ "阅读讲义、追踪进度，并把学习计划排进日历。": "Read lecture notes, track progress and put study plans on your calendar.",
+ "外站与课程": "Elsewhere",
+ "GaryHub 之外的公开课程网站与作品合集。": "Public course sites and projects beyond GaryHub.",
+ "打开日历": "Open Calendar",
+ "开始学习": "Start studying",
+ "前往外站": "Visit Elsewhere",
+ "正在加载开发者档案…": "Loading developer profile…",
+ "使用访问码": "Use access code",
+ "结束授权": "End access",
+ "输入访问码": "Enter access code",
+ "请输入管理员提供的访问码，授权有效期为 24 小时。": "Enter the access code provided by the administrator. Access lasts 24 hours.",
+ "开发者档案": "Developer Profile",
+ "开发者档案访问控制": "Developer profile access"
+});
+Object.assign(window.GARYHUB_CHINESE,{
+ "More ▾": "更多 ▾",
+ "Developer Profile": "开发者档案"
+});
