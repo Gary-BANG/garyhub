@@ -71,7 +71,11 @@
     ['你还有别的网站吗', 'sites'],
     ['where is the photography course', 'sites'],
     ['other sites by gary', 'sites'],
-    ['ECE 470 的作业题', 'lab']
+    ['ECE 470 的作业题', 'lab'],
+    ['开发者档案在哪里', 'developer'],
+    ['这个网站是谁做的', 'developer'],
+    ['who built this site', 'developer'],
+    ['about the developer', 'developer']
   ];
   // Multi-turn conversations: each step is [message, expectation].
   const flows = [

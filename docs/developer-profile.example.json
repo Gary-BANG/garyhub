@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "identity": {
+    "name": {"zh": "示例姓名", "en": "Example Name"},
+    "altName": {"zh": "Example Name", "en": "示例姓名"},
+    "role": {"zh": "开发者与维护者", "en": "Developer and maintainer"},
+    "summary": {"zh": "一段正式的第三人称简介。", "en": "A formal third-person introduction."},
+    "links": [{"label": "GitHub", "url": "https://github.com/example"}]
+  },
+  "education": {
+    "facts": [{"label": {"zh": "培养项目", "en": "Program"}, "value": {"zh": "示例", "en": "Example"}, "note": {"zh": "可选说明", "en": "Optional note"}}],
+    "entries": [{"title": {"zh": "学校", "en": "School"}, "meta": {"zh": "学位 · 时间", "en": "Degree · Dates"}, "description": {"zh": "说明", "en": "Description"}}]
+  },
+  "projects": {
+    "entries": [{"title": {"zh": "项目", "en": "Project"}, "meta": {"zh": "单位 · 角色 · 时间", "en": "Organization · Role · Dates"}, "summary": {"zh": "概述", "en": "Summary"}, "highlights": [{"zh": "要点", "en": "Highlight"}], "tags": ["Python"]}]
+  },
+  "skills": {
+    "groups": [{"name": {"zh": "编程语言", "en": "Programming"}, "items": ["Python", {"zh": "双语条目", "en": "Bilingual item"}]}]
+  }
+}

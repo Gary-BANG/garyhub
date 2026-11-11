@@ -26,15 +26,32 @@ function sanitize(html){
  return {html,parts};
 }
 function prepare(root){const file=path.join(root,'public/homepage.html'),p=path.join(root,'homepage-protected.json');if(fs.existsSync(p))throw Error('Homepage already protected');const result=sanitize(fs.readFileSync(file,'utf8'));fs.writeFileSync(p,JSON.stringify(result.parts),{mode:0o600});fs.writeFileSync(file,result.html);}
+// Developer profile (v2.4.1.0): structured private content in developer-profile.json, outside public/.
+// Only the sections this visitor may read leave the server; the response does not list the others.
+const DEVELOPER_SECTIONS=['identity','education','projects','skills'];
+function developerSections(access,profile,academics){
+ const out={};
+ for(const key of DEVELOPER_SECTIONS)if(access.allowed.includes(key)&&profile[key]&&typeof profile[key]==='object')out[key]=JSON.parse(JSON.stringify(profile[key]));
+ if(access.allowed.includes('academics')&&academics)out.academics={gpa:academics.gpa,rank:academics.rank};
+ return out;
+}
+function developerAccess(access){return {audience:access.audience,required:access.required,unlocked:!!access.unlocked,expiresAt:access.expiresAt||null,preview:access.preview||null,hasCode:!!access.hasCode,complete:access.allowed.length===5};}
 function createProfile({calendar,json,root=__dirname}){return async(req,res,url)=>{
- if(url.pathname!=='/api/hub/profile-content')return false;
+ const developer=url.pathname==='/api/hub/developer-profile';
+ if(url.pathname!=='/api/hub/profile-content'&&!developer)return false;
  if(req.method!=='GET'){json(res,405,{message:'Method not allowed'});return true;}
  const upstream=await calendar(req,'/api/hub/profile-access'+(['guest','member','subscriber','1'].includes(url.searchParams.get('preview'))?'?preview='+url.searchParams.get('preview'):''));
  if(!upstream.ok){json(res,upstream.status,{message:'无法确认资料访问权限'});return true;}
+ if(developer){
+  const access=await upstream.json();let profile;
+  try{profile=JSON.parse(fs.readFileSync(path.join(root,'developer-profile.json'),'utf8'));}catch{json(res,503,{message:'开发者档案暂不可用'});return true;}
+  const academics=access.allowed.includes('academics')?JSON.parse(fs.readFileSync(path.join(root,'profile-private.json'),'utf8')):null;
+  json(res,200,{access:developerAccess(access),profile:developerSections(access,profile,academics)});return true;
+ }
  const access=await upstream.json(),all=JSON.parse(fs.readFileSync(path.join(root,'homepage-protected.json'),'utf8')),fragments={};
  for(const [id,item] of Object.entries(all))if(access.allowed.includes(item.key))fragments[id]=item.html;
  let academics=null;if(access.allowed.includes('academics')){const p=JSON.parse(fs.readFileSync(path.join(root,'profile-private.json'),'utf8'));academics={gpa:p.gpa,rank:p.rank};}
  json(res,200,{access,fragments,academics});return true;
 };}
 if(require.main===module)prepare(process.argv[2]||__dirname);
-module.exports={sanitize,prepare,createProfile};
+module.exports={sanitize,prepare,createProfile,developerSections,developerAccess};

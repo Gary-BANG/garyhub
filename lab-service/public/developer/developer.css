@@ -1,0 +1,79 @@
+/* Developer profile: renders only the sections the server returns for this visitor. */
+.dev-main{padding:40px 0 90px;min-height:calc(100vh - 160px)}
+.dev-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.dev-toolbar p{margin:0;color:var(--muted);font-size:14px}
+.dev-actions{display:flex;gap:10px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:1px solid #ffffff2e;border-radius:999px;background:#ffffff0d;color:var(--ink);font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;transition:background .2s,border-color .2s}
+.chip:hover{background:#ffffff1c;border-color:#ffffff55}
+.chip.primary{border-color:transparent;background:linear-gradient(100deg,#5b8cff,#9a6bff)}
+.chip[hidden]{display:none}
+.dev-loading{display:flex;align-items:center;justify-content:center;gap:12px;min-height:50vh;color:var(--muted)}
+.dev-loading span{width:16px;height:16px;border-radius:50%;border:2px solid #7aa7ff55;border-top-color:var(--accent);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.dev-card{position:relative;border:1px solid var(--line);border-radius:22px;background:linear-gradient(160deg,#111a3dcc,#090f26d9);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 24px 60px #0007}
+.dev-hero{display:grid;grid-template-columns:auto 1fr;gap:30px;align-items:center;padding:40px 44px;overflow:hidden}
+.dev-hero::after{content:"";position:absolute;right:-120px;top:-120px;width:340px;height:340px;border-radius:50%;background:radial-gradient(closest-side,#7aa7ff33,transparent);pointer-events:none}
+.dev-avatar{display:grid;place-items:center;width:104px;height:104px;border-radius:28px;background:linear-gradient(140deg,#5b8cff,#9a6bff 60%,#5ce1e6);font-size:42px;font-weight:800;color:#fff;box-shadow:0 14px 40px #5b8cff55}
+.dev-kicker{display:block;margin-bottom:8px;color:var(--accent);font-size:13px;letter-spacing:3px;font-weight:700;text-transform:uppercase}
+.dev-hero h1{margin:0;font-size:clamp(32px,4.6vw,50px);line-height:1.15;letter-spacing:-.02em}
+.dev-alt{margin:6px 0 0;color:var(--muted);font-size:17px}
+.dev-role{margin:16px 0 0;color:#cfd8ff;font-weight:600}
+.dev-summary{margin:12px 0 0;color:#c2cbe8;max-width:780px;line-height:1.85}
+.dev-links{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.dev-plain{padding:34px 40px}
+.dev-plain h1{margin:0;font-size:clamp(30px,4vw,42px);letter-spacing:-.02em}
+
+.dev-section{display:grid;grid-template-columns:230px 1fr;gap:40px;margin-top:22px;padding:34px 40px}
+.dev-section h2{margin:0;font-size:24px;line-height:1.3;letter-spacing:-.01em}
+.dev-num{display:block;margin-bottom:8px;color:var(--accent);font-size:13px;letter-spacing:2px;font-weight:700}
+.dev-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:26px}
+.dev-fact{padding:16px 18px;border:1px solid #ffffff17;border-radius:14px;background:#ffffff08}
+.dev-fact small{display:block;color:var(--faint);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
+.dev-fact b{display:block;margin-top:4px;font-size:18px}
+.dev-fact span{display:block;color:var(--muted);font-size:14px}
+.dev-entry{position:relative;padding-left:22px}
+.dev-entry::before{content:"";position:absolute;left:0;top:10px;width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+.dev-entry::after{content:"";position:absolute;left:4px;top:24px;bottom:-26px;width:1px;background:linear-gradient(#7aa7ff66,transparent)}
+.dev-entry:last-child::after{display:none}
+.dev-entry+.dev-entry{margin-top:28px}
+.dev-entry h3{margin:0;font-size:20px;line-height:1.45}
+.dev-meta{margin:4px 0 10px;color:var(--muted);font-size:14px}
+.dev-entry p{margin:8px 0;color:#c8d0ec}
+.dev-entry ul{margin:10px 0 0;padding-left:20px;color:#c8d0ec}
+.dev-entry li{margin:4px 0}
+.dev-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.dev-tags span{padding:3px 11px;border:1px solid #7aa7ff40;border-radius:999px;background:#7aa7ff14;color:#cdd9ff;font-size:13px}
+.dev-score{display:flex;flex-wrap:wrap;gap:14px}
+.dev-score .dev-fact{min-width:180px}
+.dev-skills{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.dev-skill{padding:18px 20px;border:1px solid #ffffff17;border-radius:14px;background:#ffffff08}
+.dev-skill h3{margin:0 0 10px;font-size:16px}
+
+.dev-denied{display:grid;justify-items:center;gap:14px;max-width:560px;margin:8vh auto 0;padding:54px 40px;text-align:center}
+.dev-lock{display:grid;place-items:center;width:76px;height:76px;border-radius:50%;background:#7aa7ff14;border:1px solid #7aa7ff44;color:var(--accent);box-shadow:0 0 40px #7aa7ff33}
+.dev-lock svg{width:34px;height:34px}
+.dev-denied h1{margin:6px 0 0;font-size:30px}
+.dev-denied p{margin:0;color:var(--muted)}
+.dev-denied .chip{margin-top:10px}
+
+#devDialog{width:min(440px,calc(100% - 32px));padding:30px;border:1px solid #ffffff2e;border-radius:18px;color:var(--ink);background:#0d1430;box-shadow:0 30px 80px #000b;font:15px/1.7 system-ui,-apple-system,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif}
+#devDialog::backdrop{background:#02040ccc;backdrop-filter:blur(4px)}
+#devDialog h2{margin-top:0}
+#devDialog p{color:var(--muted)}
+#devDialog label{display:block;font-weight:600}
+#devCode{width:100%;margin-top:8px;padding:12px;border:1px solid #ffffff33;border-radius:10px;background:#060a1c;color:var(--ink);font-size:17px}
+#devDialog #devError{min-height:24px;color:#ff9a9a}
+.dev-dialog-actions{display:flex;justify-content:flex-end;gap:10px}
+
+@media(max-width:760px){
+ .dev-main{padding:24px 0 64px}
+ .dev-toolbar{justify-content:flex-start}
+ .dev-hero{grid-template-columns:1fr;gap:18px;padding:28px 22px}
+ .dev-avatar{width:76px;height:76px;border-radius:22px;font-size:32px}
+ .dev-plain{padding:26px 22px}
+ .dev-section{grid-template-columns:1fr;gap:18px;padding:26px 22px}
+ .dev-skills{grid-template-columns:1fr}
+ .dev-denied{margin-top:4vh;padding:40px 22px}
+}
+@media(prefers-reduced-motion:reduce){.dev-loading span{animation:none}.chip{transition:none}}

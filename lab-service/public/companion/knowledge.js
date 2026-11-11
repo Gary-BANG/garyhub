@@ -108,7 +108,13 @@
       name:{zh:'外站链接',en:'Elsewhere'}, short:{zh:'课程网站与作品',en:'Course sites & projects'},
       zh:['外站','外部链接','其他网站','别的网站','课程网站','公开课程','摄影','拍照','摄影课','光影手记','作品集','motion notes'],
       en:['elsewhere','external links','other sites','other websites','course site','course website','photography','photo course','field notes','portfolio','motion notes'],
-      howto:{zh:'这里汇总了 GaryHub 之外的公开网站，比如 ECE 470 机器人学笔记和摄影课程，点开即可浏览，不需要登录。',en:'A list of public sites outside GaryHub, such as the ECE 470 robotics notes and the photography course. Open any of them; no sign-in needed.'}}
+      howto:{zh:'这里汇总了 GaryHub 之外的公开网站，比如 ECE 470 机器人学笔记和摄影课程，点开即可浏览，不需要登录。',en:'A list of public sites outside GaryHub, such as the ECE 470 robotics notes and the photography course. Open any of them; no sign-in needed.'}},
+    // The developer profile on the homepage host; which sections a visitor sees is decided by the server.
+    {id:'developer', url:'https://garyhub.uk/developer/', access:'public',
+      name:{zh:'开发者档案',en:'Developer Profile'}, short:{zh:'开发者简介与项目经历',en:'About the developer'},
+      zh:['开发者档案','开发者信息','开发者','站长','网站作者','关于作者','作者是谁','谁做的','谁开发的','个人简历','个人简介'],
+      en:['developer profile','developer','about the developer','who made','who built','site author','about the author','resume','curriculum vitae'],
+      howto:{zh:'开发者档案在主页导航的“更多”菜单里，介绍 GaryHub 开发者的教育背景、项目经历与专业技能；能看到哪些内容由管理员按访问身份设置。',en:'The developer profile is in the More menu on the homepage. It covers the GaryHub developer\'s education, projects and skills; the administrator decides which parts each kind of visitor can see.'}}
   ];
   const categories = [
     {id:'study', name:{zh:'学习',en:'Study'}, zh:['学习','学业','上课','课程','考试','作业'], en:['study','school','class','course','exam','homework']},
