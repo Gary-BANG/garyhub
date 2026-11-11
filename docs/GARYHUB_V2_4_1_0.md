@@ -28,7 +28,7 @@
 
 完整解压 `GaryHub_v2.4.1.0_upgrade.zip`，在 Windows 双击 `RUN-UPDATE.cmd`。两服务必须实际运行 **v2.4.0.4**：2026-11-10 `tools.garyhub.uk` 与 `calendar.garyhub.uk` 的公开 `/health` 均返回 `hubVersion: 2.4.0.4`（v2.4.0.4-r2 的安装输出与通知人数未收录）。版本、源码、能力或有效 Compose 不匹配时安装器停止。
 
-本版注册自己的小型适配器 `scripts/releases/v2.4.1.0/`（安装器 v2.4.1.0-r1），复用共享 `build_overlay.py`、`deploy_runtime.py`、Windows 安装入口和源码导入器，并沿用 v2.4.0.4 适配器的 HTTPS 核对与 curl 重试。隔离检查在 v2.4.0.4 的十组基础上新增 `developer-http.cjs`，共十一组。安装执行严格预检、离线镜像构建、十一组隔离 HTTP 检查、一致备份、切换、HTTPS／资源哈希、主页与开发者档案核对，并向全体启用账号发布站内通知、核对人数与去重。
+本版注册自己的小型适配器 `scripts/releases/v2.4.1.0/`（安装器 v2.4.1.0-r2），复用共享 `build_overlay.py`、`deploy_runtime.py`、Windows 安装入口和源码导入器，并沿用 v2.4.0.4 适配器的 HTTPS 核对与 curl 重试。隔离检查在 v2.4.0.4 的十组基础上新增 `developer-http.cjs`，共十一组。2026-11-10（服务器时间 11-11 02:58 UTC）维护者运行 r1：第 1 阶段（含私有开发者档案校验与预置）、第 2 阶段离线构建通过，第 3 阶段第十一组 `developer-http.cjs` 报 `ERR_ASSERTION; actual=429; expected=200` 后停止。停在备份与切换之前，生产服务未改动，仍为 v2.4.0.4，没有发布通知。原因：Calendar 登录按客户端地址限 15 分钟 12 次，前十组在共享容器地址上已登录 11 次（useful 1、study 2、asset-response 1、music 1、companion 1、assistant 3、notifications 2；stocks 与 tutor 使用各自的测试地址），本组第二次登录（管理员）为第 13 次。r2 只改 `developer-http.cjs`：登录及其 CSRF 请求带本组专用的文档测试地址 `X-Forwarded-For: 192.0.2.241`（与 stocks-http、tutor-http 的做法相同；会话不绑定地址），适配器测试新增对应检查。应用文件、资源哈希与其余检查不变。安装执行严格预检、离线镜像构建、十一组隔离 HTTP 检查、一致备份、切换、HTTPS／资源哈希、主页与开发者档案核对，并向全体启用账号发布站内通知、核对人数与去重。
 
 `ROLLBACK.cmd` 恢复安装前 v2.4.0.4 应用（旧主页与旧资料片段）和有效配置，保留当前用户记录与访问规则。`PUSH-TO-GITHUB.cmd` 使用独立 worktree 和审查分支，不强推、不自动合并 main；源码同步不含私有的 `developer-profile.json`。
 

@@ -1,7 +1,7 @@
 {
   "version": "2.4.1.0",
   "requires_release": "2.4.0.4",
-  "installer_build": "v2.4.1.0-r1",
+  "installer_build": "v2.4.1.0-r2",
   "reviewed_base_commit": "97ad2f22761547f216b0794915debb1ac3cfc17e",
   "baseline_adapter": "scripts/releases/v2.4.0.4",
   "source_subject": "Add the starfield homepage and move the profile to a developer page",

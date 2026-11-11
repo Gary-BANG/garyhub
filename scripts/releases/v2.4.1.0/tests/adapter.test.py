@@ -24,7 +24,7 @@ class ReleaseTests(unittest.TestCase):
   self.assertEqual(CONFIG['requires_release'],'2.4.0.4');self.assertEqual(CONFIG['baseline_adapter'],'scripts/releases/v2.4.0.4')
   self.assertEqual(BASE,m['reviewed_base_commit']);self.assertFalse(m['production_verified'])
   self.assertEqual(BASE,'97ad2f22761547f216b0794915debb1ac3cfc17e')
-  self.assertEqual(CONFIG['installer_build'],'v2.4.1.0-r1');self.assertEqual(m['installer_revision'],'r1');self.assertNotIn('installed_baseline_tree',CONFIG)
+  self.assertEqual(CONFIG['installer_build'],'v2.4.1.0-r2');self.assertEqual(m['installer_revision'],'r2');self.assertNotIn('installed_baseline_tree',CONFIG)
   self.assertEqual(json.loads((ROOT/'releases/current.json').read_text())['manifest'],'releases/2.4.1.0.json')
  def test_runtime_and_asset_hashes(self):
   for group in ['asset_checksums','protected_asset_checksums','admin_asset_checksums','sites_asset_checksums']:
@@ -102,6 +102,12 @@ class ReleaseTests(unittest.TestCase):
   self.assertGreaterEqual(checked,1)
   suite=text(HERE/'tests/developer-http.cjs')
   for marker in re.findall(r"'(<a href=\"[^']+</strong>)'",suite):self.assertIn(marker,text(ROOT/'lab-service/public/homepage.html'))
+  # r1 stopped with 429: the earlier suites already use 11 of Calendar's 12 logins per address. This suite signs in
+  # (and fetches its CSRF token) from its own documentation address, which no other suite uses.
+  self.assertIn("const CLIENT='192.0.2.241';",suite)
+  for line in [l for l in suite.splitlines() if "/api/login'" in l or "/api/csrf'" in l]:self.assertIn("'x-forwarded-for':CLIENT",line)
+  others=[text(ROOT/p) for n,p in CONFIG['test_inputs'].items() if n!='developer-http.cjs' and n.endswith('.cjs')]
+  self.assertFalse(any('192.0.2.241' in o for o in others))
  def test_shared_runtime_and_isolation_inputs(self):
   self.assertEqual(len(CONFIG['isolation_checks']),11);self.assertEqual(CONFIG['isolation_checks'][-1],'developer-http.cjs')
   for path in list(CONFIG['test_inputs'].values())+[v for k,v in CONFIG['support_files'].items() if k!='developer-profile.json']:self.assertTrue((ROOT/path).is_file(),path)

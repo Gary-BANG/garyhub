@@ -4,7 +4,7 @@ GaryHub 是使用统一账号的个人工作空间，包含日历与私人记录
 
 **当前源码版本 v2.4.1.0。** 主页 garyhub.uk 改为星空主题（三层视差星空、星座线、流星、星云与轨道，四张发光入口卡片：工具台、日历与记录、学习中心、外站与课程），不再放个人资料；个人资料移到导航“更多”菜单里的“开发者档案”（garyhub.uk/developer/），改写为正式双语介绍，只显示当前身份可见的栏目：全部不可见时显示“你无权访问”，部分可见时按可见栏目连续编号，不提示其余部分。访问规则、访问码与 GPA／排名单独授权不变。
 
-本版源码基于 PR #42（v2.4.0.4，main `97ad2f2`），源码已准备、本地验证，尚未推送／合并／部署。安装器 v2.4.1.0-r1 严格要求两服务运行 v2.4.0.4：2026-11-10 tools 与 calendar 的公开 `/health` 均返回 2.4.0.4，但 v2.4.0.4-r2 的安装输出与通知人数未收录；已收到完整安装输出的最新版本仍为 v2.4.0.0（八阶段完成、8 个通知接收账号）。完整解压后双击 `RUN-UPDATE.cmd`，回滚用 `ROLLBACK.cmd`，源码审查分支同步用 `PUSH-TO-GITHUB.cmd`。构建：`python scripts/updater/manage.py build --release 2.4.1.0 --output <ZIP绝对路径>`（需本机私有 `lab-service/developer-profile.json`）。见[版本说明](docs/GARYHUB_V2_4_1_0.md)与[验证记录](docs/GARYHUB_V2_4_1_0_TESTS.md)；上一版见 [v2.4.0.4 说明](docs/GARYHUB_V2_4_0_4.md)。
+本版源码基于 PR #42（v2.4.0.4，main `97ad2f2`），源码已准备、本地验证，尚未推送／合并／部署。安装器 v2.4.1.0-r2（r1 在第 3 阶段隔离检查因登录频率限制停止，生产未改动）严格要求两服务运行 v2.4.0.4：2026-11-10 tools 与 calendar 的公开 `/health` 均返回 2.4.0.4，但 v2.4.0.4-r2 的安装输出与通知人数未收录；已收到完整安装输出的最新版本仍为 v2.4.0.0（八阶段完成、8 个通知接收账号）。完整解压后双击 `RUN-UPDATE.cmd`，回滚用 `ROLLBACK.cmd`，源码审查分支同步用 `PUSH-TO-GITHUB.cmd`。构建：`python scripts/updater/manage.py build --release 2.4.1.0 --output <ZIP绝对路径>`（需本机私有 `lab-service/developer-profile.json`）。见[版本说明](docs/GARYHUB_V2_4_1_0.md)与[验证记录](docs/GARYHUB_V2_4_1_0_TESTS.md)；上一版见 [v2.4.0.4 说明](docs/GARYHUB_V2_4_0_4.md)。
 
 维护日期：2026-11-10（America/Chicago）。
 

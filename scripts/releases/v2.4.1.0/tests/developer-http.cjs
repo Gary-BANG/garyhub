@@ -26,10 +26,14 @@ const PERSONAL=/ZJUI|Zhejiang|Urbana|2028|Multi-UAV|Intelligent Assistants|data-
 const tag=scope=>'<script src="/companion/boot.js?v='+VERSION+'" defer data-companion="'+scope+'"></script>';
 const SECTIONS=['identity','education','projects','skills','academics'];
 const ACCESS_KEYS=['audience','complete','expiresAt','hasCode','preview','required','unlocked'];
+// Calendar allows 12 logins per 15 minutes per client address, and the earlier suites already use 11 from the
+// shared container address (v2.4.1.0-r1 stopped here with 429). Like stocks-http and tutor-http, sign in from
+// this suite's own documentation address; sessions are not tied to the address.
+const CLIENT='192.0.2.241';
 async function login(username){
  let cookie='';const take=r=>{const v=r.headers.getSetCookie();if(v.length)cookie=v.map(x=>x.split(';')[0]).join('; ');};
- let r=await fetch(CAL+'/api/csrf');take(r);const {token}=await r.json();
- r=await fetch(CAL+'/api/login',{method:'POST',headers:{cookie,origin:'https://calendar.garyhub.uk','x-csrf-token':token,'content-type':'application/json'},body:JSON.stringify({username,password:'Synthetic-Only-2026!'})});take(r);eq(r.status,200,'login '+username);
+ let r=await fetch(CAL+'/api/csrf',{headers:{'x-forwarded-for':CLIENT}});take(r);const {token}=await r.json();
+ r=await fetch(CAL+'/api/login',{method:'POST',headers:{'x-forwarded-for':CLIENT,cookie,origin:'https://calendar.garyhub.uk','x-csrf-token':token,'content-type':'application/json'},body:JSON.stringify({username,password:'Synthetic-Only-2026!'})});take(r);eq(r.status,200,'login '+username);
  return cookie;
 }
 async function policy(cookie,query=''){const r=await get(CAL,'/api/hub/profile-access'+query,{cookie});eq(r.status,200);return JSON.parse(r.body);}
