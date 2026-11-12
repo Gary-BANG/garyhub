@@ -41,12 +41,12 @@ header{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 14px;bord
 .pick:focus-visible{outline:2px solid var(--companion-accent);outline-offset:2px}
 .log{min-height:0;flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
 .msg{max-width:88%;display:flex;flex-direction:column;gap:8px}
-.msg .text{margin:0;padding:8px 12px;border-radius:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg>.text{margin:0;padding:8px 12px;border-radius:14px;white-space:pre-wrap;overflow-wrap:anywhere}
 .msg.bot{align-self:flex-start}
-.msg.bot .text{background:var(--bg);border-top-left-radius:4px}
+.msg.bot>.text{background:var(--bg);border-top-left-radius:4px}
 .msg.bot .howto{background:transparent;border:1px dashed var(--line)}
 .msg.user{align-self:flex-end}
-.msg.user .text{background:var(--companion-accent);color:#fff;border-top-right-radius:4px}
+.msg.user>.text{background:var(--companion-accent);color:#fff;border-top-right-radius:4px}
 .cards{display:flex;flex-direction:column;gap:8px}
 .card{padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
 .card-name{display:block}
@@ -60,8 +60,8 @@ header{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 14px;bord
 .card-open:disabled,.card-cancel:disabled{opacity:.55;cursor:default}
 .card-cancel:focus-visible{outline:2px solid var(--companion-accent);outline-offset:2px}
 .card-done{color:var(--muted);font-size:13px;font-weight:600}
-.msg.notice .text{background:transparent;border:1px dashed var(--line);color:var(--muted);font-size:13px}
-.msg.waiting .text{color:var(--muted)}
+.msg.notice>.text{background:transparent;border:1px dashed var(--line);color:var(--muted);font-size:13px}
+.msg.waiting>.text{color:var(--muted)}
 .quota{margin:0;color:var(--muted);font-size:12px}
 .sources{display:flex;flex-wrap:wrap;gap:4px 10px;margin:6px 0 0;font-size:12px}
 .sources-label{color:var(--muted)}
@@ -96,10 +96,12 @@ header{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 14px;bord
 .tutor-consent p{font-size:13px;margin:0 0 8px;white-space:pre-wrap}
 .tutor-consent button+button{margin-left:8px}
 .panel.tutoring{width:min(660px,calc(100vw - 16px));height:min(720px,var(--panel-room,calc(100dvh - 80px)))}
-.tutoring .msg{max-width:96%}.tutoring .msg.bot .text{white-space:normal;line-height:1.7}
-.tutoring .msg .text p{margin:.4em 0}.tutoring pre{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--paper);padding:10px;border-radius:8px}
-.tutoring .text table{display:block;max-width:100%;overflow:auto;border-collapse:collapse}.tutoring th,.tutoring td{padding:4px 8px;border:1px solid var(--line)}
-.tutoring .text h1,.tutoring .text h2{font-size:1.2em}.tutoring .text h3,.tutoring .text h4{font-size:1.1em}
+.tutoring .msg{max-width:96%}.tutoring .msg.bot>.text{white-space:normal;line-height:1.7}
+.tutoring .msg>.text p{margin:.4em 0}.tutoring pre{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--paper);padding:10px;border-radius:8px}
+.tutoring .msg>.text table{display:block;max-width:100%;overflow:auto;border-collapse:collapse}.tutoring th,.tutoring td{padding:4px 8px;border:1px solid var(--line)}
+.tutoring .msg>.text h1,.tutoring .msg>.text h2{font-size:1.2em}.tutoring .msg>.text h3,.tutoring .msg>.text h4{font-size:1.1em}
+/* KaTeX names its own spans .text, so bubble rules use .msg>.text; long display formulas scroll instead of overflowing. */
+.tutoring .katex-display{max-width:100%;overflow-x:auto;overflow-y:hidden;padding:2px 0}
 @media(max-width:600px){.panel.tutoring{width:100%;height:min(82dvh,720px)}.tutor-bar{align-items:flex-start}}
 
 .tutor-toggle{display:inline-flex;align-items:center;gap:9px;border:0;background:transparent;padding:6px 0}
