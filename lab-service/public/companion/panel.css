@@ -97,7 +97,9 @@ header{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 14px;bord
 .tutor-consent button+button{margin-left:8px}
 .panel.tutoring{width:min(660px,calc(100vw - 16px));height:min(720px,var(--panel-room,calc(100dvh - 80px)))}
 .tutoring .msg{max-width:96%}.tutoring .msg.bot>.text{white-space:normal;line-height:1.7}
-.tutoring .msg>.text p{margin:.4em 0}.tutoring pre{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--paper);padding:10px;border-radius:8px}
+.tutoring .msg>.text p{margin:.4em 0}
+/* Code blocks keep their lines (ASCII diagrams, register layouts) and scroll sideways inside the bubble instead of wrapping. */
+.tutoring .msg>.text pre{max-width:100%;overflow-x:auto;white-space:pre;overflow-wrap:normal;word-break:normal;line-height:1.45;background:var(--paper);padding:10px;border-radius:8px}
 .tutoring .msg>.text table{display:block;max-width:100%;overflow:auto;border-collapse:collapse}.tutoring th,.tutoring td{padding:4px 8px;border:1px solid var(--line)}
 .tutoring .msg>.text h1,.tutoring .msg>.text h2{font-size:1.2em}.tutoring .msg>.text h3,.tutoring .msg>.text h4{font-size:1.1em}
 /* KaTeX names its own spans .text, so bubble rules use .msg>.text; long display formulas scroll instead of overflowing. */

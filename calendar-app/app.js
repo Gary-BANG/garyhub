@@ -161,7 +161,7 @@ async function resolveTargetUserId(req) {
 }
 
 app.get("/health", (req, res) => {
-  res.json({ ok: true, hubVersion: "2.4.1.1" });
+  res.json({ ok: true, hubVersion: "2.4.1.2" });
 });
 
 // 登录
