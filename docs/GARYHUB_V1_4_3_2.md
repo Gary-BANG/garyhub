@@ -34,3 +34,19 @@
 ## 状态
 
 源码和本地验证见 [验证记录](GARYHUB_V1_4_3_2_TESTS.md)。本次未直接连接生产、推送或合并 GitHub；生产版本与通知人数仍待现场输出。当前包完成不代表已上线。
+
+## 项目档案历史记录
+
+以下条目于 2026-11-16 从 `docs/PROJECT_CONTEXT.md` 原样移入，是写入当时的记录；其中“尚未推送／合并／部署”等状态描述以写入时为准，后续状态见项目档案的版本索引。
+
+- 仓库 `Gary-BANG/garyhub`，本次审阅 main 为 `2b3d597e3f000b9340356aed6191af81970368cb`，PR #22 已合并 v1.4.3.1。GitHub 合并不等于生产部署。
+- 当前源码入口 `releases/current.json`，清单 `releases/1.4.3.2.json`，独立开发分支 `update/garyhub-v1.4.3.2`；应用版本 v1.4.3.2，安装器 v1.4.3.2-r1。尚未推送／合并本次分支，生产完成及通知人数待现场输出。
+- 用户指定从 v1.4.3.1 升级；本包严格核对两服务的实际版本均为 v1.4.3.1、对应源码与有效 Compose。缺少新的服务器现场证据时，不将其记录为已核实运行版本；不是 v1.4.3.1 时停止。
+- ECE 470 Lab 的新 `public/lab/math-markdown.mjs` 在 Markdown 前保护公式，并使用既有本地 KaTeX 排版。支持四种标准 LaTeX 分隔符；为截图所示无标记的 `theta(s)`、五次时间标度、速度／加速度约束及已声明变量提供有限 ASCII 语法。保留原始题面作为排版元素 data-source，未知内容／非法 LaTeX 显示原文。代码块、行内代码、链接和 HTML 不做 ASCII 数学推断；HTML 仍经清理。显示转换不写回题包、不修改判题、不提前显示 formula_latex／答案。
+- 练习视图每次重绘都排版，包括切题、同类变式、运行、提交完成；参考函数的数学维度与解析继续排版。题包格式和导入提示已说明优先使用显式 LaTeX。
+- 成绩规划、学习中心、图片局部消除、Markdown Viewer、PDF 浅灰打印复用现有 ambient-music 播放器。显式配置挂载位置与 `data-music-library="false"`；两服务共享相同代码。选曲、播放进度、音频循环、多标签页租约及账号刷新逻辑沿用原实现。新页不增加 Music Library；原有 sky 页入口保留。
+- 三个实用工具的 CSP 仅增加 `media-src 'self' https://*.r2.cloudflarestorage.com`，以播放现有签名 R2 曲目；connect-src、上传和本机文档处理边界不变。
+- 本次独立适配器 `scripts/releases/v1.4.3.2/` 复用共享 build_overlay、deploy_runtime、既有 Windows 模板与独立 worktree 导入器。有／无 TOTP 仍分别核验，能力组合的 app/server 覆盖只改健康版本和必要媒体 CSP。无数据库迁移、新生产依赖或 host hooks；不注册 v1.4.3.1-r1 的历史索引修复 hook。
+- 本地结果：7 项数学单元测试、23 项相关业务回归、35 项共享更新器／回滚及 8 项新适配器检查通过；两能力组合各 112 条 HTTP、61 条浏览器断言，第六阶段真实响应校验和 5 人合成通知去重通过。最终 ZIP 校验与源码导入测试在构建后执行。
+- README、清单、功能说明、验证记录和 `calendar-app/releases/garyhub-1.4.3.2.json` 同步维护。测试范围与限制见 `docs/GARYHUB_V1_4_3_2_TESTS.md`，使用与回滚见 `docs/GARYHUB_V1_4_3_2.md`。
+- 继承普通账号 5 项固定开支／5 条 Todo／每条 10 points，以及订阅／管理员 300 项和 100 points；保留已有超额数据和 MP3 库。音乐限额仍为每人 10 首／20 MiB 单首／100 MiB 合计，应用对象总限额 8 GiB，R2 凭据只在受限配置中。

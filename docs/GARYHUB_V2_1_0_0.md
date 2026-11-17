@@ -49,3 +49,9 @@
 
 - 两服务健康版本、`privacy-ledger-release.json` 与 11 个页面的 `companion/boot.js?v=` 改为 2.1.0.0（`knowledge.js`、`brain.js` 有变化）。
 - 本版基础是已合并的 main 提交，`PUSH-TO-GITHUB.cmd` 的“main 包含基线”检查可以直接通过。安装器与推送脚本的默认仓库改为 `D:\Codes\Own_Project\garyhub`，不再使用已不存在的 `garyhub-repo`。
+
+## 项目档案历史记录
+
+以下条目于 2026-11-16 从 `docs/PROJECT_CONTEXT.md` 原样移入，是写入当时的记录；其中“尚未推送／合并／部署”等状态描述以写入时为准，后续状态见项目档案的版本索引。
+
+- **v2.1.0.0**：基础为已合并 main `d21eecd738ff22a400957e948b8f413337525f31`；开发分支 `feature/sites-portal`，清单 `releases/2.1.0.0.json`，适配器 `scripts/releases/v2.1.0.0/`（baseline_adapter v2.0.1.0），安装器 v2.1.0.0-r1，要求两服务实际运行 v2.0.1.0。新增外站链接页 `lab-service/public/sites/`（`index.html`、`sites.css`、`sites.js`、`thumbs/*.webp`），由 `server.cjs` 在主机 `sites.garyhub.uk` 上以严格 CSP 只提供这些文件，其他主机 `/sites/` 返回 404；主页“其他”菜单与伙伴 `knowledge.js`（`sites`，`access:'public'`）链接该页；`brain.js` 不再把“有没有／是不是…”问句和“不是 PDF”中的空格误判。部署钩子在改动前检查 DNS，验证并在切换后写入一个 Caddy 站点块（`reverse_proxy garyhub-lab:3000`），等待证书，回滚时恢复原 Caddyfile。预览图由 `scripts/sites/capture_thumbnails.py` 在维护者本机生成。安装器与 PUSH 脚本默认仓库改为 `D:\Codes\Own_Project\garyhub`。PR #26 合并为 main `62f430a`；维护者 2026-11-03 报告已安装完成（安装输出未收录于本仓库）。详见 `docs/GARYHUB_V2_1_0_0.md`。

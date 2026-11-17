@@ -32,3 +32,13 @@
 4. `PUSH-TO-GITHUB.cmd` 在独立 worktree 准备并普通推送 `update/garyhub-v2.0.0.0` 审查分支，不强推、不自动合并 main。
 
 验证范围与限制见 [GARYHUB_V2_0_0_0_TESTS.md](GARYHUB_V2_0_0_0_TESTS.md)。
+
+## 项目档案历史记录
+
+以下条目于 2026-11-16 从 `docs/PROJECT_CONTEXT.md` 原样移入，是写入当时的记录；其中“尚未推送／合并／部署”等状态描述以写入时为准，后续状态见项目档案的版本索引。
+
+- **v2.0.0.0**：基础为 main `aec0312513de5b86cbcd17e10cc35af568c7dbcb`（PR #23 合并的 v1.4.3.2）；开发分支 `feature/companion-guide`，清单 `releases/2.0.0.0.json`，适配器 `scripts/releases/v2.0.0.0/`（baseline_adapter v1.4.3.2），安装器 v2.0.0.0-r2。r1 于 2026-11-03 在服务器第 3 阶段停止（companion-http 对首页 `/admin.html` 错误期望 404，实际为既有登录跳转 302），未备份、未切换。尚未推送／合并，生产未核验；安装器要求两服务实际运行 v1.4.3.2。
+- 网站伙伴米露：`lab-service/public/companion/`（boot 加载器、knowledge/brain 本地意图匹配、voices 五角色台词、panel 聊天面板、characters 角色清单、pet 动作引擎、`characters/milu/rig.svg`）。Calendar 的 `calendar-app/public/companion/` 与 `tools-catalog.js` 为逐字节副本，由 `lab-service/test/companion-wiring.test.cjs` 检查。首页／Tools 为 `data-companion="open"`，Lab 与八个 Calendar 页面为 `quiet`；登录、注册、改密码、Reading 不加载。只用身份判断工具权限，不读取页面内容，不调用外部模型。
+- `lab-service/server.cjs` 首页白名单额外放行 `/companion/*` 与 `/tools-catalog.js`；带 `?v=` 的 `/companion/` 资源 `Cache-Control: public, max-age=86400`，其余仍 `no-store`。1.3.4.1 能力组合的 `server.cjs`／`app.js` 覆盖在 `scripts/releases/v2.0.0.0/variant-overrides/` 中做同样修改。无数据库迁移、新依赖或 Caddy 改动。
+- 角色素材来自 Milu_Rig_v2 2.1.1，用 `scripts/companion/slim_rig.py` 精简；其余四个角色仅有台词，`characters.js` 中标为不可用。
+- 构建机未安装 Node：意图回归、角色、接线与权限检查在浏览器中对实际文件运行，页面在两个服务 `public/` 的静态副本上验证；Node 测试套件与隔离 HTTP 检查由安装器在新镜像中执行。详见 `docs/GARYHUB_V2_0_0_0_TESTS.md`。

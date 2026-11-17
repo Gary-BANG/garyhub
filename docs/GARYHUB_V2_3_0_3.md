@@ -43,3 +43,9 @@
 2. 鼠标在它头上来回划几下。
 3. 放着一分钟，看它趴下睡觉；再把鼠标移近，看它醒来。
 4. 到 Calendar 页确认它不会自己做小动作。
+
+## 项目档案历史记录
+
+以下条目于 2026-11-16 从 `docs/PROJECT_CONTEXT.md` 原样移入，是写入当时的记录；其中“尚未推送／合并／部署”等状态描述以写入时为准，后续状态见项目档案的版本索引。
+
+- **v2.3.0.3（上一版本，以下为当时记录）**：基础为 v2.3.0.2 源码提交 `9c61d249a98290e1d39e993552767cce747bfe48`（分支 `update/garyhub-v2.3.0.1`）；清单 `releases/2.3.0.3.json`，适配器 `scripts/releases/v2.3.0.3/`（baseline_adapter v2.3.0.2，隔离检查沿用 v2.3.0.0 的 7 项，`asset_checksums` 共 42 项，新增 `companion/puppet.js`、`pet.css`、`characters/pudding/rig.svg` 在三个主机的核对），安装器 v2.3.0.3-r1，要求两服务实际运行 v2.3.0.2。布丁改为 `kind:'rig'` 并带 `puppet` 配置：`characters/pudding/rig.svg`（134 KiB）以 GPT 坐姿拼装图为全部可见像素（遮挡感知的部件拟合 + 头部轮廓填充、按颜色扣出耳朵），GPT 部件只补被遮挡处；耳、尾分根部与末端，抬起的前爪单独一块，额外表情为矢量线条（closed／happy／drowsy；o／tongue／yawn／w），睡觉用单独的趴姿图 `rest`。新增 `companion/puppet.js`（boot.js 在 pet.js 前加载）：弹簧耳尾腿、呼吸、看鼠标、挥手抬爪、待机小动作（9–18 s）、摸头（头部范围内左右来回两次；触屏在头上水平来回滑动则不拖动）、60 s 后趴下睡觉（睡着后 CSS 呼吸，`.breathing` 在 pet.css）；`data-companion="quiet"` 页只保留呼吸／眨眼／弹簧／摸头。pet.js 把骨骼部件交给 puppet，并允许它用自己的表情覆盖状态表情（`paintFace`）。约定见与维护者 2026-11-04 的讨论：不走路、摸头互动、安静页收敛、米露与栗栗不变。拆图与组装脚本只在维护会话的临时目录中，未入库。审查分支已普通推送到 `2cbd6d4`，待合并。**生产：2026-11-04 安装输出 8/8 COMPLETE，通知核对 8 个账号，`SOURCE_BASELINE=1.3.4.2`；本地源码同步按预期因 main 不含基础提交而停止。** 安装器结束语沿用了 v2.3.0.1 模板的 GLM-5.3 提示（v2.3.0.2 同样），与本版无关；以后发版须重写这行。详见 `docs/GARYHUB_V2_3_0_3.md`。

@@ -29,3 +29,9 @@ v2.4.0.3 的三层等待（105／140／160 秒）、多行输入框、点空白�
 `ROLLBACK.cmd` 恢复安装前 v2.4.0.3 应用和有效配置，保留当前用户记录；回滚后授权恢复为固定一小时。安装或回滚都会重启 Calendar，进行中的讲义答疑授权会结束，需要重新授权。`PUSH-TO-GITHUB.cmd` 使用独立 worktree 和审查分支，不强推、不自动合并 main。
 
 构建：`python scripts/updater/manage.py build --release 2.4.0.4 --output <ZIP绝对路径>`。验证范围见 [GARYHUB_V2_4_0_4_TESTS.md](GARYHUB_V2_4_0_4_TESTS.md)。
+
+## 项目档案历史记录
+
+以下条目于 2026-11-16 从 `docs/PROJECT_CONTEXT.md` 原样移入，是写入当时的记录；其中“尚未推送／合并／部署”等状态描述以写入时为准，后续状态见项目档案的版本索引。
+
+- **v2.4.0.4（PR #42 已合并为 main `97ad2f2`；2026-11-10 tools／calendar `/health` 返回 2.4.0.4，r2 安装输出与通知人数未收录）** 基于 PR #41 的 main `0a5e86e20330166e546dbfede1d99dcb73ec7a2f`，独立分支 `update/garyhub-v2.4.0.4`；清单 `releases/2.4.0.4.json`，适配器 `scripts/releases/v2.4.0.4/`（baseline_adapter v2.4.0.3，安装器 v2.4.0.4-r2，严格要求实际 v2.4.0.3，沿用 v2.4.0.3 的十组隔离检查及其 `sites-http.cjs`）。r1 于 2026-11-10 通过第 1–5 阶段后在第 6 阶段报 `Command failed: curl` 并自动回滚到 v2.4.0.3（记录与凭据保留，未发通知）；共享运行时不记录 curl 响应，无法确定失败的请求，且请求与已成功的 v2.4.0.3-r2 完全相同。r2 在本版 `deploy.py` 中包装 `runtime.run`：curl 遇连接／超时／429／5xx 间隔 5 秒最多试 4 次，仍失败则报出主机、路径、退出码与 HTTP 状态。以后的适配器可沿用此包装。讲义答疑授权改为随提问续期：`assistant-tutor.js` 在提问通过令牌／会话／过期／指纹／忙碌检查后执行 `grant.expires = Date.now() + TTL`（`TTL` 仍 60 分钟），成功回答返回 `expiresAt`；已过期授权不会被续期。`panel.js` 用 `armTutor` 在发出提问时把本地计时器重设为一小时，收到回答后按 `expiresAt` 校准；授权说明中英文同步改写。`deploy.py` 核对两个容器中的续期代码。构建机无 Node：实际 `assistant-tutor.js` 与 `panel.js` 在浏览器中用替身运行验证（16 项、11 项），单元测试新增的续期用例未在 Node 中运行；适配器 10 项、共享更新器（WSL）通过。无数据库、依赖、Caddy 或 Compose 变化。源码已准备／本地已验证，尚未推送、合并或部署。详见 GARYHUB_V2_4_0_4.md 与 _TESTS.md。

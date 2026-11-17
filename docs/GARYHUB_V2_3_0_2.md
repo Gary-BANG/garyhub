@@ -22,3 +22,9 @@
 ## 安装后
 
 登录账号，在伙伴聊天面板的设置里“换个伙伴”选栗栗，切到重力模式，从高处拖起后松手：开伞时微笑，着地闭眼，起身时 ^ ^，站好后正常眨眼；在聊天中打招呼时会挥手。米露、页芽、小航落地时脚不应再在地面滑动。
+
+## 项目档案历史记录
+
+以下条目于 2026-11-16 从 `docs/PROJECT_CONTEXT.md` 原样移入，是写入当时的记录；其中“尚未推送／合并／部署”等状态描述以写入时为准，后续状态见项目档案的版本索引。
+
+- **v2.3.0.2（上一版本）**：v2.3.0.3 安装器第 1 阶段核对证明它已在运行；自身安装输出未收录。基础为 v2.3.0.1 源码提交 `5a45333942b7d2602f4645f328d6caea535a49b2`（分支 `update/garyhub-v2.3.0.1`）；清单 `releases/2.3.0.2.json`，适配器 `scripts/releases/v2.3.0.2/`（baseline_adapter v2.3.0.1，隔离检查沿用 v2.3.0.0 的 7 项，`asset_checksums` 新增 `companion/pet.js`、`characters.js`、`characters/lili/rig.svg` 在 tools／garyhub／calendar 三个主机的核对），安装器 v2.3.0.2-r1，要求两服务实际运行 v2.3.0.1；无 TOTP 覆盖仅版本号不同，与主文件差异仍为 12 行（app.js）与 7 行（server.cjs）。栗栗改为 `kind:'rig'`：`characters/lili/rig.svg`（187 KiB）由 GPT 生成的部件图与表情图拆层、vtracer 矢量化、`slim_rig.py` 精简，结构与米露相同（`actor`／`tail`／`body`／`paw-l`／`paw-r`／`head`{`ear-l`,`ear-r`,`head-fur`,`eyes-*`,`mouth-*`}）；尾巴大，摆动上限 3°。`pet.js`：降落伞摆动在落地前 200 px 内收到 0（身体绕头顶挂点转动，着地时残留倾角会让脚在地面滑动），所有角色生效；整张姿态角色的落地帧淡入淡出与 `LANDING_FRAME`（可选 touchdown／squash／rise 帧）保留，目前无角色使用。升级包只能新增／替换文件，栗栗旧的五个姿态 SVG 保留为未引用的静态文件。`scripts/companion/place_frames.py` 可把生成的姿态图裁切为帧。尚未推送／合并，生产未核验。详见 `docs/GARYHUB_V2_3_0_2.md`。
