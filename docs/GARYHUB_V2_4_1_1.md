@@ -24,3 +24,9 @@
 `ROLLBACK.cmd` 恢复安装前 v2.4.1.0 应用和有效配置，保留当前用户记录与设置。`PUSH-TO-GITHUB.cmd` 使用独立 worktree 和审查分支，不强推、不自动合并 main。
 
 构建：`python scripts/updater/manage.py build --release 2.4.1.1 --output <ZIP绝对路径>`。验证范围见 [GARYHUB_V2_4_1_1_TESTS.md](GARYHUB_V2_4_1_1_TESTS.md)；适配器位于 `scripts/releases/v2.4.1.1/`。
+
+## 项目档案历史记录
+
+以下条目于 2026-11-17 从 `docs/PROJECT_CONTEXT.md` 原样移入，是写入当时的记录；其中“尚未推送／合并／部署”等状态描述以写入时为准，后续状态见项目档案的版本索引。
+
+- **v2.4.1.1（PR #44 已合并为 main `3b7f794`；2026-11-12 tools／calendar `/health` 返回 2.4.1.1，维护者手机截图确认公式已正常，安装输出与通知人数未收录；以下为交付时记录）** 基于 PR #43 的 main `289662f545488cea0f52bf9c38a4948985978b88`（树与 v2.4.1.0-r2 提交 `94e451c` 相同），独立分支 `update/garyhub-v2.4.1.1`；清单 `releases/2.4.1.1.json`，适配器 `scripts/releases/v2.4.1.1/`（baseline_adapter v2.4.1.0，安装器 v2.4.1.1-r1，严格要求实际 v2.4.1.0）。修复讲义答疑回答中的公式显示：KaTeX 把 `\text{}`／`\texttt{}` 渲染为 `class="mord text"` 的 span，伙伴面板气泡规则 `.msg .text{…white-space:pre-wrap;overflow-wrap:anywhere;padding…}` 与 `.tutoring .msg.bot .text{white-space:normal}` 等后代选择器命中了它们，公式被拆成一列一两个字符（维护者 2026-11-12 手机截图）。`companion/panel.css`（两份副本相同）的全部 10 条气泡规则改为子选择器 `.msg>.text`，并新增 `.tutoring .katex-display{max-width:100%;overflow-x:auto;overflow-y:hidden;padding:2px 0}` 让过宽公式在气泡内横向滚动。**以后给面板加样式时不要用后代 `.text` 等通用类名，KaTeX 会生成同名类**（适配器测试已覆盖）。其余变更只是版本引用（`?v=` 也是伙伴资源一天缓存的版本键）。`deploy.py` 以支持文件 `prior_0410.py` 载入 v2.4.1.0 适配器（再经 `prior_0404.py`、`prior_checks.py` 沿用全部核对与 curl 重试）。它移除了 v2.4.1.0 的私有档案预置钩子：新镜像 `FROM` 运行中的 v2.4.1.0 镜像，`/lab/developer-profile.json` 随镜像保留，包内不含私有文件，构建也不需要它。第 6 阶段另核对三个主机的 `panel.css` 与两个运行容器中的新规则，`panel.css` 资源哈希扩展到 garyhub.uk 与 calendar.garyhub.uk。隔离检查沿用十一组，站内通知一条 `tools`。无数据库、依赖、Caddy 或 Compose 变化。本地验证：实际回复渲染流程（marked + `installMath` + DOMPurify + KaTeX + `panel.css`）在浏览器中测量，375 px 下修复前独立公式高 369／236／99 px，修复后为单行；适配器 12 项（WSL）、共享更新器 37 通过／2 个 pwsh 跳过。2026-11-12 tools／calendar `/health` 返回 2.4.1.0。源码已准备／本地已验证，尚未推送、合并或部署。详见 GARYHUB_V2_4_1_1.md 与 _TESTS.md。

@@ -1,10 +1,13 @@
 /* GaryHub starfield: three parallax star layers, faint constellation lines near the pointer and
    occasional shooting stars. Pauses while the tab is hidden; draws one still frame for reduced motion.
-   <canvas data-cosmos="full|calm"> — calm uses fewer stars and no shooting stars. */
+   <canvas data-cosmos="full|calm"> — calm uses fewer stars and no shooting stars. The account setting can make it calmer or still. */
 (()=>{'use strict';
  const canvas=document.querySelector('canvas[data-cosmos]');if(!canvas||!canvas.getContext)return;
- const ctx=canvas.getContext('2d'),calm=canvas.dataset.cosmos==='calm';
- const reduce=window.matchMedia('(prefers-reduced-motion: reduce)');
+ // The account's starfield setting (hub-prefs.js, v2.4.1.4): calm = fewer stars and no meteors, still = one still frame.
+ const sky=()=>document.documentElement.dataset.ghSky;
+ const ctx=canvas.getContext('2d'),calm=canvas.dataset.cosmos==='calm'||sky()==='calm';
+ const media=window.matchMedia('(prefers-reduced-motion: reduce)');
+ const reduce={get matches(){return media.matches||sky()==='still';},addEventListener:(type,fn)=>media.addEventListener?.(type,fn)};
  const TINTS=['255,255,255','214,226,255','190,210,255','255,236,214','220,205,255'];
  const LAYERS=[{depth:.15,size:[.35,.9],share:.55},{depth:.4,size:[.6,1.3],share:.32},{depth:.85,size:[.9,1.9],share:.13}];
  let w=0,h=0,dpr=1,stars=[],front=[],meteors=[],frame=0,last=0,nextMeteor=0;

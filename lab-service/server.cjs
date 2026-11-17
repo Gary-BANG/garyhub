@@ -83,7 +83,7 @@ const server = http.createServer(async (req,res)=>{
     if(await academic(req,res,url))return;
     if(['/grades','/grades/','/study','/study/'].includes(url.pathname))url.pathname='/academic/index.html';
     url.pathname=decodeURIComponent(url.pathname);
-    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"2.4.1.3"});
+    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"2.4.1.4"});
     if(url.pathname.startsWith('/sub/')) {
       if(req.method!=='GET') return json(res,405,{message:'Method not allowed'});
       const sub=connections.subscription(url.pathname.slice(5));
@@ -102,7 +102,7 @@ const server = http.createServer(async (req,res)=>{
         return json(res,200,{allowed:true,gpa:p.gpa,rank:p.rank});
       }
       const profileRoute=/^\/api\/hub\/(?:profile-access|profile-unlock|profile-lock|admin\/profile-privacy|admin\/profile-revoke)$/.test(url.pathname);
-      const hubRoute=/^\/api\/hub\/(?:me|notifications(?:\/\d+\/read|\/(?:read-all|delete-all))?|admin\/users(?:\/\d+\/(?:academics|status|reset-password|deletion-preview|tier|stock-vip))?)$/.test(url.pathname);
+      const hubRoute=/^\/api\/hub\/(?:me|preferences|notifications(?:\/\d+\/read|\/(?:read-all|delete-all))?|admin\/users(?:\/\d+\/(?:academics|status|reset-password|deletion-preview|tier|stock-vip))?)$/.test(url.pathname);
       const registrationRoute=/^\/api\/admin\/register-requests(?:\/\d+\/(?:approve|reject))?$/.test(url.pathname);
       const totpRoute=/^\/api\/hub\/totp(?:\/codes|\/[0-9a-f-]{36}(?:\/reveal|\/grants(?:\/[1-9][0-9]*)?)?)?$/.test(url.pathname);
       if(hubRoute||registrationRoute||profileRoute||totpRoute){
@@ -216,7 +216,7 @@ const server = http.createServer(async (req,res)=>{
     if(!isHome&&/^\/developer(?:\/|$)/i.test(url.pathname))return json(res,404,{message:'Not found'});
     if(isHome&&url.pathname==='/developer'){res.writeHead(302,{Location:'/developer/'+url.search,'Cache-Control':'no-store'});return res.end();}
     // The homepage host serves its own page assets plus the companion bundle and the public tool catalogue it reads.
-    if(isHome&&!/^\/companion\/[\w.\/-]+$/.test(url.pathname)&&!['/','/index.html','/developer/','/developer/index.html','/developer/developer.css','/developer/developer.js','/home/site.css','/home/home.css','/home/cosmos.js','/home/site.js','/home/today.js','/developer/public-card.json','/brand.css','/hub-nav.js','/hub-search.js','/hub-search.css','/manifest.webmanifest','/favicon.svg','/icons/icon-192.png','/icons/icon-512.png','/icons/icon-maskable-512.png','/icons/apple-touch-icon.png','/tools-catalog.js','/hub-account.js','/auth-redirect.js','/hub-account.css','/profile-privacy.js','/profile-privacy.css','/login.html','/login.js','/password-reset.js','/password-reset.css','/hub.css','/ambient-music.js','/ambient-music.css','/ambient.mp3','/i18n/dictionary.js','/i18n/i18n.js','/i18n/i18n.css'].includes(url.pathname))return json(res,404,{message:'Not found'});
+    if(isHome&&!/^\/companion\/[\w.\/-]+$/.test(url.pathname)&&!['/','/index.html','/developer/','/developer/index.html','/developer/developer.css','/developer/developer.js','/home/site.css','/home/home.css','/home/cosmos.js','/home/site.js','/home/today.js','/developer/public-card.json','/hub-prefs.js','/brand.css','/hub-nav.js','/hub-search.js','/hub-search.css','/manifest.webmanifest','/favicon.svg','/icons/icon-192.png','/icons/icon-512.png','/icons/icon-maskable-512.png','/icons/apple-touch-icon.png','/tools-catalog.js','/hub-account.js','/auth-redirect.js','/hub-account.css','/profile-privacy.js','/profile-privacy.css','/login.html','/login.js','/password-reset.js','/password-reset.css','/hub.css','/ambient-music.js','/ambient-music.css','/ambient.mp3','/i18n/dictionary.js','/i18n/i18n.js','/i18n/i18n.css'].includes(url.pathname))return json(res,404,{message:'Not found'});
     let name=decodeURIComponent(url.pathname); if(name.endsWith('/')) name+='index.html';
     if(isHome&&name==='/index.html')name='/homepage.html';
     if(['/admin','/admin/','/admin/index.html'].includes(name))name='/admin.html';

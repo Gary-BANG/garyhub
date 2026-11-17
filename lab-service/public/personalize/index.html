@@ -2,27 +2,24 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>个性化 · GaryHub</title>
-  <link rel="stylesheet" href="/academic/style.css?v=2.4.1.3"><link rel="stylesheet" href="/personalize/settings.css"><link rel="stylesheet" href="/i18n/i18n.css">
-  <script src="/i18n/dictionary.js"></script><script src="/i18n/i18n.js"></script><script defer src="/personalize/settings.js"></script>
-<link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/brand.css?v=2.4.1.3"></head>
-<body>
-<header><a class="brand gh-brand" href="/"><svg class="gh-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="7" fill="currentColor"/><ellipse cx="16" cy="16" rx="14.5" ry="5.2" fill="none" stroke="currentColor" stroke-width="1.6" transform="rotate(-24 16 16)"/></svg><span>Gary <b>Hub</b></span></a><div class="header-actions"><a href="/study/">打开学习中心</a></div></header>
-<main class="preferences">
-  <h1>个性化</h1>
-  <div class="preferences-layout">
-    <nav aria-label="工具设置"><a href="#study" aria-current="page">学习中心</a></nav>
-    <section class="panel" id="study"><h2>学习中心</h2>
-      <form id="preferences"><fieldset disabled>
-        <label class="field">外观<select name="studyTheme"><option value="dark">墨夜</option><option value="light">纸白</option><option value="warm">暖纸</option></select></label>
-        <div class="grid2">
-          <label class="field">正文字号（px）<input name="fontSize" type="number" min="14" max="28" required></label>
-          <label class="field">标题字号（px）<input name="headingSize" type="number" min="20" max="54" required></label>
-        </div>
-        <div class="type-preview"><small>字号预览</small><h3>讲义标题</h3><p>正文将以这个大小显示。</p></div>
-        <button class="primary" type="submit">保存设置</button>
-      </fieldset></form><p id="message" role="status"></p>
-    </section>
-  </div>
-</main>
-</body></html>
+  <script src="/hub-prefs.js?v=2.4.1.4"></script>
+  <title>设置 · GaryHub</title>
+  <link rel="stylesheet" href="/hub.css"><link rel="stylesheet" href="/hub-account.css"><link rel="stylesheet" href="/i18n/i18n.css">
+  <script src="/i18n/dictionary.js"></script><script src="/i18n/i18n.js"></script>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/brand.css?v=2.4.1.4"><link rel="stylesheet" href="/hub-search.css?v=2.4.1.4"><link rel="stylesheet" href="/personalize/settings.css?v=2.4.1.4">
+</head>
+<body class="settings-page">
+  <canvas id="sky" aria-hidden="true"></canvas>
+  <nav aria-label="Main navigation" data-gh-header><a class="brand gh-brand" href="https://garyhub.uk"><svg class="gh-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="7" fill="currentColor"/><ellipse cx="16" cy="16" rx="14.5" ry="5.2" fill="none" stroke="currentColor" stroke-width="1.6" transform="rotate(-24 16 16)"/></svg><span>Gary <b>Hub</b></span></a>
+    <div class="nav-right" data-gh-menu data-gh-search-host><a href="https://tools.garyhub.uk">Tools</a><a href="https://calendar.garyhub.uk">Calendar</a><button class="theme" aria-label="切换日夜模式">◐</button></div>
+    <div data-hub-account data-scope="" data-required="true"></div>
+  </nav>
+  <main class="wrap settings" id="settings" data-i18n-ignore>
+    <p class="settings-loading">正在载入设置…</p>
+  </main>
+  <noscript><p class="wrap">设置页需要启用 JavaScript。 / Settings need JavaScript.</p></noscript>
+  <script src="/hub.js"></script><script src="/hub-account.js"></script><script src="/hub-nav.js?v=2.4.1.4"></script><script src="/hub-search.js?v=2.4.1.4"></script>
+  <script src="/personalize/settings.js?v=2.4.1.4"></script>
+</body>
+</html>

@@ -115,7 +115,7 @@
     if (!['grid','dock'].includes(value)) return;
     view=value;browser.dataset.view=view;pointer=null;resetIcons();
     for (const button of document.querySelectorAll('[data-view-button]')) button.setAttribute('aria-pressed',String(button.dataset.viewButton===view));
-    if (save) try {localStorage.setItem('garyhub.tools.view',view);} catch {}
+    if (save) {try {localStorage.setItem('garyhub.tools.view',view);} catch {} window.GaryHubPrefs?.save({'tools.view':view});}
     scroll.scrollLeft=0;dirty=true;arrows();
   }
   function language() {
@@ -188,6 +188,7 @@
   if(typeof ResizeObserver==='function')new ResizeObserver(resize).observe(scroll);
   document.addEventListener('garyhub:language',event=>{lang=event.detail.language==='en'?'en':'zh';language();});
   addEventListener('storage',event=>{if(event.key==='garyhub.tools.view')layout(event.newValue,false);});
+  document.addEventListener('garyhub:preferences',event=>{const value=event.detail?.prefs?.['tools.view'];if(value==='grid'||value==='dock')layout(value,false);});
   motion.addEventListener('change',()=>{descriptionAnimation?.cancel();descriptionAnimation=undefined;resetIcons();if(!motion.matches)animateIcons();});
   document.addEventListener('visibilitychange',()=>{pointer=null;resetIcons();});
   addEventListener('pagehide',()=>{clearTimeout(leaveTimer);resetIcons();descriptionAnimation?.cancel();});

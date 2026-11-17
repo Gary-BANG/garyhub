@@ -1,7 +1,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const A=require('./public/academic/core.js');
-const RELEASE='v2.4.1.3';
+const RELEASE='v2.4.1.4';
 const err=(status,message)=>Object.assign(Error(message),{status});
 function atomic(file,value){const tmp=file+'.'+crypto.randomUUID()+'.tmp';const fd=fs.openSync(tmp,'wx',0o600);try{fs.writeFileSync(fd,JSON.stringify(value));fs.fsyncSync(fd);}finally{fs.closeSync(fd);}fs.renameSync(tmp,file);}
 async function readBody(req,max=24*1024*1024){let size=0;const parts=[];for await(const p of req){size+=p.length;if(size>max)throw err(413,'上传内容过大');parts.push(p);}try{return JSON.parse(Buffer.concat(parts).toString());}catch{throw err(400,'请求格式无效');}}
@@ -41,10 +41,14 @@ function createAcademic({DATA,identity,validCsrf,calendar,json}){
  if(route==='preferences'&&['GET','PUT'].includes(req.method)){
   const current=store.read(user.id),s=current.state.settings;
   if(req.method==='GET'){
-   json(res,200,{accountId:user.id,revision:current.revision,studyTheme:s.studyTheme||s.theme,fontSize:s.fontSize,headingSize:s.headingSize??Math.round(s.fontSize*1.8)});return true;
+   json(res,200,{accountId:user.id,revision:current.revision,studyTheme:s.studyTheme||s.theme,fontSize:s.fontSize,headingSize:s.headingSize??Math.round(s.fontSize*1.8),lineHeight:s.lineHeight,readerWidth:s.readerWidth});return true;
   }
   if(!['dark','light','warm'].includes(input.studyTheme)||!Number.isInteger(input.fontSize)||!Number.isInteger(input.headingSize))throw err(400,'阅读偏好无效');
-  Object.assign(s,{studyTheme:input.studyTheme,fontSize:input.fontSize,headingSize:input.headingSize});
+  // v2.4.1.4: line height and reading width join the settings centre; earlier clients may still omit them.
+  const reading={};
+  if(input.lineHeight!==undefined){if(typeof input.lineHeight!=='number'||!(input.lineHeight>=1.4&&input.lineHeight<=2.5))throw err(400,'行距应在 1.4 到 2.5 之间');reading.lineHeight=Math.round(input.lineHeight*100)/100;}
+  if(input.readerWidth!==undefined){if(!Number.isInteger(input.readerWidth)||input.readerWidth<600||input.readerWidth>1400)throw err(400,'正文宽度应在 600 到 1400 之间');reading.readerWidth=input.readerWidth;}
+  Object.assign(s,{studyTheme:input.studyTheme,fontSize:input.fontSize,headingSize:input.headingSize},reading);
   const saved=store.save(user.id,{accountId:user.id,revision:input.revision,state:current.state});
   json(res,200,{revision:saved.revision});return true;
  }

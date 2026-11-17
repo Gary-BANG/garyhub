@@ -2,9 +2,9 @@
 
 GaryHub 是使用统一账号的个人工作空间，包含日历与私人记录、账本、待办、学习工具和服务器工具。仓库保存应用源码、脱敏文档与可复现更新器；正式服务通过经过验证的升级包部署，GitHub 合并不会自动更新服务器。
 
-**当前源码版本 v2.4.1.3。** 全站统一了 Gary Hub 标志、页头和按钮形状，手机上页头收成一行、导航进菜单，并有站点图标、可添加到主屏。登录后主页第一屏是“今日”面板（今日日程、未完成待办、在读讲义、未读通知）；页头可用 Ctrl/⌘+K 或 `/` 搜索工具、页面和自己的记录。登录页会说明登录后去哪里；图片局部消除、Markdown 预览、PDF 浅灰转换无需登录；开发者档案对未授权访客显示一张公开卡片。Calendar 新增只读日历订阅（ICS）和浏览器推送，记账页新增月度预算、六个月趋势与 CSV 导出，A 股行情新增到价提醒。
+**当前源码版本 v2.4.1.4。** 新增设置中心（右上角头像图标 → 设置）：外观（全站日夜主题、主页星空）、语言与时区、网站伙伴、学习中心阅读（新增行距与正文宽度）、记账默认币种与工具台布局都按账号保存，换设备也跟着走，每项改动立即保存。各页面的日夜按钮保留，切换后全站一起变化并同步到设置。v2.4.1.3 带来的统一页头、主页“今日”面板、全站搜索、免登录本地工具、日历订阅、浏览器推送、账本预算和 A 股到价提醒照旧。
 
-本版源码基于 PR #45（v2.4.1.2，main `2d19775`），源码已准备、本地验证，尚未推送／合并／部署。安装器 v2.4.1.3-r1 严格要求两服务运行 v2.4.1.2：2026-11-16 tools 与 calendar 的公开 `/health` 均返回 2.4.1.2，但 v2.4.1.2 的安装输出与通知人数未收录；已收到完整安装输出的最新版本仍为 v2.4.0.0（八阶段完成、8 个通知接收账号）。完整解压后双击 `RUN-UPDATE.cmd`，回滚用 `ROLLBACK.cmd`，源码审查分支同步用 `PUSH-TO-GITHUB.cmd`。构建：`python scripts/updater/manage.py build --release 2.4.1.3 --output <ZIP绝对路径>`（不需要私有档案；Windows 上在 `core.autocrlf=false` 的 LF worktree 中构建）。见[版本说明](docs/GARYHUB_V2_4_1_3.md)与[验证记录](docs/GARYHUB_V2_4_1_3_TESTS.md)；上一版见 [v2.4.1.2 说明](docs/GARYHUB_V2_4_1_2.md)。
+本版源码基于 PR #46（v2.4.1.3，main `5306dd9`），源码已准备、本地验证，尚未推送／合并／部署。安装器 v2.4.1.4-r1 严格要求两服务运行 v2.4.1.3：维护者 2026-11-17 报告 v2.4.1.3 已安装并推送，同日 tools 与 calendar 的 `/health` 均返回 2.4.1.3，但安装输出与通知人数未收录；已收到完整安装输出的最新版本仍为 v2.4.0.0（八阶段完成、8 个通知接收账号）。完整解压后双击 `RUN-UPDATE.cmd`，回滚用 `ROLLBACK.cmd`，源码审查分支同步用 `PUSH-TO-GITHUB.cmd`。构建：`python scripts/updater/manage.py build --release 2.4.1.4 --output <ZIP绝对路径>`（Windows 上在 `core.autocrlf=false` 的 LF worktree 中构建）。见[版本说明](docs/GARYHUB_V2_4_1_4.md)与[验证记录](docs/GARYHUB_V2_4_1_4_TESTS.md)；上一版见 [v2.4.1.3 说明](docs/GARYHUB_V2_4_1_3.md)。
 
 维护日期：2026-11-17（America/Chicago）。
 
@@ -15,7 +15,7 @@ GaryHub 是使用统一账号的个人工作空间，包含日历与私人记录
 | [GaryHub](https://garyhub.uk) | 星空主页与入口、登录后的“今日”面板、全站搜索、统一账号与站内通知 | `lab-service/public/homepage.html`、`lab-service/public/home/`、`calendar-app/` |
 | [开发者档案](https://garyhub.uk/developer/) | 按访问规则显示的开发者简介、教育背景、学业成绩、研究与项目、专业技能 | `lab-service/public/developer/`、`lab-service/homepage-privacy.cjs`、`calendar-app/profile-access.js` |
 | [Calendar](https://calendar.garyhub.uk) | 日历事项与只读订阅（ICS）、浏览器推送、日记、健康记录、私人账本与月度预算、固定开支、Todo、Research Dictionary、个人音乐库 | `calendar-app/` |
-| [Tools](https://tools.garyhub.uk) | 可搜索工具图标与 Dock；学习中心、成绩规划、Markdown Viewer、PDF 浅灰转换、图片局部消除、Reading、服务器监控、AI 日志及权限控制工具 | `lab-service/` |
+| [Tools](https://tools.garyhub.uk) | 可搜索工具图标与 Dock；设置中心（`/personalize/`）；学习中心、成绩规划、Markdown Viewer、PDF 浅灰转换、图片局部消除、Reading、服务器监控、AI 日志及权限控制工具 | `lab-service/` |
 | [ECE 470 Lab](https://lab.garyhub.uk/lab/) | 机器人学练习、题库导入、代码运行、个人进度与作业分发 | `lab-service/public/lab/` |
 | [外站链接](https://sites.garyhub.uk) | GaryHub 之外的公开网站（ECE 470 Motion Notes、光影手记摄影课程），粒子背景与悬停预览；链接在新标签页打开 | `lab-service/public/sites/` |
 
@@ -23,6 +23,7 @@ Calendar 使用 Node.js 20、Express 与 SQLite；Tools/Lab 使用 Node 原生 H
 
 ## 当前功能与使用边界
 
+- 设置中心（v2.4.1.4）：`tools.garyhub.uk/personalize/` 分六节，偏好存在 Calendar 的 `user_preferences`（`/api/hub/preferences`，固定取值、原子合并），时区仍是账号的 `users.timezone`，学习中心阅读设置仍存在学习中心自己的记录。共享 `hub-prefs.js` 在每个页面早期加载：统一日夜主题（`.garyhub.uk` 下 Cookie `garyhub_prefs`，页面 ◐ 按钮保留并保存到账号），登录后把账号偏好写入各页原有缓存，并把伙伴、语言、记账币种、工具台布局的改动保存回账号；访客只在浏览器保存。主页与开发者页固定星空深色。
 - 页头、搜索与今日（v2.4.1.3）：标志、页头、按钮形状来自两个服务里相同的 `brand.css`；≤760 px 时 `hub-nav.js` 把导航收进菜单。站点图标由 `scripts/branding/make_icons.py` 生成。主页“今日”读 `/api/hub/today`（Calendar 按账号时区汇总，Tools/Lab 补充学习中心在读讲义）。搜索面板 `hub-search.js` 在主页、开发者页、工具台和 Calendar 首页可用：工具与页面在浏览器内匹配，个人记录经 `/api/hub/search` 只查当前账号的日程、待办、日记、账本备注和科研词典（主页与工具台另含讲义标题）。
 - 免登录与公开卡（v2.4.1.3）：三个本地工具对访客开放，CSP 不变，学习中心讲义仍需登录。开发者页没有可见栏目时显示 `lab-service/public/developer/public-card.json` 的公开卡片（非私人文案，可直接修改），其余栏目照旧按访问规则返回。
 - 日历订阅、推送与提醒（v2.4.1.3）：Calendar“账号与提醒设置”中生成只读订阅地址（只存哈希，可重新生成或关闭）和为当前设备开启浏览器推送（iPhone／iPad 需先添加到主屏）。事项提醒按邮件提醒时间推送；A 股到价提醒（普通订阅 3 个、A 股 VIP 20 个，交易时段每分钟检查）触发后发站内通知并推送。记账页的月度预算按所选汇总币种折算，CSV 导出带 BOM 并防公式注入。

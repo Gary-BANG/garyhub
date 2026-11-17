@@ -58,3 +58,5 @@ main{position:relative;z-index:1}
  .nebula{animation:none}
  .button{transition:none}
 }
+/* v2.4.1.4: the account's "still" starfield stops every moving layer, like reduced motion. */
+html[data-gh-sky=still] .nebula,html[data-gh-sky=still] .orbit .planet,html[data-gh-sky=still] .eyebrow::before{animation:none}

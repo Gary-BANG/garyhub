@@ -30,7 +30,7 @@
     {zh: '记账', en: 'Ledger', url: 'https://calendar.garyhub.uk/ledger/', keys: 'ledger money expense budget 记账 账本 收支 预算'},
     {zh: '固定开支', en: 'Fixed expenses', url: 'https://calendar.garyhub.uk/ledger/fixed/', keys: 'fixed expenses subscription 固定开支 订阅'},
     {zh: '待办清单', en: 'To-do list', url: 'https://calendar.garyhub.uk/todos/', keys: 'todo todos 待办 清单'},
-    {zh: '个性化', en: 'Personalize', url: 'https://tools.garyhub.uk/personalize/', keys: 'personalize settings 个性化 设置 外观'},
+    {zh: '设置', en: 'Settings', url: 'https://tools.garyhub.uk/personalize/', keys: 'personalize settings preferences 个性化 设置 外观 主题 语言 时区 伙伴'},
     {zh: '外站与课程', en: 'Elsewhere', url: 'https://sites.garyhub.uk/', keys: 'elsewhere sites course 外站 课程'}
   ];
   const lang = () => window.GaryHubI18n?.language === 'en' ? 'en' : 'zh';
