@@ -71,3 +71,6 @@
 .tool-browser[data-input=touch] .tool-glyph {transform:none!important}
 @media (hover:none),(pointer:coarse) {.tool-short {font-size:10px}.tool-browser[data-view=dock] .tool-short {display:block}}
 @media (prefers-reduced-motion:reduce) {.dock-scroll {scroll-behavior:auto}.tool-glyph {transform:none!important}}
+/* v2.4.1.3: tools that work without signing in say so to guests. */
+.gh-guest li[data-guest] .tool-short::after{content:' · 免登录';color:var(--accent)}
+html.gh-guest[data-language=en] li[data-guest] .tool-short::after{content:' · No sign-in'}

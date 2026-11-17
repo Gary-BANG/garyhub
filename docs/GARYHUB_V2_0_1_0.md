@@ -33,3 +33,9 @@
 4. `PUSH-TO-GITHUB.cmd` 推送 `update/garyhub-v2.0.1.0` 审查分支，不强推、不自动合并 main。
 
 验证范围与限制见 [GARYHUB_V2_0_1_0_TESTS.md](GARYHUB_V2_0_1_0_TESTS.md)。
+
+## 项目档案历史记录
+
+以下条目于 2026-11-16 从 `docs/PROJECT_CONTEXT.md` 原样移入，是写入当时的记录；其中“尚未推送／合并／部署”等状态描述以写入时为准，后续状态见项目档案的版本索引。
+
+- **v2.0.1.0**：基础为 v2.0.0.0 `3a8f4f7060f2054ddd33cc994f1a7b4c63f62ddc`；清单 `releases/2.0.1.0.json`，适配器 `scripts/releases/v2.0.1.0/`（baseline_adapter v2.0.0.0），安装器 v2.0.1.0-r1，要求两服务实际运行 v2.0.0.0。新增栗栗、布丁（Step 1b 矢量姿态）与页芽、小航（Step 1c 设定图裁切 WebP 帧），`characters.js` 中 `kind:'frames'`；`tier` guest／member／subscriber 控制角色选择（访客米露，登录加栗栗，订阅／管理员五位），只是界面权益。`pet.js` 新增整张姿态渲染、`destroy()` 与共享聊天面板；`boot.js` 管理 `char` 偏好与权限回退；`server.cjs`（及 1.3.4.1 覆盖）新增 `.webp` MIME。PR #25 合并为 main `d21eecd`；2026-11-03 安装完成（8/8，8 个账号收到通知，两服务健康检查 2.0.1.0，线上 `characters.js` 与提交一致）。详见 `docs/GARYHUB_V2_0_1_0.md`。

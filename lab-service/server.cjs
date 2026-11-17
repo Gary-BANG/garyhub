@@ -48,13 +48,14 @@ async function validCsrf(req) {
 function storeUrl() {
   try {const configured=access.settings().storeUrl;const url=new URL(configured===undefined?process.env.ACCESS_STORE_URL:configured);return url.protocol==='https:'?url.href:null;} catch {return null;}
 }
-const mime={'.mp3':'audio/mpeg','.html':'text/html; charset=utf-8','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.wasm':'application/wasm','.png':'image/png','.webp':'image/webp','.svg':'image/svg+xml','.woff2':'font/woff2','.woff':'font/woff','.zip':'application/zip','.md':'text/plain; charset=utf-8'};
+const mime={'.mp3':'audio/mpeg','.html':'text/html; charset=utf-8','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.wasm':'application/wasm','.png':'image/png','.webp':'image/webp','.svg':'image/svg+xml','.woff2':'font/woff2','.woff':'font/woff','.zip':'application/zip','.md':'text/plain; charset=utf-8','.webmanifest':'application/manifest+json'};
 const academic = require('./academic.cjs').createAcademic({DATA,identity,validCsrf,calendar,json});
 const profileHandler=require("./homepage-privacy.cjs").createProfile({calendar,json});
 const cleanup=require('./user-cleanup.cjs').createCleanup({DATA,CALENDAR,access,identity,validCsrf,calendar,json,body,runtimeFile:process.env.ACCESS_RUNTIME_FILE||'/access-runtime/status.json'});
 const distribution=require('./lab-distribution.cjs').createDistribution({DATA,ROOT,identity,validCsrf,calendar,json,body});
 const monitor=require('./server-monitor.cjs').createMonitor({identity,calendar,json});
 const readingProxy=require('./reading-proxy.cjs').createReadingProxy({calendar,json});
+const hubExtras=require('./hub-extras.cjs').createExtras({DATA,identity,calendar,json});
 const server = http.createServer(async (req,res)=>{
   res.setHeader('X-Content-Type-Options','nosniff');
   res.setHeader('X-Frame-Options','DENY');
@@ -67,12 +68,13 @@ const server = http.createServer(async (req,res)=>{
     // The Elsewhere host only serves its own static page; other hosts never expose /sites/.
     if(host==='sites.garyhub.uk'){
       const page=url.pathname==='/'?'/index.html':url.pathname;
-      if(!['GET','HEAD'].includes(req.method)||!/^\/(index\.html|sites\.(css|js)|thumbs\/[a-z0-9-]+\.webp)$/.test(page))return json(res,404,{message:'Not found'});
+      if(!['GET','HEAD'].includes(req.method)||!/^\/(index\.html|sites\.(css|js)|favicon\.svg|thumbs\/[a-z0-9-]+\.webp)$/.test(page))return json(res,404,{message:'Not found'});
       res.setHeader('Content-Security-Policy',"default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'");
       url.pathname='/sites'+page;
     }else if(/^\/sites(\/|$)/i.test(url.pathname))return json(res,404,{message:'Not found'});
     if(['/login','/login/','/login.html'].includes(url.pathname))return redirectLogin(url.searchParams.get('next')||(host==='garyhub.uk'?'/':'/lab/'));
 
+    if(await hubExtras(req,res,url))return;
     if(await readingProxy(req,res,url))return;
     if(await monitor(req,res,url))return;
     if(await profileHandler(req,res,url))return;
@@ -81,7 +83,7 @@ const server = http.createServer(async (req,res)=>{
     if(await academic(req,res,url))return;
     if(['/grades','/grades/','/study','/study/'].includes(url.pathname))url.pathname='/academic/index.html';
     url.pathname=decodeURIComponent(url.pathname);
-    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"2.4.1.2"});
+    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"2.4.1.3"});
     if(url.pathname.startsWith('/sub/')) {
       if(req.method!=='GET') return json(res,405,{message:'Method not allowed'});
       const sub=connections.subscription(url.pathname.slice(5));
@@ -188,7 +190,7 @@ const server = http.createServer(async (req,res)=>{
     }
     if(!['GET','HEAD'].includes(req.method)) return json(res,405,{message:'Method not allowed'});
     if(/^\/useful\/(image-eraser|markdown-viewer|pdf-gray)(?:\/|\/index.html)?$/.test(url.pathname)){
-      if(!await identity(req))return redirectLogin(url.pathname+url.search);
+      // These three tools work on files inside the browser and store nothing, so guests may use them (v2.4.1.3).
       if(!url.pathname.endsWith('/')&&!url.pathname.endsWith('.html')){res.writeHead(302,{Location:url.pathname+'/'});return res.end();}
       res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; worker-src 'self' blob:; connect-src 'self'; media-src 'self' https://*.r2.cloudflarestorage.com; object-src 'none'; base-uri 'none'");
     }
@@ -214,7 +216,7 @@ const server = http.createServer(async (req,res)=>{
     if(!isHome&&/^\/developer(?:\/|$)/i.test(url.pathname))return json(res,404,{message:'Not found'});
     if(isHome&&url.pathname==='/developer'){res.writeHead(302,{Location:'/developer/'+url.search,'Cache-Control':'no-store'});return res.end();}
     // The homepage host serves its own page assets plus the companion bundle and the public tool catalogue it reads.
-    if(isHome&&!/^\/companion\/[\w.\/-]+$/.test(url.pathname)&&!['/','/index.html','/developer/','/developer/index.html','/developer/developer.css','/developer/developer.js','/home/site.css','/home/home.css','/home/cosmos.js','/home/site.js','/tools-catalog.js','/hub-account.js','/auth-redirect.js','/hub-account.css','/profile-privacy.js','/profile-privacy.css','/login.html','/login.js','/password-reset.js','/password-reset.css','/hub.css','/ambient-music.js','/ambient-music.css','/ambient.mp3','/i18n/dictionary.js','/i18n/i18n.js','/i18n/i18n.css'].includes(url.pathname))return json(res,404,{message:'Not found'});
+    if(isHome&&!/^\/companion\/[\w.\/-]+$/.test(url.pathname)&&!['/','/index.html','/developer/','/developer/index.html','/developer/developer.css','/developer/developer.js','/home/site.css','/home/home.css','/home/cosmos.js','/home/site.js','/home/today.js','/developer/public-card.json','/brand.css','/hub-nav.js','/hub-search.js','/hub-search.css','/manifest.webmanifest','/favicon.svg','/icons/icon-192.png','/icons/icon-512.png','/icons/icon-maskable-512.png','/icons/apple-touch-icon.png','/tools-catalog.js','/hub-account.js','/auth-redirect.js','/hub-account.css','/profile-privacy.js','/profile-privacy.css','/login.html','/login.js','/password-reset.js','/password-reset.css','/hub.css','/ambient-music.js','/ambient-music.css','/ambient.mp3','/i18n/dictionary.js','/i18n/i18n.js','/i18n/i18n.css'].includes(url.pathname))return json(res,404,{message:'Not found'});
     let name=decodeURIComponent(url.pathname); if(name.endsWith('/')) name+='index.html';
     if(isHome&&name==='/index.html')name='/homepage.html';
     if(['/admin','/admin/','/admin/index.html'].includes(name))name='/admin.html';

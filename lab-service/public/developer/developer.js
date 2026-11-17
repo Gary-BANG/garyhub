@@ -13,6 +13,7 @@
   denied:{zh:'你无权访问',en:'You do not have access'},deniedNote:{zh:'开发者档案仅向获得授权的访问者开放。',en:'The developer profile is available to authorized visitors only.'},
   codeNote:{zh:'如已获得访问码，可在此输入。',en:'If you have an access code, enter it here.'},code:{zh:'输入访问码',en:'Enter access code'},
   failed:{zh:'暂时无法加载开发者档案，请稍后刷新页面。',en:'The developer profile could not be loaded. Please refresh later.'},
+  restNote:{zh:'教育背景、项目经历与技能仅向获得授权的访问者开放。',en:'Education, projects and skills are shared with authorized visitors only.'},
   until:{zh:'访问授权有效至 ',en:'Access granted until '},previewAs:{zh:'预览身份：',en:'Previewing as: '},
   guest:{zh:'路人',en:'Guest'},member:{zh:'普通用户',en:'Member'},subscriber:{zh:'订阅用户',en:'Subscriber'}
  };
@@ -70,11 +71,18 @@
   if(access.hasCode&&!preview){card.append(el('p','',t('codeNote')));const b=el('button','chip primary',t('code'));b.type='button';b.onclick=openDialog;card.append(b);}
   return card;
  }
+ // A visitor without access still sees the public card (static, non-private text) and how to get the rest.
+ let card=null;
+ function rest(access){
+  const box=el('section','dev-card dev-rest');box.append(el('p','',t('restNote')));
+  if(access.hasCode&&!preview){const b=el('button','chip primary',t('code'));b.type='button';b.onclick=openDialog;box.append(b);}
+  return box;
+ }
  function render(){
   if(!data)return;
   const {access,profile}=data,frag=document.createDocumentFragment();
   const present=ORDER.filter(k=>profile[k]);
-  if(!profile.identity&&!present.length)frag.append(denied(access));
+  if(!profile.identity&&!present.length)frag.append(...(card?[hero(card),rest(access)]:[denied(access)]));
   else{
    if(profile.identity)frag.append(hero(profile.identity));
    else{const head=el('section','dev-card dev-plain');head.append(el('span','dev-kicker','Developer Profile'),el('h1','',t('plain')));frag.append(head);}
@@ -112,5 +120,6 @@
  addEventListener('focus',()=>refresh());addEventListener('pageshow',()=>refresh());setInterval(()=>refresh(),60000);
  document.addEventListener('garyhub:language',render);
  document.addEventListener('garyhub:identity',()=>refresh(true));
+ fetch('/developer/public-card.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(v=>{if(v&&pick(v.name)){card=v;render();}}).catch(()=>{});
  refresh(true);
 })();

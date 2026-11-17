@@ -1,5 +1,6 @@
 /* Homepage hero, orbit and entry cards. */
-.hero{position:relative;min-height:calc(100vh - 72px);display:flex;align-items:center;padding:72px 0 56px}
+/* The hero leaves room for the entry cards (and, when signed in, today's summary) on the first screen. */
+.hero{position:relative;min-height:min(62vh,580px);display:flex;align-items:center;padding:56px 0 36px}
 .hero-inner{position:relative;display:grid;justify-items:center;text-align:center}
 .orbit{position:absolute;left:50%;top:50%;width:min(860px,120vw);aspect-ratio:2.6/1;transform:translate(-50%,-56%) rotate(-12deg);pointer-events:none}
 .orbit::before,.orbit::after{content:"";position:absolute;inset:0;border-radius:50%;border:1px solid #7aa7ff33;box-shadow:0 0 40px #7aa7ff12 inset}
@@ -12,15 +13,42 @@
 .eyebrow{position:relative;display:inline-flex;align-items:center;gap:10px;margin:0 0 22px;padding:6px 14px;border:1px solid #7aa7ff40;border-radius:999px;background:#0b1233a6;color:#b9c8ff;font-size:13px;letter-spacing:3px;text-transform:uppercase;font-weight:700}
 .eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent-3);box-shadow:0 0 10px var(--accent-3);animation:pulse 2.4s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.35}}
-.title{position:relative;margin:0;font-size:clamp(58px,11vw,148px);line-height:1;letter-spacing:-.04em;font-weight:800;background:linear-gradient(180deg,#ffffff 15%,#b9c8ff 60%,#7d8fd6 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 28px #6f8cff40)}
+.title{position:relative;margin:0;font-size:clamp(54px,9vw,120px);line-height:1;letter-spacing:-.04em;font-weight:800;background:linear-gradient(180deg,#ffffff 15%,#b9c8ff 60%,#7d8fd6 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 28px #6f8cff40)}
 .title em{font-style:normal;background:linear-gradient(100deg,#7aa7ff,#b48cff 55%,#5ce1e6);-webkit-background-clip:text;background-clip:text;color:transparent}
 .tagline{position:relative;max-width:640px;text-wrap:balance;margin:26px 0 0;color:#c7d0ee;font-size:clamp(17px,2.2vw,21px);line-height:1.75}
 .hero .actions{position:relative;display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin-top:36px}
-.scroll-cue{position:absolute;left:50%;bottom:22px;width:24px;height:38px;margin-left:-12px;border:1.5px solid #ffffff40;border-radius:14px}
-.scroll-cue::after{content:"";position:absolute;left:50%;top:8px;width:3px;height:8px;margin-left:-1.5px;border-radius:2px;background:#cfd8ff;animation:cue 1.8s ease-in-out infinite}
-@keyframes cue{0%{opacity:0;transform:translateY(-3px)}40%{opacity:1}100%{opacity:0;transform:translateY(12px)}}
+
+/* Signed in: the welcome shrinks to a title so today's summary and the entries share the first screen. */
+.gh-signed-in .hero{min-height:0;padding:30px 0 6px}
+.gh-signed-in .orbit,.gh-signed-in .eyebrow,.gh-signed-in .tagline,.gh-signed-in .hero .actions{display:none}
+.gh-signed-in .title{font-size:clamp(34px,5vw,56px)}
+
+.today{padding:18px 0 6px}
+.today[hidden]{display:none}
+.today>*{width:min(1180px,calc(100% - 48px));margin-left:auto;margin-right:auto}
+.today-top{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+.today-top h2{margin:0;font-size:clamp(22px,2.4vw,28px);letter-spacing:-.02em}
+.today-date{margin-left:12px;font-size:15px;font-weight:500;color:var(--muted)}
+.today-hello{margin:0;color:var(--muted)}
+.today-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.today-card{--glow:#7aa7ff;display:flex;flex-direction:column;gap:8px;min-height:164px;padding:18px 18px 14px;border-radius:16px;background:linear-gradient(160deg,#121b42cc,#0a1028cc);border:1px solid #ffffff1a}
+.today-card.today-schedule{--glow:#5ce1e6}.today-card.today-todos{--glow:#7aa7ff}.today-card.today-study{--glow:#b48cff}.today-card.today-notices{--glow:#ffcf8a}
+.today-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.today-label{font-size:13px;font-weight:700;letter-spacing:1px;color:var(--glow)}
+.today-count{font-size:26px;line-height:1;letter-spacing:-.02em}
+.today-lines{margin:0;padding:0;list-style:none;display:grid;gap:5px}
+.today-lines li{display:flex;align-items:baseline;justify-content:space-between;gap:10px;min-width:0;font-size:14px}
+.today-line{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.today-lines small{flex:none;font-size:12px;color:var(--faint)}
+.today-empty{margin:0;font-size:14px;color:var(--muted)}
+.today-wide{grid-column:1/-1}
+.today-go{margin-top:auto;align-self:flex-start;padding:0;border:0;background:none;color:var(--glow);font:inherit;font-size:13px;font-weight:650;text-decoration:none;text-align:left;cursor:pointer}
+.today-go:hover{text-decoration:underline}
+.today-go::after{content:" →"}
 
 .portals{padding:24px 0 96px}
+.gh-signed-in .portals{padding-top:22px}
+.gh-signed-in .portal{min-height:0;padding:20px 22px 18px}
 .portals-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:26px}
 .portals-head h2{margin:0;font-size:clamp(26px,3vw,34px);letter-spacing:-.02em}
 .portals-head p{margin:0;color:var(--muted)}
@@ -42,19 +70,22 @@
 html[data-language=en] .portal .en{display:none}
 .portal.tools{--glow:#7aa7ff}.portal.calendar{--glow:#5ce1e6}.portal.study{--glow:#b48cff}.portal.sites{--glow:#ffcf8a}
 
-@media(max-width:1020px){.portal-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:1020px){.portal-grid,.today-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){
- .hero{min-height:calc(100svh - 96px);padding:56px 0 64px}
+ .hero{min-height:0;padding:44px 0 28px}
+ .today>*{width:calc(100% - 32px)}
+ .today-grid{gap:10px}
+ .today-card{min-height:0;padding:14px}
+ .today-count{font-size:22px}
  .orbit{width:150vw;transform:translate(-50%,-60%) rotate(-12deg)}
  .eyebrow{letter-spacing:2px;font-size:12px}
  .portals{padding-bottom:72px}
  .portals-head{flex-direction:column;align-items:flex-start;gap:6px}
  .portal-grid{grid-template-columns:1fr;gap:14px}
  .portal{min-height:0}
- .scroll-cue{display:none}
 }
 @media(prefers-reduced-motion:reduce){
- .orbit .planet,.eyebrow::before,.scroll-cue::after{animation:none}
+ .orbit .planet,.eyebrow::before{animation:none}
  .portal,.portal::before,.portal::after{transition:none}
  .portal:hover,.portal:focus-visible{transform:none}
 }

@@ -25,9 +25,8 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--accent-3);outline-o
 /* Header */
 .site-header{position:sticky;top:0;z-index:20;background:linear-gradient(#03050de6,#03050d99);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:72px}
-.brand{display:inline-flex;align-items:center;gap:10px;text-decoration:none;font-weight:800;font-size:20px;letter-spacing:-.3px}
-.brand-mark{width:26px;height:26px;flex:none}
-.brand span{background:linear-gradient(90deg,var(--accent),var(--accent-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+/* The logo itself comes from /brand.css, shared with every other GaryHub page. */
+:root{--gh-surface:#111a3df5}
 .site-header nav{display:flex;align-items:center;gap:4px;margin-left:auto}
 .site-header nav>a,.trigger{display:block;padding:10px 14px;text-decoration:none;background:none;border:0;color:var(--muted);cursor:pointer;font-weight:600;border-radius:8px;transition:color .2s,background .2s}
 .site-header nav>a:hover,.trigger:hover,.trigger[aria-expanded=true],.site-header nav>a[aria-current=page]{color:var(--ink);background:#ffffff12}
@@ -51,13 +50,8 @@ main{position:relative;z-index:1}
 
 @media(max-width:760px){
  .wrap{width:calc(100% - 32px)}
- .bar{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 12px;padding:10px 0;min-height:0}
- .brand{grid-column:1;grid-row:1}
- .bar>[data-hub-account]{grid-column:2;grid-row:1}
- .site-header nav{grid-column:1/-1;grid-row:2;width:100%;margin-left:0;justify-content:space-between;gap:0;flex-wrap:nowrap}
- .site-header nav>a,.trigger{font-size:14px;padding:8px 7px;white-space:nowrap}
- .site-header .gh-language-switch{flex:none;margin:0;padding:5px 10px;font-size:13px}
- .panel{position:fixed;top:auto;left:16px;right:16px;width:auto;max-height:65vh;overflow:auto}
+ /* The navigation folds into the menu button here; /brand.css lays out that sheet. */
+ .site-header .gh-language-switch{flex:none;padding:5px 12px;font-size:13px}
 }
 @media(prefers-reduced-motion:reduce){
  html{scroll-behavior:auto}

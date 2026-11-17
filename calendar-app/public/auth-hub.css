@@ -6,3 +6,4 @@ textarea,select{font:inherit;width:100%;padding:12px 14px;border:1px solid var(-
 .auth-links>.password-recovery-trigger{width:auto;flex:0 0 auto;min-width:0;white-space:nowrap}
 
 .auth-links>.password-recovery-trigger{display:inline-flex!important;margin:0!important;padding:6px 0!important;font:inherit!important;font-size:13px!important;line-height:1.5!important;text-decoration:none!important;min-height:44px;align-self:center}
+.login-reason{margin:14px 0 0;padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)!important;font-size:14px!important}

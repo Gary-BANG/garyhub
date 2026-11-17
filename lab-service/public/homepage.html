@@ -5,11 +5,11 @@
 <title>Gary Hub</title>
 <meta name="description" content="Gary Hub — a personal digital space for tools, calendars, study and records.">
 <meta name="theme-color" content="#03050d">
-<link rel="stylesheet" href="/home/site.css"><link rel="stylesheet" href="/home/home.css"><link rel="stylesheet" href="/hub-account.css"><script src="/i18n/dictionary.js"></script><script src="/i18n/i18n.js"></script><link rel="stylesheet" href="/i18n/i18n.css"></head>
+<link rel="stylesheet" href="/home/site.css"><link rel="stylesheet" href="/home/home.css"><link rel="stylesheet" href="/hub-account.css"><script src="/i18n/dictionary.js"></script><script src="/i18n/i18n.js"></script><link rel="stylesheet" href="/i18n/i18n.css"><link rel="stylesheet" href="/brand.css?v=2.4.1.3"><link rel="stylesheet" href="/hub-search.css?v=2.4.1.3"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><script src="/home/today.js?v=2.4.1.3"></script></head>
 <body class="home">
 <a class="skip" href="#main">Skip to content</a>
 <div class="sky" aria-hidden="true"><div class="nebula n1"></div><div class="nebula n2"></div><div class="nebula n3"></div><canvas data-cosmos="full"></canvas></div>
-<header class="site-header"><div class="wrap bar"><a class="brand" href="/"><svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="bm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7aa7ff"/><stop offset="1" stop-color="#b48cff"/></linearGradient></defs><circle cx="16" cy="16" r="7" fill="url(#bm)"/><ellipse cx="16" cy="16" rx="14.5" ry="5.2" fill="none" stroke="url(#bm)" stroke-width="1.6" transform="rotate(-24 16 16)"/></svg><span class="brand-name">Gary <span>Hub</span></span></a><nav aria-label="Main navigation">
+<header class="site-header" data-gh-header><div class="wrap bar"><a class="brand gh-brand" href="/"><svg class="gh-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="7" fill="currentColor"/><ellipse cx="16" cy="16" rx="14.5" ry="5.2" fill="none" stroke="currentColor" stroke-width="1.6" transform="rotate(-24 16 16)"/></svg><span>Gary <b>Hub</b></span></a><nav aria-label="Main navigation" data-gh-menu data-gh-search-host>
 <a href="/" aria-current="page">Home</a>
 <a href="https://tools.garyhub.uk">Tools ↗</a>
 <a href="https://calendar.garyhub.uk">Calendar</a>
@@ -25,7 +25,8 @@
 <h1 class="title" data-i18n-ignore>Gary <em>Hub</em></h1>
 <p class="tagline">工具、日程、学习与记录，汇聚于同一片星空。<br>一个账号，连接所有日常所需。</p>
 <div class="actions"><a class="button primary" href="https://tools.garyhub.uk">进入工具台</a><a class="button" href="#portals">浏览全部入口</a></div>
-</div><span class="scroll-cue" aria-hidden="true"></span></section>
+</div></section>
+<section class="today" id="today" aria-labelledby="today-title" data-i18n-ignore hidden></section>
 <section class="portals" id="portals" aria-labelledby="portals-title"><div class="wrap">
 <div class="portals-head"><div><span class="section-tag" data-i18n-ignore>Explore</span><h2 id="portals-title">从这里出发</h2></div><p>选择一个入口，开始今天的工作与学习。</p></div>
 <div class="portal-grid">
@@ -36,4 +37,4 @@
 </div></div></section>
 </main>
 <footer class="site-footer"><div class="wrap foot"><span data-i18n-ignore>© 2026 Gary Hub</span><span>学习 · 实践 · 记录</span></div></footer>
-<script src="/home/cosmos.js"></script><script src="/home/site.js"></script><script src="/hub-account.js"></script><script src="/companion/boot.js?v=2.4.1.2" defer data-companion="open"></script></body></html>
+<script src="/home/cosmos.js"></script><script src="/home/site.js"></script><script src="/hub-account.js"></script><script src="/hub-nav.js?v=2.4.1.3"></script><script src="/hub-search.js?v=2.4.1.3"></script><script src="/companion/boot.js?v=2.4.1.3" defer data-companion="open"></script></body></html>

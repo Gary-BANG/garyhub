@@ -29,3 +29,10 @@
 - `tools-dock.js`：身份事件每次核对管理员角色；退出、降级或身份失效即隐藏 Reading 说明入口。
 - `hub_releases` 发布记录不随通知清理，避免用户删除/通知到期后重跑旧版本再次发通知。
 - 本版适配器：新建清单与小型配置，逐个复用既有 Windows 入口与 HTTPS 校验，使用共享 `build_overlay.py`、`deploy_runtime.py`。资源校验器按主机选择 Calendar/Tools 响应。
+
+## 项目档案历史记录
+
+以下条目于 2026-11-16 从 `docs/PROJECT_CONTEXT.md` 原样移入，是写入当时的记录；其中“尚未推送／合并／部署”等状态描述以写入时为准，后续状态见项目档案的版本索引。
+
+- **v2.3.0.4 状态更新**：PR #32 已合并到上述 main，代码树与上一交付一致；未取得其生产安装输出，不推定已部署。以下保留该版本交付时记录。
+- **v2.3.0.4（上一版本，交付时记录）**：基础为 main `c9096802a1e8dd3bba5f56a3bc38ed617df331f3`（PR #31 已合并 v2.3.0.3）；分支 `update/garyhub-v2.3.0.4`，清单 `releases/2.3.0.4.json`，适配器 `scripts/releases/v2.3.0.4/`，安装器 v2.3.0.4-r1，严格要求两服务运行 v2.3.0.3。三个管理员工具图标分开；Reading 说明入口只给管理员。新增 `notification-policy.js`：普通通知 14 天到期，启动/每分钟/读取列表清理，API 同时过滤到期项；`account`/`security`/`required` 保留。主页、Calendar、Access 提供按账号和分类的批量已读/删除（含未加载页），`userId` 防切换账号误操作，保持 CSRF/Origin 校验。发布台账 `hub_releases` 不清除；无数据库结构变化、新生产依赖或 host hooks。两种能力组合保持原有差异；共享更新器不改动，隔离检查新增 notifications-http，共 8 项。源码已准备、本地相关测试通过；尚未推送/合并/生产部署。浏览器视觉验收、Windows 双击及生产 HTTPS 待现场。详见 `docs/GARYHUB_V2_3_0_4.md` 和 `_TESTS.md`。v2.3.0.3 的历史“待合并”状态由上述 PR #31 证据更新；其生产证据仍为最新生产记录。

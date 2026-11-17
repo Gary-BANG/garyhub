@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f3eee5"><title>A 股行情 · GaryHub</title>
-  <link rel="stylesheet" href="/stocks/style.css?v=2.4.1.2">
-  <script defer src="/stocks/charts.js?v=2.4.1.2"></script><script defer src="/stocks/app.js?v=2.4.1.2"></script>
-</head>
+  <link rel="stylesheet" href="/stocks/style.css?v=2.4.1.3">
+  <script defer src="/stocks/charts.js?v=2.4.1.3"></script><script defer src="/stocks/app.js?v=2.4.1.3"></script><script defer src="/stocks/alerts.js?v=2.4.1.3"></script>
+<link rel="stylesheet" href="/brand.css?v=2.4.1.3"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"></head>
 <body>
   <a class="skip" href="#workspace">跳到行情内容</a>
   <header class="topbar">
-    <a class="brand" href="https://tools.garyhub.uk/" aria-label="GaryHub Tools"><svg viewBox="0 0 28 28" aria-hidden="true"><path d="M4 21V7h7M7 18l6-6 4 3 7-9M18 6h6v6"/></svg><span>GaryHub<span class="brand-dot">.</span></span></a>
+    <a class="brand gh-brand" href="https://tools.garyhub.uk/" aria-label="GaryHub Tools"><svg class="gh-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="7" fill="currentColor"/><ellipse cx="16" cy="16" rx="14.5" ry="5.2" fill="none" stroke="currentColor" stroke-width="1.6" transform="rotate(-24 16 16)"/></svg><span>Gary <b>Hub</b></span></a>
     <div class="product-title"><span>A 股行情</span><small>A-share market</small></div>
     <div class="topbar-actions"><span id="vip" class="vip" hidden>A 股 VIP</span><button id="theme" class="theme-button" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.2A8.5 8.5 0 0 1 8.8 4a8.5 8.5 0 1 0 11.2 11.2Z"/></svg><span id="theme-label">夜间</span></button></div>
   </header>
@@ -41,6 +41,7 @@
           <details id="book-panel" class="analysis-panel"><summary>五档盘口 <small>ORDER BOOK</small></summary><div id="book-body" class="panel-body"></div></details>
           <details id="history-panel" class="analysis-panel full-panel"><summary>近月日 K、均线与成交量 <small>OHLC · MA · VOL</small></summary><div id="history-body" class="panel-body"></div></details>
           <details id="finance-panel" class="analysis-panel full-panel"><summary>公司财务 <small>FINANCIALS</small></summary><div id="finance-body" class="panel-body"></div></details>
+          <details id="alert-panel" class="analysis-panel full-panel"><summary>到价提醒 <small>PRICE ALERTS</small></summary><div id="alert-body" class="panel-body"></div></details>
         </div>
       </section>
       <p id="notice" class="notice" role="status" aria-live="polite"></p><footer class="workspace-footer"><span>GaryHub · A 股行情</span><span>数据来源：腾讯行情 / 东方财富</span></footer>

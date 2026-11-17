@@ -13,6 +13,7 @@ async function migrateLedger(db){
  await db.run('CREATE INDEX IF NOT EXISTS idx_ledger_user_date ON ledger_entries(user_id,currency,date)');
  await db.run('CREATE INDEX IF NOT EXISTS idx_ledger_refund ON ledger_entries(refund_of)');
  await require('./fixed-expenses').migrateFixedExpenses(db);
+ await require('./ledger-budget').migrateBudgets(db);
 }
 function registerLedger(app,{requireLogin,db=connection(),fx=createFx({dataDir:require('./db').dataDir})}){
  // Dedicated connection + serialized transactions keep refund checks atomic, without sharing transactions with Calendar.
@@ -75,6 +76,7 @@ function registerLedger(app,{requireLogin,db=connection(),fx=createFx({dataDir:r
   const uid=req.session.user.id;await transaction(async()=>{const old=await fetchEntry(uid,req.params.id);if(!old)fail('记录不存在',404);if(req.body.revision!==old.revision)fail('记录已变化，请刷新后重试',409);const children=await db.get('SELECT COUNT(*) AS n FROM ledger_entries WHERE user_id=? AND refund_of=?',[uid,old.id]);if(children.n)fail('请先删除或取消关联此消费的退款');await db.run('DELETE FROM ledger_entries WHERE user_id=? AND id=?',[uid,old.id]);});res.json({ok:true});
  }));
  const createFixed=require('./fixed-expenses').registerFixedExpenses(app,{db,route,categories,fx,transaction,output,fetchEntry,validate,money,date});
+ require('./ledger-budget').registerBudgets(app,{db,route,categories,fx,money,date});
  return {categories, create(req,body,fixed){
    const task=queue.then(()=>fixed?createFixed(req,body):createEntry(req,body));
    queue=task.catch(()=>{});return task;

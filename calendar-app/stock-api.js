@@ -32,7 +32,7 @@ function register(app, db, provider = market()) {
     req.stockUser = user.id;
     next();
   }));
-  for (const [route,file] of [['/stocks/','index.html'],['/stocks/app.js','app.js'],['/stocks/style.css','style.css'],['/stocks/charts.js','charts.js']])
+  for (const [route,file] of [['/stocks/','index.html'],['/stocks/app.js','app.js'],['/stocks/style.css','style.css'],['/stocks/charts.js','charts.js'],['/stocks/alerts.js','alerts.js']])
     app.get(route,(req,res)=>res.sendFile(path.join(__dirname,'stocks',file),{cacheControl:false}));
   app.use('/api/stocks',rateLimit(180,60_000));
   app.get('/api/stocks/status',wrap(async(req,res)=>{
