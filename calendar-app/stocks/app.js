@@ -240,6 +240,7 @@ function show(symbol,name){
   el('stock-code').textContent=marketName(symbol)+' · '+symbol.slice(2);
   el('quote-time').textContent='';el('snapshot').textContent='正在读取行情…';
   renderWatchControls();
+  document.dispatchEvent(new CustomEvent('stocks:open',{detail:{symbol,name:name||'',accountId:state?.accountId}}));
   if(matchMedia('(max-width:760px)').matches)setDrawer('closed');
   el('book-panel').open=true;el('minute-panel').open=true;
   el('detail').scrollIntoView({block:'start'});

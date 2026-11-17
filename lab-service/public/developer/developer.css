@@ -56,6 +56,8 @@
 .dev-denied h1{margin:6px 0 0;font-size:30px}
 .dev-denied p{margin:0;color:var(--muted)}
 .dev-denied .chip{margin-top:10px}
+.dev-rest{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:18px;padding:22px 28px}
+.dev-rest p{margin:0;color:var(--muted)}
 
 #devDialog{width:min(440px,calc(100% - 32px));padding:30px;border:1px solid #ffffff2e;border-radius:18px;color:var(--ink);background:#0d1430;box-shadow:0 30px 80px #000b;font:15px/1.7 system-ui,-apple-system,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif}
 #devDialog::backdrop{background:#02040ccc;backdrop-filter:blur(4px)}

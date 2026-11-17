@@ -1,0 +1,63 @@
+/* GaryHub shared brand (v2.4.1.3): one logo, one header rhythm and one control shape on every theme.
+   Colours stay with each page (--ink, --accent, --line, --paper); this file sets the mark, sizes, radii and the phone menu.
+   Load it after the page's own stylesheets. */
+:root{--gh-header:64px;--gh-pill:999px;--gh-card:16px;--gh-control:10px}
+
+/* Logo: planet mark and wordmark, tinted by the page's accent. */
+a.brand.gh-brand{display:inline-flex;align-items:center;gap:10px;flex:none;font:800 20px/1 system-ui,-apple-system,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;letter-spacing:-.3px;text-decoration:none;color:var(--ink,inherit);white-space:nowrap}
+a.brand.gh-brand .gh-mark{width:26px;height:26px;flex:none;color:var(--accent,currentColor)}
+a.brand.gh-brand .gh-mark circle{fill:currentColor;stroke:none}
+a.brand.gh-brand .gh-mark ellipse{fill:none;stroke:currentColor;stroke-width:1.6}
+a.brand.gh-brand>span{font:inherit;font-style:normal;color:inherit;background:none;-webkit-text-fill-color:currentColor}
+a.brand.gh-brand b{font-weight:inherit;color:var(--accent,currentColor);-webkit-text-fill-color:currentColor}
+
+/* Header rhythm: brand, navigation, account in one row of the same height. */
+[data-gh-header]{position:relative}
+body>nav[data-gh-header]{height:auto;min-height:var(--gh-header);flex-wrap:nowrap;gap:16px;padding-top:10px;padding-bottom:10px}
+.site-header[data-gh-header] .bar{min-height:var(--gh-header)}
+[data-gh-header] [data-hub-account]{flex-wrap:nowrap;width:auto;margin:0 0 0 auto}
+body>nav[data-gh-header] .nav-right{margin-left:auto}
+body>nav[data-gh-header] .nav-right+[data-hub-account]{margin-left:0}
+
+/* Controls: header buttons and calls to action are pills; cards and fields share their radii. */
+.gh-button,.gh-language-switch,.submit,.auth-action,[data-gh-header] .trigger,[data-gh-header] nav>a{border-radius:var(--gh-pill)}
+.gh-button{min-height:36px;padding:7px 14px!important;display:inline-flex;align-items:center;justify-content:center}
+.login-card,.gh-notices,.tool-browser .dock-frame{border-radius:var(--gh-card)}
+.login-card input,.login-card textarea,.login-card select{border-radius:var(--gh-control)}
+
+/* Phone menu button (added by hub-nav.js); hidden on wide screens. */
+.gh-menu-toggle{display:none;flex:none;place-items:center;width:38px;height:38px;padding:0;border:1px solid var(--line,#8884);border-radius:50%;background:transparent;color:var(--ink,inherit);cursor:pointer}
+.gh-menu-toggle svg{width:18px;height:18px}
+.gh-menu-toggle:focus-visible{outline:2px solid var(--accent,currentColor);outline-offset:3px}
+.gh-search-button{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:6px 12px;border:1px solid var(--line,#8884);border-radius:var(--gh-pill);background:transparent;color:var(--muted,inherit);font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.gh-search-button:hover{color:var(--ink,inherit)}
+.gh-search-button svg{width:15px;height:15px;flex:none}
+.gh-search-button kbd{font:11px ui-monospace,SFMono-Regular,Menlo,monospace;padding:1px 5px;border:1px solid var(--line,#8884);border-radius:5px}
+
+@media(max-width:760px){
+ :root{--gh-header:56px}
+ a.brand.gh-brand{font-size:18px}
+ body>nav[data-gh-header]{padding-left:16px;padding-right:16px;gap:10px}
+ .site-header[data-gh-header] .bar{display:flex;flex-wrap:nowrap;gap:10px;padding:0}
+ [data-gh-header] .bar>[data-hub-account]{padding-bottom:0}
+ [data-gh-header] [data-hub-account]{min-width:0;border-top:0;padding-top:0}
+ .gh-menu-toggle{display:inline-grid}
+ /* The collapsed navigation opens as one sheet under the header. */
+ [data-gh-header] [data-gh-menu]{display:none;position:absolute;left:12px;right:12px;top:calc(100% + 6px);z-index:60;width:auto;margin:0;flex-direction:column;align-items:stretch;gap:2px;padding:10px;border-radius:var(--gh-card);border:1px solid var(--line,#8884);background:var(--gh-surface,var(--paper,#111a3d));box-shadow:0 20px 50px #0006;font-size:15px}
+ [data-gh-header][data-open] [data-gh-menu]{display:flex}
+ [data-gh-header] [data-gh-menu]>a,[data-gh-header] [data-gh-menu] .panel a{display:block;padding:11px 12px;border-radius:10px;font-size:15px;white-space:normal}
+ [data-gh-header] [data-gh-menu]>button,[data-gh-header] [data-gh-menu]>.gh-language-switch{align-self:flex-start;margin:6px 0 0 10px}
+ [data-gh-header] [data-gh-menu] .gh-search-button{align-self:stretch;margin:0 0 6px;justify-content:flex-start}
+ [data-gh-header] [data-gh-menu] .gh-search-button kbd{display:none}
+ /* "More" is flattened into the sheet instead of opening a second layer. */
+ [data-gh-header] [data-gh-menu] .dropdown .trigger{display:none}
+ [data-gh-header] [data-gh-menu] .dropdown .panel,[data-gh-header] [data-gh-menu] .dropdown .panel[hidden]{display:block;position:static;width:auto;max-height:none;padding:0;border:0;background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+ [data-gh-header] [data-gh-menu] .panel small{display:none}
+ /* Account area keeps only what fits beside the logo. */
+ [data-gh-header] [data-hub-account]{gap:6px;font-size:13px}
+ [data-gh-header] [data-hub-account] .gh-name,[data-gh-header] [data-hub-account] a.gh-button[href*="/admin/"]{display:none}
+ [data-gh-header] [data-hub-account] .gh-button{min-height:34px;padding:6px 10px!important;font-size:12px}
+ [data-gh-header] .gh-notices{position:fixed;left:12px;right:12px;top:calc(var(--gh-header) + 8px);width:auto}
+}
+@media(prefers-reduced-motion:no-preference){[data-gh-header][data-open] [data-gh-menu]{animation:gh-sheet .16s ease-out}}
+@keyframes gh-sheet{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}

@@ -1,0 +1,13 @@
+{
+  "name": {"zh": "Gary", "en": "Gary"},
+  "role": {"zh": "GaryHub 开发者", "en": "Developer of GaryHub"},
+  "summary": {
+    "zh": "下面是可以公开浏览的课程网站与作品。",
+    "en": "Course sites and works open to everyone."
+  },
+  "links": [
+    {"label": {"zh": "外站与课程", "en": "Elsewhere"}, "url": "https://sites.garyhub.uk/"},
+    {"label": {"zh": "Motion Notes · ECE 470 机器人学", "en": "Motion Notes · ECE 470 Robotics"}, "url": "https://gary-bang.github.io/ece470-course/"},
+    {"label": {"zh": "光影手记 · 摄影课程", "en": "Photography course"}, "url": "https://gary-bang.github.io/photography-course/"}
+  ]
+}

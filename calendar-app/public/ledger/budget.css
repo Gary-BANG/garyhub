@@ -1,0 +1,23 @@
+/* v2.4.1.3 ledger budgets, trend and export */
+.ledger-budget{margin:18px 0}
+.ledger-budget[hidden]{display:none}
+.budget-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.budget-head h2{margin:0;font-size:19px}
+.budget-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin:14px 0}
+.budget-row{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--solid,var(--paper))}
+.budget-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.budget-row p{margin:6px 0 0}
+.budget-track{height:8px;margin-top:10px;border-radius:999px;background:var(--soft,#0001);overflow:hidden}
+.budget-fill{height:100%;border-radius:inherit;background:var(--accent)}
+.budget-fill.near{background:#c58b2a}
+.budget-fill.over{background:var(--danger,#b44242)}
+.budget-form{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.budget-form select,.budget-form input{width:auto;min-width:0;flex:1 1 120px}
+.budget-message{margin-top:8px}
+.budget-trend{margin-top:18px}
+.budget-trend h3{margin:0 0 8px;font-size:15px}
+.trend-bars{display:flex;align-items:flex-end;gap:10px;height:150px;padding-top:6px}
+.trend-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%;min-width:0}
+.trend-bar{width:100%;max-width:46px;border-radius:8px 8px 3px 3px;background:color-mix(in srgb,var(--accent) 70%,transparent)}
+.trend-value,.trend-label{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+@media(max-width:640px){.trend-value{display:none}.budget-list{grid-template-columns:1fr}}
