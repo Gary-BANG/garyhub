@@ -83,6 +83,8 @@ async function start(){
  // A search result opens the calendar at its date: show that day's tasks.
  const asked=new URLSearchParams(location.search).get('date');
  if(/^\d{4}-\d\d-\d\d$/.test(asked||'')&&typeof setTaskDateFilter==='function'){setTaskDateFilter(asked);try{state.calendar?.gotoDate?.(asked);}catch{}}
+ // The settings centre links here for subscription, push and e-mail reminders (v2.4.1.4).
+ if(new URLSearchParams(location.search).get('panel')==='account'&&typeof openPanel==='function'){openPanel('accountPanel');setTimeout(()=>document.getElementById('accountPanel')?.scrollIntoView({block:'start'}),50);}
  try{feedState=await api('/api/calendar-feed');}catch(e){feedMessage=e.message;}
  await pushStatus();renderFeed();renderPush();
 }

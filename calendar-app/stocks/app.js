@@ -36,9 +36,11 @@ function setTheme(theme){
   el('theme-label').textContent=theme==='night'?'日间':'夜间';
   document.querySelector('meta[name="theme-color"]').content=theme==='night'?'#211f1b':'#f3eee5';
 }
-let theme='day';try{if(localStorage.getItem('garyhub-stocks-theme')==='night')theme='night';}catch{}
+// v2.4.1.4: follows the shared GaryHub day/night setting; the button still switches it.
+if(window.GaryHubTheme){GaryHubTheme.bind(v=>setTheme(v==='dark'?'night':'day'));el('theme').onclick=()=>GaryHubTheme.toggle();}
+else{let theme='day';try{if(localStorage.getItem('garyhub-stocks-theme')==='night')theme='night';}catch{}
 setTheme(theme);
-el('theme').onclick=()=>{const next=document.documentElement.dataset.theme==='night'?'day':'night';setTheme(next);try{localStorage.setItem('garyhub-stocks-theme',next);}catch{}};
+el('theme').onclick=()=>{const next=document.documentElement.dataset.theme==='night'?'day':'night';setTheme(next);try{localStorage.setItem('garyhub-stocks-theme',next);}catch{}};}
 async function syncStatus(){
   const status=await api('status');
   if(locked)return;

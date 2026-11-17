@@ -39,6 +39,8 @@
     const value = new URLSearchParams(Object.entries({open:prefs.open || '', quiet:prefs.quiet || '', mode:prefs.mode, off:prefs.off ? '1' : '0', char:prefs.char || ''}).filter(([, v]) => v)).toString();
     const shared = location.hostname === 'garyhub.uk' || location.hostname.endsWith('.garyhub.uk') ? '; Domain=.garyhub.uk' : '';
     document.cookie = `${COOKIE}=${encodeURIComponent(value)}; Path=/; Max-Age=31536000; SameSite=Lax${shared}${location.protocol === 'https:' ? '; Secure' : ''}`;
+    // hub-prefs.js saves the same choices to the signed-in account (v2.4.1.4).
+    document.dispatchEvent(new CustomEvent('garyhub:companion-prefs', {detail:{...prefs}}));
   }
   const narrow = matchMedia('(max-width: 600px)');
   const presenceFor = prefs => prefs.off ? 'off' : prefs[scope] || (scope === 'quiet' || narrow.matches ? 'min' : 'on');
