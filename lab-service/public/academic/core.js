@@ -14,6 +14,8 @@ function validate(s){
  scale(s.settings.scale,s.settings.gradeMax);range(s.settings.previousCredits,0,10000);range(s.settings.previousGpa,0,10);range(s.settings.fontSize,14,28);range(s.settings.lineHeight,1.4,2.5);range(s.settings.readerWidth,600,1400);if(!['auto','light','dark'].includes(s.settings.theme))fail('主题无效');
  if(s.settings.studyTheme!==undefined&&!['dark','light','warm'].includes(s.settings.studyTheme))fail('学习中心外观无效');
  if(s.settings.headingSize!==undefined)range(s.settings.headingSize,20,54);
+ if(s.settings.codeFont!==undefined&&!['default','consolas','courier','sans'].includes(s.settings.codeFont))fail('代码字体无效');
+ if(s.settings.mathScale!==undefined)range(s.settings.mathScale,0.8,1.5);
  let assets=0;
  for(const c of s.courses){id(c.id);text(c.name,100);if(!c.name.trim())fail('课程名称不能为空');text(c.term,60);if(![1,2,3,4].includes(c.credits))fail('学分请选择 1–4');if(typeof c.includeGpa!=='boolean')fail('GPA 设置无效');scale(c.scale,c.gradeMax);
  if(!Array.isArray(c.categories)||c.categories.length>50||!Array.isArray(c.lectures)||c.lectures.length>500||!Array.isArray(c.assets)||c.assets.length>1000)fail('课程内容过多');

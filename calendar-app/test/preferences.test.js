@@ -17,7 +17,12 @@ test('validation accepts only known keys and values', () => {
   for (const bad of [null, [], {}, {'appearance.theme': 'blue'}, {'companion.off': 'yes'}, {'companion.char': 'garfield'}, {'ledger.currency': 'EUR'},
     {'unknown.key': 1}, {'region.timezone': 'Mars/Base'}, {'region.timezone': 7}, {'__proto__': 'x'}])
     assert.throws(() => preferences.validate(bad), {status: 400}, JSON.stringify(bad));
-  assert.equal(preferences.KEYS.length, 10);
+  // v2.4.1.5: accent, density, week start, date format and calendar view.
+  assert.deepEqual(preferences.validate({'appearance.accent': 'teal', 'appearance.density': 'compact', 'region.weekStart': 'sunday', 'region.dateFormat': 'eu', 'calendar.view': 'list'}).prefs,
+    {'appearance.accent': 'teal', 'appearance.density': 'compact', 'region.weekStart': 'sunday', 'region.dateFormat': 'eu', 'calendar.view': 'list'});
+  for (const bad of [{'appearance.accent': 'red'}, {'appearance.density': 'tiny'}, {'region.weekStart': 'saturday'}, {'region.dateFormat': 'dd.mm'}, {'calendar.view': 'day'}])
+    assert.throws(() => preferences.validate(bad), {status: 400}, JSON.stringify(bad));
+  assert.equal(preferences.KEYS.length, 15);
 });
 
 test('reads defaults, merges patches, resets with null and keeps accounts apart', async () => {
@@ -25,7 +30,7 @@ test('reads defaults, merges patches, resets with null and keeps accounts apart'
   try {
     const empty = await preferences.read(db, 1);
     assert.equal(empty.revision, 0); assert.equal(empty.timezone, 'Etc/UTC');
-    assert.deepEqual(Object.values(empty.prefs), Array(10).fill(null));
+    assert.deepEqual(Object.values(empty.prefs), Array(15).fill(null));
     let state = await preferences.write(db, 1, {'appearance.theme': 'dark', language: 'en', 'companion.char': 'pudding'});
     assert.equal(state.revision, 1);
     state = await preferences.write(db, 1, {'ledger.currency': 'USD', 'appearance.theme': null, 'region.timezone': 'America/Chicago'});

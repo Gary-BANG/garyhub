@@ -69,7 +69,8 @@
       for (const item of group.items) {
         const link = el('a', 'gh-search-row'); link.href = item.url; link.setAttribute('role', 'option'); link.id = 'gh-search-option-' + rows.length;
         const main = el('span', 'gh-search-main'); main.append(el('span', 'gh-search-title', item.title));
-        const detail = [item.kind ? text.kinds[item.kind] : '', item.detail, item.done ? text.done : ''].filter(Boolean).join(' · ');
+        const shown = String(item.detail || '').replace(/\d{4}-\d{2}-\d{2}/g, date => window.GaryHubPrefs?.formatDate(date) ?? date);
+        const detail = [item.kind ? text.kinds[item.kind] : '', shown, item.done ? text.done : ''].filter(Boolean).join(' · ');
         if (detail) main.append(el('span', 'gh-search-detail', detail));
         link.append(main);
         if (item.snippet) link.append(el('span', 'gh-search-snippet', item.snippet));
