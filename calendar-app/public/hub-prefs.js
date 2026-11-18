@@ -64,11 +64,35 @@
     if (save) queue({'appearance.sky': value});
   }
 
+  // ---- Display preferences mirrored in the shared cookie (v2.4.1.5) ---------------------------------------
+  // Accent and density style every page from the first paint; week start, date format and calendar view are read
+  // by page scripts before the account answers. Unset means the page's own default.
+  const DISPLAY = {
+    'appearance.accent': {param: 'a', values: ['blue', 'violet', 'teal', 'brown'], data: 'ghAccent'},
+    'appearance.density': {param: 'd', values: ['standard', 'compact'], data: 'ghDensity'},
+    'region.weekStart': {param: 'w', values: ['monday', 'sunday']},
+    'region.dateFormat': {param: 'f', values: ['iso', 'zh', 'us', 'eu']},
+    'calendar.view': {param: 'v', values: ['month', 'week', 'list']}
+  };
+  const localValue = key => { const d = DISPLAY[key], v = local.get(d.param); return d.values.includes(v) ? v : null; };
+  function paintDisplay() {
+    // A page with its own colour themes (the Study Hub) opts out of the account accent with data-gh-accent-off.
+    for (const [key, d] of Object.entries(DISPLAY)) if (d.data) { const v = d.data === 'ghAccent' && root.hasAttribute('data-gh-accent-off') ? null : localValue(key); if (v) root.dataset[d.data] = v; else delete root.dataset[d.data]; }
+  }
+  function setDisplay(key, value, {save = true} = {}) {
+    const d = DISPLAY[key]; if (!d || (value !== null && !d.values.includes(value))) return;
+    if (value === null) local.delete(d.param); else local.set(d.param, value);
+    saveLocal(); paintDisplay();
+    document.dispatchEvent(new CustomEvent('garyhub:display', {detail: {key, value}}));
+    if (save) queue({[key]: value});
+  }
+  paintDisplay();
+
   // Another sub-site may have changed the shared cookie while this tab was in the background.
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) return;
     const fresh = cookiePrefs();
-    if (fresh.toString() !== local.toString()) { local = fresh; root.dataset.ghSky = SKY.includes(local.get('sky')) ? local.get('sky') : 'full'; apply(); }
+    if (fresh.toString() !== local.toString()) { local = fresh; root.dataset.ghSky = SKY.includes(local.get('sky')) ? local.get('sky') : 'full'; paintDisplay(); apply(); }
   });
 
   // ---- Account preferences ---------------------------------------------------------------------------------
@@ -100,6 +124,7 @@
       else if (key === 'appearance.sky') setSky(value || 'full', {save: false});
       else if (key === 'language' && value && window.GaryHubI18n && window.GaryHubI18n.language !== value) window.GaryHubI18n.setLanguage(value);
       else if (STORAGE[key]) store.set(STORAGE[key], value);
+      else if (DISPLAY[key]) { if (localValue(key) !== value) setDisplay(key, value, {save: false}); }
     }
     if (keys.some(key => key.startsWith('companion.'))) writeCompanion(prefs);
   }
@@ -122,6 +147,8 @@
       if (prefs[key]) store.set(storage, prefs[key]);
       else if (allowed.includes(store.get(storage))) upload[key] = store.get(storage);
     }
+    // Display settings exist only on accounts (the settings centre), so the account's value, or its absence, wins.
+    for (const key of Object.keys(DISPLAY)) if (localValue(key) !== (prefs[key] ?? null)) setDisplay(key, prefs[key] ?? null, {save: false});
     if (Object.keys(upload).length) queue(upload);
   }
   async function load() {
@@ -176,9 +203,24 @@
   });
   addEventListener('pagehide', () => { if (Object.keys(pending).length) flush(); });
 
+  // A YYYY-MM-DD date in the account's chosen format (v2.4.1.5); anything else is returned unchanged.
+  function formatDate(iso) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+    if (!m) return iso == null ? '' : String(iso);
+    const [, y, mo, d] = m;
+    switch (localValue('region.dateFormat')) {
+      case 'zh': return y + '年' + Number(mo) + '月' + Number(d) + '日';
+      case 'us': return mo + '/' + d + '/' + y;
+      case 'eu': return d + '/' + mo + '/' + y;
+      default: return iso;
+    }
+  }
+
   window.GaryHubTheme = Theme;
   window.GaryHubPrefs = {
-    ready, setSky,
+    ready, setSky, setDisplay, formatDate,
+    // A display setting as the page should use it now: the account's value once loaded, else this browser's copy.
+    value: key => (state.prefs && key in state.prefs ? state.prefs[key] : DISPLAY[key] ? localValue(key) : null),
     get accountId() { return state.accountId; },
     get prefs() { return state.prefs; },
     get timezone() { return state.timezone; },

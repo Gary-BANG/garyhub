@@ -1,0 +1,714 @@
+{
+  "version": "2.4.1.5",
+  "requires_release": "2.4.1.4",
+  "installer_build": "v2.4.1.5-r1",
+  "reviewed_base_commit": "0041a4ef2752fa5473bc6775452c864b3f68f17a",
+  "baseline_adapter": "scripts/releases/v2.4.1.4",
+  "source_subject": "Complete the appearance, region and Study Hub settings (v2.4.1.5)",
+  "updated_features": [
+    "accent_colour",
+    "interface_density",
+    "week_start",
+    "date_format",
+    "calendar_default_view",
+    "study_code_font",
+    "study_formula_size"
+  ],
+  "summary": "补齐设置中心：强调色、界面密度、每周起始日、日期格式、日历默认视图，以及学习中心的代码字体和公式大小。",
+  "asset_checksums": [
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/",
+      "sha256": "388c6dbd4ed8729ea8cbc5f669df6a915b63f7d06460809affdffd453aeea87d"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/assistant-admin.js",
+      "sha256": "6abe4eabf59e2aa30579af7bc6e3d8ae9d657fd8bb33eb5d790342e0745c89b9"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/ai-logs/logs.js",
+      "sha256": "086827cd19770bbee8e4b1c294206838ae29287cdbcdc0f26c3201f641cc5600"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/ai-logs/logs.css",
+      "sha256": "d1ae8a44f3bced66bb12ed223eef908de0ae4d3104f1baaa3093072f527ad4db"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/tools-catalog.js",
+      "sha256": "74a87c6f5af8d5702d5bd131f6e348924aedf83c66871fe1b1905fdd38ecfeb7"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/companion/boot.js",
+      "sha256": "8d8d18d198126d92c6157ff4a6aa797f29517d59062d36af554f297d46b2fd91"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/companion/assistant.js",
+      "sha256": "eac3731cdc481d937b817107f7b52f794d0e494eba861522a509458b639cb837"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/companion/panel.js",
+      "sha256": "c6389c897ee851529726f087ed52840525cca02dac57d2544ccd36a2522b42fe"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/companion/panel.css",
+      "sha256": "4291552bc8196477e0674ae820307a38761da5c577cc31307281412bb3bc19e4"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/companion/knowledge.js",
+      "sha256": "a9765156088025af4879bbad93c35a972a40bef6b63ae96adc3cf0183f45ae72"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/companion/assistant.js",
+      "sha256": "eac3731cdc481d937b817107f7b52f794d0e494eba861522a509458b639cb837"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/companion/panel.js",
+      "sha256": "c6389c897ee851529726f087ed52840525cca02dac57d2544ccd36a2522b42fe"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/companion/assistant.js",
+      "sha256": "eac3731cdc481d937b817107f7b52f794d0e494eba861522a509458b639cb837"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/companion/panel.js",
+      "sha256": "c6389c897ee851529726f087ed52840525cca02dac57d2544ccd36a2522b42fe"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/companion/pet.js",
+      "sha256": "8969de4faf9d79e6950f4f64528fe1cfa3be0f34f8253049f22c2833a73249f5"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/companion/characters.js",
+      "sha256": "11518c572eb3d064e4f7d5020f340f7cf4d2edea19ed127dd6c0622dad4c663b"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/companion/characters/lili/rig.svg",
+      "sha256": "5ca0e3369ed665201b6a23d86d58769a43ce571a9102670c4e9a8d85e3570cd3"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/companion/pet.js",
+      "sha256": "8969de4faf9d79e6950f4f64528fe1cfa3be0f34f8253049f22c2833a73249f5"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/companion/characters.js",
+      "sha256": "11518c572eb3d064e4f7d5020f340f7cf4d2edea19ed127dd6c0622dad4c663b"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/companion/characters/lili/rig.svg",
+      "sha256": "5ca0e3369ed665201b6a23d86d58769a43ce571a9102670c4e9a8d85e3570cd3"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/companion/pet.js",
+      "sha256": "8969de4faf9d79e6950f4f64528fe1cfa3be0f34f8253049f22c2833a73249f5"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/companion/characters.js",
+      "sha256": "11518c572eb3d064e4f7d5020f340f7cf4d2edea19ed127dd6c0622dad4c663b"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/companion/characters/lili/rig.svg",
+      "sha256": "5ca0e3369ed665201b6a23d86d58769a43ce571a9102670c4e9a8d85e3570cd3"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/companion/puppet.js",
+      "sha256": "7e0303f9b6b9fc9a8ee2c6146172dbc9516486e4f52ddae8e2ebb444c769c27c"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/companion/puppet.js",
+      "sha256": "7e0303f9b6b9fc9a8ee2c6146172dbc9516486e4f52ddae8e2ebb444c769c27c"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/companion/puppet.js",
+      "sha256": "7e0303f9b6b9fc9a8ee2c6146172dbc9516486e4f52ddae8e2ebb444c769c27c"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/companion/pet.css",
+      "sha256": "b4b056dde957f2957097ab3e2bb5d25a28b26f01563786540522b1d470b75a98"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/companion/pet.css",
+      "sha256": "b4b056dde957f2957097ab3e2bb5d25a28b26f01563786540522b1d470b75a98"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/companion/pet.css",
+      "sha256": "b4b056dde957f2957097ab3e2bb5d25a28b26f01563786540522b1d470b75a98"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/companion/characters/pudding/rig.svg",
+      "sha256": "1928fadcb00afa8188655efd1e9cb8b77d3e9351f3fea5c68f3f715dac149b1f"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/companion/characters/pudding/rig.svg",
+      "sha256": "1928fadcb00afa8188655efd1e9cb8b77d3e9351f3fea5c68f3f715dac149b1f"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/companion/characters/pudding/rig.svg",
+      "sha256": "1928fadcb00afa8188655efd1e9cb8b77d3e9351f3fea5c68f3f715dac149b1f"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/tools-dock.js",
+      "sha256": "6963dcdc289a8dbfe98ac6bad51fb1f8f31d3497902bc6743ba63c593257ab1f"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/hub-account.js",
+      "sha256": "cfad5a817bdb20310ba9423dbd770382e8901e94df36faa50e93cca91d682164"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/hub-account.js",
+      "sha256": "cfad5a817bdb20310ba9423dbd770382e8901e94df36faa50e93cca91d682164"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/hub-account.css",
+      "sha256": "63388997244041e51a661ce708ca8bc565dbab9e05511395fbc2a638eba852b9"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/unified.js",
+      "sha256": "6b79e63e5a0c96dceee9bdfc5a1e454bf373adbedbc343a17113b16e237bd9bb"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/academic/app.js",
+      "sha256": "65389986795a6be6bfc5d7642864ce238dd87fe64ad21673bfeb50ed2b2ba119"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/academic/index.html",
+      "sha256": "3677b92419883f2f58bb62a0f6f2b53fbf8a9f7659dcaa44a5fdd736b6669ae7"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/academic/core.js",
+      "sha256": "1142dd207b476d407e083b93e5f522c0faec0e555f807b8551169af86c46c353"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/academic/style.css",
+      "sha256": "bbc3f21c91ac2ebbc8d81e87953c225f4ae32685d17dd8921676e62859a1a825"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/academic/reader.js",
+      "sha256": "8f07aceea2766f88f5ed1b4636a012262a2e743788ac93bcfb05dad5c2781b13"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/academic/navigation.svg",
+      "sha256": "657b03d0b9011efec6aeee07ad2dcb67728cec0772f71814898daa730ed22f3e"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/personalize/settings.js",
+      "sha256": "5d449676f1aa38631eba583e64f27925500beb9720be7af5c7ee750a98722549"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/personalize/settings.css",
+      "sha256": "ac6cd9c0bc8f9c3757da4d3b7bce8eac935bb2554f54782249a3d6dd5a926e23"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/i18n/dictionary.js",
+      "sha256": "051b8eecef1c1a58bc0a179266780617ccb6be4345641cc2aed4dc1ff024523a"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/auth-redirect.js",
+      "sha256": "f0c78853c098d6489aa43165e880c527b640249b445961748d1161678fb7914a"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/auth-redirect.js",
+      "sha256": "f0c78853c098d6489aa43165e880c527b640249b445961748d1161678fb7914a"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/admin.js",
+      "sha256": "792f3fa097d10e5d15a9a83fe0b419899ecf5cc0ff001124ef170ae38773f293"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/",
+      "sha256": "4a0df5ed1576e99c3aa04c0ca2e5ed9281ceba4e22abf1e9a8bc82e901d83301"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/developer/",
+      "sha256": "0dad01fdfb7adbadb316beac5811a05715daef0b55ff370c0800b6d49ef73de1"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/home/site.css",
+      "sha256": "2d4bda2864fc81ddac9311878ae67fff426d32d963af8e252cd4dc806b229d54"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/home/home.css",
+      "sha256": "932471f03ea041257980ce44eb88c6c1e60e2601120eceee9c6a0b27af8ea362"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/home/cosmos.js",
+      "sha256": "23263f12ae4857d7ccbae37357213bdb4adfd57091f735720155c57e86752886"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/home/site.js",
+      "sha256": "566e3338788c3c4d00f6b94efb8fa3ab5156fb3c5acd8b2013278960fbc7d331"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/developer/developer.css",
+      "sha256": "87dc14e78299e487f2e989d04dcdd11bf1a794706d2d5fd019f29f8114704b57"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/developer/developer.js",
+      "sha256": "9541ce1d58e525a9a458d4ae989c44bf23d37b25d522500b32bdf5c22f534dfa"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/i18n/dictionary.js",
+      "sha256": "051b8eecef1c1a58bc0a179266780617ccb6be4345641cc2aed4dc1ff024523a"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/companion/knowledge.js",
+      "sha256": "a9765156088025af4879bbad93c35a972a40bef6b63ae96adc3cf0183f45ae72"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/companion/knowledge.js",
+      "sha256": "a9765156088025af4879bbad93c35a972a40bef6b63ae96adc3cf0183f45ae72"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/companion/panel.css",
+      "sha256": "4291552bc8196477e0674ae820307a38761da5c577cc31307281412bb3bc19e4"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/companion/panel.css",
+      "sha256": "4291552bc8196477e0674ae820307a38761da5c577cc31307281412bb3bc19e4"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/useful/image-eraser/index.html",
+      "sha256": "d281175654ba986cc201a7e416f4b8283ad26faa14bca2bec5ff76a16c41d84f"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/useful/markdown-viewer/index.html",
+      "sha256": "1debd3c08dadb4b4a4c31ef7fd2d221ed1e37bc232c56db9c64e86e83ddf3994"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/useful/pdf-gray/index.html",
+      "sha256": "2eb89994d139b6de41ed001411b78de03a35f70c6846272584bd5baeff721c0b"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/brand.css",
+      "sha256": "340ddbabead39856da6b10ca53baf2a961791be792178d683fc2b7bfb1532726"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/hub-nav.js",
+      "sha256": "a16219f0e98f04333859fc35e22a135ebb33ef0335bd5b0021644d31b4e71396"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/hub-search.js",
+      "sha256": "5abd0d40b28aa52b93f94a776049e36d3656ca634acb470e307b1070249461ff"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/hub-search.css",
+      "sha256": "58c1c807cb389ce16242caa0d3e77719ed93bd8838f411eb21a28c90b6e5d469"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/manifest.webmanifest",
+      "sha256": "c486d0a0029e84ae1a7709be8247cd4e29e941ef323a8845fc08d669875ca74d"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/favicon.svg",
+      "sha256": "f7e50d8c430ef88bf386f353447548f623678f8e90554bc1f87bc3139d886920"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/icons/icon-192.png",
+      "sha256": "c21b42fe6d94bc588b7a98d15d521f63a0d2ab4d9c854cc9a65bcd2b0da03811"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/icons/icon-512.png",
+      "sha256": "f2b352d0cceb70e66d3fcd52b8998a7f6bda87f93873a6ed84710d16f092f294"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/icons/icon-maskable-512.png",
+      "sha256": "cf96219e38907af248c95f38579884495bdad934c4c346a07bda18f65671479a"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/icons/apple-touch-icon.png",
+      "sha256": "806cc004fb11636217ed9d561d068b0dd3290faf6146ece4b9edf3a93c86245b"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/tools-dock.css",
+      "sha256": "7df720ef0b251f60575d3e6c4643be514eae0b369d260030fd4e6f732d8a031f"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/brand.css",
+      "sha256": "340ddbabead39856da6b10ca53baf2a961791be792178d683fc2b7bfb1532726"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/hub-nav.js",
+      "sha256": "a16219f0e98f04333859fc35e22a135ebb33ef0335bd5b0021644d31b4e71396"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/hub-search.js",
+      "sha256": "5abd0d40b28aa52b93f94a776049e36d3656ca634acb470e307b1070249461ff"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/hub-search.css",
+      "sha256": "58c1c807cb389ce16242caa0d3e77719ed93bd8838f411eb21a28c90b6e5d469"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/home/today.js",
+      "sha256": "ff42d88e8b9a504a8451b9bcd7689dd5e2bc4c690e287f4ab684a59f98b9847d"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/manifest.webmanifest",
+      "sha256": "c486d0a0029e84ae1a7709be8247cd4e29e941ef323a8845fc08d669875ca74d"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/favicon.svg",
+      "sha256": "f7e50d8c430ef88bf386f353447548f623678f8e90554bc1f87bc3139d886920"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/icons/icon-192.png",
+      "sha256": "c21b42fe6d94bc588b7a98d15d521f63a0d2ab4d9c854cc9a65bcd2b0da03811"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/developer/public-card.json",
+      "sha256": "839b7f3697e6522a1129432a4f5c0ea21eb5265c6cab6d27b8a91105665e0582"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/brand.css",
+      "sha256": "340ddbabead39856da6b10ca53baf2a961791be792178d683fc2b7bfb1532726"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/hub-nav.js",
+      "sha256": "a16219f0e98f04333859fc35e22a135ebb33ef0335bd5b0021644d31b4e71396"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/hub-search.js",
+      "sha256": "5abd0d40b28aa52b93f94a776049e36d3656ca634acb470e307b1070249461ff"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/hub-search.css",
+      "sha256": "58c1c807cb389ce16242caa0d3e77719ed93bd8838f411eb21a28c90b6e5d469"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/manifest.webmanifest",
+      "sha256": "356b89bec52bb9f49bfb1f285be917d2e4f4c55d50a6909c7969521ac225227f"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/favicon.svg",
+      "sha256": "f7e50d8c430ef88bf386f353447548f623678f8e90554bc1f87bc3139d886920"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/icons/icon-192.png",
+      "sha256": "c21b42fe6d94bc588b7a98d15d521f63a0d2ab4d9c854cc9a65bcd2b0da03811"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/sw.js",
+      "sha256": "35fa22d801ad65ca15083e708b361187e5a841515d1357848b4fd072b8e667a2"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/calendar-extras.js",
+      "sha256": "dca2f06cdd32a4e021d5a5a821c9b707467d7536880e73f9f0e6e1baffad133b"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/calendar-extras.css",
+      "sha256": "5a1d42470a41006719f3e275c00f20bc3191318afd10a07b7634cc2e6e8fb819"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/ledger/budget.js",
+      "sha256": "976d380b97c0bfc63da096d5f28ec69b05728afcf06c9c97b0331ded7b09f686"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/ledger/budget.css",
+      "sha256": "554429bb67f2bfdadadac865847e5f8b63dc2d14d3a9fcc9331d7e367654d517"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/ledger/ledger.js",
+      "sha256": "a74bc91f538db313afdaf12fe2c449077bdeb80aafb4b4997e3452e34ce83c16"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/auth-page.js",
+      "sha256": "94a88213053e31179f51471026c598546b6a82c91c7f8486ed994c9349a3b8a1"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/auth-hub.css",
+      "sha256": "a2c3f254fbddcaa19cfd002f9ccc4f5235ed30881263634514841e992ced0b78"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/journal-page.js",
+      "sha256": "7a98d23f4f40a6cb27cd5ae7c5566bd42a9487ce814d8d67b2ea5d3fc742669b"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/research/research.js",
+      "sha256": "536189269f9b6250072dad68cade11abc43d860dc5b1cef2c22b3efbfb59f228"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/login/",
+      "sha256": "462706544a5f68495744ab0e7856571a967b8ff04321de909b88aec8e0e3bea4"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/hub-prefs.js",
+      "sha256": "9e1190a184a7d541feef53e64168a4379c26ed7184b7c26ecc088e8d6eaea51a"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/hub.js",
+      "sha256": "61956f1e5dd41cd97d39e61414fc491949246f076ed0869bfb758deea693a6e8"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/useful/tool-shell.js",
+      "sha256": "f6cd182269300a67cd0bf98fe0d4bd94c3b6e9737bc7938fbc01e6be620bbae6"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/hub-prefs.js",
+      "sha256": "9e1190a184a7d541feef53e64168a4379c26ed7184b7c26ecc088e8d6eaea51a"
+    },
+    {
+      "host": "garyhub.uk",
+      "route": "/companion/boot.js",
+      "sha256": "8d8d18d198126d92c6157ff4a6aa797f29517d59062d36af554f297d46b2fd91"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/hub-prefs.js",
+      "sha256": "9e1190a184a7d541feef53e64168a4379c26ed7184b7c26ecc088e8d6eaea51a"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/theme.js",
+      "sha256": "3f7d40db53d7f5913b966cd3c003ebfe72d637fa78fa69b6d132a6114d93ae0e"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/ambient.js",
+      "sha256": "aee4fda3a3127ec373b90807d32b7bd39bc1a3a69a694bc92759828d97522c7f"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/ledger/fixed/fixed.js",
+      "sha256": "036e5032e72e7e3bea28ddbc1a3946a29f2e0c4bac2e820d2ade492497bc594c"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/companion/boot.js",
+      "sha256": "8d8d18d198126d92c6157ff4a6aa797f29517d59062d36af554f297d46b2fd91"
+    },
+    {
+      "host": "calendar.garyhub.uk",
+      "route": "/calendar-page.js",
+      "sha256": "8c65e1074cea61d62e170a6e162a3191ca8f7f4f2fd79437bb9fff8b32a6ba49"
+    }
+  ],
+  "sites_asset_checksums": [
+    {
+      "host": "sites.garyhub.uk",
+      "route": "/",
+      "sha256": "f1315febef67cdd6791e8f60631cb70fb677a5279aed335d2fd65a7ee9fe91cc"
+    },
+    {
+      "host": "sites.garyhub.uk",
+      "route": "/sites.css",
+      "sha256": "8525d4ba5225888b2508305e8a0bc05ac0b161775e61a0ec6fbe46b2c3c36507"
+    },
+    {
+      "host": "sites.garyhub.uk",
+      "route": "/sites.js",
+      "sha256": "a44ab7c293e379c7ecd31520a4cc8f0038fdd7528b3a8dea1c3208e1808e1be7"
+    },
+    {
+      "host": "sites.garyhub.uk",
+      "route": "/thumbs/ece470.webp",
+      "sha256": "b7294f62601879dd224aef6c6022840e2e3fafb93dda66074b3cc013d6bdcf27"
+    },
+    {
+      "host": "sites.garyhub.uk",
+      "route": "/thumbs/photography.webp",
+      "sha256": "2d0350bf5a396e1563043331700e7b05ad3725c32346866c07760da5d964a558"
+    },
+    {
+      "host": "sites.garyhub.uk",
+      "route": "/favicon.svg",
+      "sha256": "f7e50d8c430ef88bf386f353447548f623678f8e90554bc1f87bc3139d886920"
+    }
+  ],
+  "protected_asset_checksums": [
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/lab/index.html",
+      "service": "garyhub-lab",
+      "file": "/lab/public/lab/index.html",
+      "sha256": "e08c9f34378b7b80312120d74c330918616c0384c66c39088e95cae1bec250dd"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/personalize/index.html",
+      "service": "garyhub-lab",
+      "file": "/lab/public/personalize/index.html",
+      "sha256": "e122e7beb8dbfbc0a7593d33a9fb295f195a07bc9f263abdcdf7e047ffa737ee"
+    }
+  ],
+  "admin_asset_checksums": [
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/ai-logs/index.html",
+      "service": "garyhub-lab",
+      "file": "/lab/public/ai-logs/index.html",
+      "sha256": "00e088613a3a5b22853fc25e2ee540c0999ec4d431cf8760566a9268b313e6f0"
+    },
+    {
+      "host": "tools.garyhub.uk",
+      "route": "/admin/index.html",
+      "service": "garyhub-lab",
+      "file": "/lab/public/admin.html",
+      "sha256": "7231ba33c11385d7e72b7c0473be5f3757dbf660d104a2b1ef68e2f4ec63babb"
+    }
+  ],
+  "isolation_checks": [
+    "stocks-http.cjs",
+    "useful-http.cjs",
+    "study-http.cjs",
+    "asset-response.cjs",
+    "music-http.cjs",
+    "companion-http.cjs",
+    "sites-http.cjs",
+    "assistant-http.cjs",
+    "notifications-http.cjs",
+    "tutor-http.cjs",
+    "developer-http.cjs",
+    "extras-http.cjs",
+    "prefs-http.cjs"
+  ],
+  "isolation_environment": {
+    "TRUSTED_ORIGINS": "https://garyhub.uk,https://calendar.garyhub.uk,https://tools.garyhub.uk,https://lab.garyhub.uk,http://calendar-check:3000"
+  },
+  "isolation_service_environment": {
+    "calendar-app": {
+      "GARYHUB_ASSISTANT_ENDPOINT": "http://127.0.0.1:4011/v4/chat/completions",
+      "GARYHUB_ASSISTANT_SEARCH_ENDPOINT": "http://127.0.0.1:4011/v4/web_search",
+      "GARYHUB_PUSH_TEST_ENDPOINT": "http://127.0.0.1:4012/push/"
+    }
+  },
+  "test_inputs": {
+    "seed.cjs": "scripts/releases/v1.4.3.0/tests/seed.cjs",
+    "seed-base.cjs": "scripts/releases/v1.3.6.0/tests/seed.cjs",
+    "useful-http.cjs": "scripts/releases/v2.4.1.3/tests/useful-http.cjs",
+    "study-http.cjs": "scripts/releases/v2.4.1.5/tests/study-http.cjs",
+    "study-fixture.cjs": "scripts/releases/v1.4.3.1/tests/study-fixture.cjs",
+    "asset-response.cjs": "scripts/releases/v2.3.0.4/tests/asset-response.cjs",
+    "asset-checks.json": "scripts/releases/v2.4.1.5/release-config.json",
+    "music-http.cjs": "scripts/releases/v1.4.3.2/tests/music-http.cjs",
+    "companion-http.cjs": "scripts/releases/v2.0.1.0/tests/companion-http.cjs",
+    "sites-http.cjs": "scripts/releases/v2.4.0.3/tests/sites-http.cjs",
+    "assistant-http.cjs": "scripts/releases/v2.3.2.3/tests/assistant-http.cjs",
+    "notifications-http.cjs": "scripts/releases/v2.3.0.4/tests/notifications-http.cjs",
+    "tutor-http.cjs": "scripts/releases/v2.3.1.0/tests/tutor-http.cjs",
+    "stocks-http.cjs": "scripts/releases/v2.4.0.2/tests/stocks-http.cjs",
+    "developer-http.cjs": "scripts/releases/v2.4.1.0/tests/developer-http.cjs",
+    "extras-http.cjs": "scripts/releases/v2.4.1.3/tests/extras-http.cjs",
+    "prefs-http.cjs": "scripts/releases/v2.4.1.5/tests/prefs-http.cjs"
+  },
+  "support_files": {
+    "prior_checks.py": "scripts/releases/v2.3.2.3/deploy.py",
+    "prior_0404.py": "scripts/releases/v2.4.0.4/deploy.py",
+    "prior_0410.py": "scripts/releases/v2.4.1.0/deploy.py",
+    "prior_0411.py": "scripts/releases/v2.4.1.1/deploy.py",
+    "prior_0412.py": "scripts/releases/v2.4.1.2/deploy.py",
+    "prior_0413.py": "scripts/releases/v2.4.1.3/deploy.py",
+    "prior_0414.py": "scripts/releases/v2.4.1.4/deploy.py"
+  },
+  "stock_asset_sha256": {
+    "index.html": "a669cedebab8442f18955009117efa203a270712e2fc6e147786f7778b9ce92e",
+    "app.js": "5afdc25d8b235a5019b5789125e34f48369ee7a8e6c4af8a55de59a9a08a6eb5",
+    "charts.js": "7db9d6b83a1e460fab6070c6112f320b4addcfc3cd03921b23be9ada2923438a",
+    "style.css": "e792a59e8f85b7309d525ea5d51e456e69047a4225ceb0767efb4139740fa9f5",
+    "alerts.js": "54f8e2a039ca3285688bb95efb93574058f5e498124af80ca802ee056a827173"
+  }
+}

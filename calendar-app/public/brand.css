@@ -61,3 +61,36 @@ body>nav[data-gh-header] .nav-right+[data-hub-account]{margin-left:0}
 }
 @media(prefers-reduced-motion:no-preference){[data-gh-header][data-open] [data-gh-menu]{animation:gh-sheet .16s ease-out}}
 @keyframes gh-sheet{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+
+/* ---- Account accent colour (v2.4.1.5) ----------------------------------------------------------------------
+   hub-prefs.js sets html[data-gh-accent] and html[data-gh-theme]. Pages define --accent on :root or body (and
+   again for dark), so the override goes on both; a lighter tone keeps contrast on dark backgrounds (and on the always-dark homepage). */
+html[data-gh-accent=blue],html[data-gh-accent=blue] body{--accent:#2f6fba}
+html[data-gh-accent=blue][data-gh-theme=dark],html[data-gh-accent=blue][data-gh-theme=dark] body,html[data-gh-accent=blue] body.home,html[data-gh-accent=blue] body.developer{--accent:#8db8ef}
+html[data-gh-accent=violet],html[data-gh-accent=violet] body{--accent:#7a55b8}
+html[data-gh-accent=violet][data-gh-theme=dark],html[data-gh-accent=violet][data-gh-theme=dark] body,html[data-gh-accent=violet] body.home,html[data-gh-accent=violet] body.developer{--accent:#b9a0ea}
+html[data-gh-accent=teal],html[data-gh-accent=teal] body{--accent:#1d7f7a}
+html[data-gh-accent=teal][data-gh-theme=dark],html[data-gh-accent=teal][data-gh-theme=dark] body,html[data-gh-accent=teal] body.home,html[data-gh-accent=teal] body.developer{--accent:#7fd0c8}
+html[data-gh-accent=brown],html[data-gh-accent=brown] body{--accent:#a56d40}
+html[data-gh-accent=brown][data-gh-theme=dark],html[data-gh-accent=brown][data-gh-theme=dark] body,html[data-gh-accent=brown] body.home,html[data-gh-accent=brown] body.developer{--accent:#d3a577}
+
+/* ---- Compact density (v2.4.1.5): less space around headers, cards, lists and the tool grid ----------------- */
+html[data-gh-density=compact]{--gh-header:52px}
+html[data-gh-density=compact] body>nav[data-gh-header],html[data-gh-density=compact] .site-nav{padding-top:8px;padding-bottom:8px}
+html[data-gh-density=compact] .page{padding-top:20px}
+html[data-gh-density=compact] .page-hero{margin-bottom:16px}
+html[data-gh-density=compact] .card{padding:16px 18px;border-radius:14px}
+html[data-gh-density=compact] .calendar-surface{padding:14px 16px 18px}
+html[data-gh-density=compact] .module-bar{margin-top:14px}
+html[data-gh-density=compact] .ledger-metric{padding:14px 16px}
+html[data-gh-density=compact] .hero{padding-top:28px;padding-bottom:18px}
+html[data-gh-density=compact] .tools-page .hero{padding:24px 0 14px}
+html[data-gh-density=compact] .tool-list{gap:4px 10px;padding:20px 20px 14px}
+html[data-gh-density=compact] .tool-glyph{width:52px;height:52px;border-radius:15px}
+html[data-gh-density=compact] .portals{padding-top:12px}
+html[data-gh-density=compact] .portal{min-height:0;padding:16px 18px 14px;gap:6px}
+html[data-gh-density=compact] .today-card{min-height:0;padding:12px 14px}
+html[data-gh-density=compact] .settings-section{padding:16px 18px}
+html[data-gh-density=compact] .setting{margin-top:12px}
+html[data-gh-density=compact] .gh-search-row{padding:6px 10px}
+@media(max-width:760px){html[data-gh-density=compact] .page{padding-left:14px;padding-right:14px}}

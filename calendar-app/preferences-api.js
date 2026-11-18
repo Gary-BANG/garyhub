@@ -9,6 +9,12 @@ const {rateLimit} = require('./rate-limit');
 const SCHEMA = {
   'appearance.theme': ['system', 'light', 'dark'],
   'appearance.sky': ['full', 'calm', 'still'],
+  // v2.4.1.5: accent colour and density for every page, and region / calendar formats.
+  'appearance.accent': ['blue', 'violet', 'teal', 'brown'],
+  'appearance.density': ['standard', 'compact'],
+  'region.weekStart': ['monday', 'sunday'],
+  'region.dateFormat': ['iso', 'zh', 'us', 'eu'],
+  'calendar.view': ['month', 'week', 'list'],
   'language': ['zh', 'en'],
   'companion.char': ['milu', 'lili', 'pudding', 'pagey', 'navi'],
   'companion.mode': ['free', 'gravity'],

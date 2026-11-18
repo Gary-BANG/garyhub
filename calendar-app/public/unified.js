@@ -1,4 +1,6 @@
 "use strict";
+// v2.4.1.5: dates shown in the account's chosen format (hub-prefs.js); stored and sent values stay YYYY-MM-DD.
+const ghDate = date => window.GaryHubPrefs?.formatDate(date) ?? date;
 
 let editingTaskId = null;
 let selectedCategoryId = null;
@@ -148,7 +150,7 @@ function renderTaskList() {
     const statusLabel = { todo: "未开始", doing: "进行中", done: "已完成" }[status];
     const overdue = status !== "done" && task.end_date < localToday() ? " · 已逾期" : "";
     info.innerHTML = `<div class="task-title"><span class="task-dot" style="background:${task.category_color || "#64748b"}"></span>${escapeHtml(task.title)}</div>
-      <div class="small">${escapeHtml(task.start_date)} 至 ${escapeHtml(task.end_date)} · ${task.category_name?`<span data-i18n-ignore>${escapeHtml(task.category_name)}</span>`:"未分类"} · ${statusLabel}${overdue}</div>
+      <div class="small">${escapeHtml(ghDate(task.start_date))} 至 ${escapeHtml(ghDate(task.end_date))} · ${task.category_name?`<span data-i18n-ignore>${escapeHtml(task.category_name)}</span>`:"未分类"} · ${statusLabel}${overdue}</div>
       ${task.note ? `<div class="small task-note" data-i18n-ignore>${escapeHtml(task.note)}</div>` : ""}`;
     const actions = document.createElement("div");
     actions.className = "task-actions";

@@ -43,7 +43,8 @@
     const grid = el('div', 'today-grid');
     if (!data) grid.append(el('p', 'today-empty today-wide', failed ? t.failed : '…'));
     else {
-      const tasks = data.tasks.items.slice(0, 3).map(task => ({text: task.title, note: task.endDate > data.date ? t.until(task.endDate) : ''}));
+      const fmt = date => window.GaryHubPrefs?.formatDate(date) ?? date;
+      const tasks = data.tasks.items.slice(0, 3).map(task => ({text: task.title, note: task.endDate > data.date ? t.until(fmt(task.endDate)) : ''}));
       if (data.tasks.count > tasks.length) tasks.push({text: t.more(data.tasks.count - tasks.length)});
       if (data.overdue) tasks.push({text: t.overdue(data.overdue), note: ''});
       grid.append(card('schedule', t.schedule, data.tasks.count, tasks, t.none, {label: t.openCalendar, href: data.links.calendar}));

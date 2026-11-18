@@ -61,3 +61,9 @@
  .segmented{display:flex}
  .segmented label{flex:1;text-align:center;padding:7px 10px}
 }
+/* v2.4.1.5: accent swatches, code and formula samples */
+.segmented label[data-swatch]::before{content:"";display:inline-block;width:12px;height:12px;margin-right:6px;border-radius:50%;background:var(--swatch);vertical-align:-1px;box-shadow:0 0 0 1px #0002}
+.study-preview .sample-code{margin:12px 0 0;padding:10px 12px;border-radius:8px;background:#0000000d;font-family:var(--sample-code);font-size:calc(var(--sample-body) * .85);overflow:auto}
+.study-preview[data-look=dark] .sample-code{background:#ffffff12}
+.study-preview .sample-math{margin-top:10px;font-family:"Times New Roman","Latin Modern Roman",serif;font-size:calc(var(--sample-body) * 1.13 * var(--sample-math,1))}
+.number-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
