@@ -67,3 +67,36 @@
 .study-preview[data-look=dark] .sample-code{background:#ffffff12}
 .study-preview .sample-math{margin-top:10px;font-family:"Times New Roman","Latin Modern Roman",serif;font-size:calc(var(--sample-body) * 1.13 * var(--sample-math,1))}
 .number-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+/* v2.4.1.6: ordered lists, tool pins, the channel table, devices and the subscription address */
+.order-list,.pin-list,.device-list{list-style:none;margin:0;padding:0;display:grid;gap:6px;max-width:560px}
+.order-row,.pin-row,.device-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.order-row label,.order-name,.pin-name{flex:1;min-width:0;font-size:14px}
+.order-row label{cursor:pointer}
+.order-move{display:inline-flex;gap:4px;flex:none}
+.order-button{width:30px;height:30px;padding:0;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.order-button:disabled{opacity:.35;cursor:default}
+.order-button:not(:disabled):hover{border-color:var(--accent);color:var(--accent)}
+.pin-row{flex-wrap:wrap}
+.pin-row .pin-choice{margin:0}
+.pin-row .segmented{padding:3px}
+.pin-row .segmented label{padding:4px 12px;font-size:13px}
+.recent-names{font-size:14px;color:var(--muted)}
+.table-scroll{overflow-x:auto;max-width:100%}
+.channel-table{border-collapse:collapse;min-width:340px;font-size:14px}
+.channel-table th,.channel-table td{padding:8px 14px;border-bottom:1px solid var(--line);text-align:center}
+.channel-table th[scope=row],.channel-table thead th:first-child{text-align:left;font-weight:600}
+.channel-table thead th{font-size:12px;color:var(--muted);font-weight:600}
+.channel-table input{width:18px;height:18px;cursor:pointer;accent-color:var(--accent)}
+.channel-table input:disabled{cursor:not-allowed}
+.time-row{margin-top:10px}
+.time-row label{font-size:13px;color:var(--muted)}
+.time-row select{padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit}
+.device-row{justify-content:space-between}
+.device-info{display:grid;gap:2px;min-width:0}
+.device-info strong{font-size:14px}
+.device-info small{font-size:12px;color:var(--muted)}
+.device-row .chip{margin-top:0}
+.block-status:empty{display:none}
+.feed-url{margin-top:10px}
+.feed-url input{flex:1;min-width:0;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:13px/1.4 ui-monospace,Consolas,monospace}
+@media(max-width:760px){.pin-row .segmented{display:flex;width:100%}.order-list,.pin-list,.device-list{max-width:none}}

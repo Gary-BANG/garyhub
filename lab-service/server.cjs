@@ -83,7 +83,7 @@ const server = http.createServer(async (req,res)=>{
     if(await academic(req,res,url))return;
     if(['/grades','/grades/','/study','/study/'].includes(url.pathname))url.pathname='/academic/index.html';
     url.pathname=decodeURIComponent(url.pathname);
-    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"2.4.1.5"});
+    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"2.4.1.6"});
     if(url.pathname.startsWith('/sub/')) {
       if(req.method!=='GET') return json(res,405,{message:'Method not allowed'});
       const sub=connections.subscription(url.pathname.slice(5));
@@ -102,7 +102,7 @@ const server = http.createServer(async (req,res)=>{
         return json(res,200,{allowed:true,gpa:p.gpa,rank:p.rank});
       }
       const profileRoute=/^\/api\/hub\/(?:profile-access|profile-unlock|profile-lock|admin\/profile-privacy|admin\/profile-revoke)$/.test(url.pathname);
-      const hubRoute=/^\/api\/hub\/(?:me|preferences|notifications(?:\/\d+\/read|\/(?:read-all|delete-all))?|admin\/users(?:\/\d+\/(?:academics|status|reset-password|deletion-preview|tier|stock-vip))?)$/.test(url.pathname);
+      const hubRoute=/^\/api\/hub\/(?:me|preferences|notifications(?:\/\d+\/read|\/(?:read-all|delete-all))?|notify(?:\/devices\/\d+\/remove|\/feed)?|admin\/users(?:\/\d+\/(?:academics|status|reset-password|deletion-preview|tier|stock-vip))?)$/.test(url.pathname);
       const registrationRoute=/^\/api\/admin\/register-requests(?:\/\d+\/(?:approve|reject))?$/.test(url.pathname);
       const totpRoute=/^\/api\/hub\/totp(?:\/codes|\/[0-9a-f-]{36}(?:\/reveal|\/grants(?:\/[1-9][0-9]*)?)?)?$/.test(url.pathname);
       if(hubRoute||registrationRoute||profileRoute||totpRoute){

@@ -30,9 +30,16 @@
 .today-top h2{margin:0;font-size:clamp(22px,2.4vw,28px);letter-spacing:-.02em}
 .today-date{margin-left:12px;font-size:15px;font-weight:500;color:var(--muted)}
 .today-hello{margin:0;color:var(--muted)}
-.today-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.today-grid{display:grid;grid-template-columns:repeat(var(--cards,4),minmax(0,1fr));gap:14px}
 .today-card{--glow:#7aa7ff;display:flex;flex-direction:column;gap:8px;min-height:164px;padding:18px 18px 14px;border-radius:16px;background:linear-gradient(160deg,#121b42cc,#0a1028cc);border:1px solid #ffffff1a}
-.today-card.today-schedule{--glow:#5ce1e6}.today-card.today-todos{--glow:#7aa7ff}.today-card.today-study{--glow:#b48cff}.today-card.today-notices{--glow:#ffcf8a}
+.today-card.today-schedule{--glow:#5ce1e6}.today-card.today-todos{--glow:#7aa7ff}.today-card.today-study{--glow:#b48cff}.today-card.today-notices{--glow:#ffcf8a}.today-card.today-budget{--glow:#7be0a4}
+/* v2.4.1.6: the budget card's meter and the link to choose the cards. */
+.today-meter{height:6px;border-radius:999px;background:#ffffff1a;overflow:hidden}
+.today-meter span{display:block;height:100%;border-radius:inherit;background:var(--glow)}
+.today-meter.over span{background:#ff8f8f}
+.today-side{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.today-edit{font-size:13px;color:var(--muted);text-decoration:none;border-bottom:1px dashed currentColor}
+.today-edit:hover{color:var(--text,#fff)}
 .today-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
 .today-label{font-size:13px;font-weight:700;letter-spacing:1px;color:var(--glow)}
 .today-count{font-size:26px;line-height:1;letter-spacing:-.02em}

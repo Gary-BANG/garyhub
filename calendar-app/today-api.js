@@ -4,6 +4,7 @@
 const {VISIBLE_SQL} = require('./notification-policy');
 const {localParts} = require('./reminder-utils');
 const {rateLimit} = require('./rate-limit');
+const {createFx, convert} = require('./fx-rates');
 
 const BASE = () => (process.env.APP_BASE_URL || 'https://calendar.garyhub.uk').replace(/\/+$/, '');
 const route = fn => (req, res, next) => Promise.resolve(fn(req, res)).catch(next);
@@ -17,7 +18,34 @@ function parse(text, fallback) {
   try { const value = JSON.parse(text); return value ?? fallback; } catch { return fallback; }
 }
 
-async function today(db, userId, now = new Date()) {
+// v2.4.1.6: the "this month's budget" card, from the ledger's "all spending" budget. Spending is counted as the ledger
+// counts it (expenses minus refunds) for the account's current month, in the budget's currency. Rates come from the
+// ledger's cached file only, so the summary never waits for the network; without them a mixed-currency month shows no total.
+const cachedRates = dataDir => () => dataDir ? createFx({dataDir, fetcher: async () => { throw Error('cache only'); }}).get() : {available: false};
+async function budget(db, userId, date, rates) {
+  let row;
+  try { row = await db.get("SELECT currency,amount FROM ledger_budgets WHERE user_id=? AND category_id='*'", [userId]); }
+  catch { return null; }
+  if (!row) return null;
+  const month = date.slice(0, 7);
+  const entries = await db.all(`SELECT kind,currency,amount FROM ledger_entries WHERE user_id=? AND kind IN ('expense','refund')
+    AND date BETWEEN ? AND ?`, [userId, month + '-01', month + '-31']);
+  let spent = 0, rate = null;
+  try {
+    for (const entry of entries) {
+      let value = entry.amount;
+      if (entry.currency !== row.currency) {
+        rate = rate || await rates();
+        if (!rate.available) throw Error('rates');
+        value = convert(entry.amount, entry.currency, row.currency, rate.rates || rate.rate);
+      }
+      spent += entry.kind === 'refund' ? -value : value;
+    }
+  } catch { spent = null; }
+  return {month, currency: row.currency, amount: row.amount, spent, url: BASE() + '/ledger/'};
+}
+
+async function today(db, userId, now = new Date(), {rates = () => ({available: false})} = {}) {
   const user = await db.get('SELECT timezone FROM users WHERE id=?', [userId]);
   const date = localDate(user?.timezone, now);
   const tasks = await db.all(`SELECT t.id,t.title,t.start_date,t.end_date,t.status,c.color AS category_color
@@ -36,6 +64,7 @@ async function today(db, userId, now = new Date()) {
     todos: {count: open.length, items: open.slice(0, 5).map(todo => ({id: todo.id, title: todo.title,
       openPoints: Array.isArray(todo.points) ? todo.points.filter(p => p && p.done === false).length : 0}))},
     unread: unread.n,
+    budget: await budget(db, userId, date, rates),
     links: {calendar: BASE() + '/', todos: BASE() + '/todos/'}
   };
 }
@@ -101,12 +130,13 @@ async function search(db, userId, query) {
   return {accountId: userId, q, groups};
 }
 
-function register(app, {db, requireLogin}) {
-  app.get('/api/hub/today', requireLogin, route(async (req, res) => res.json(await today(db, req.session.user.id))));
+function register(app, {db, requireLogin, dataDir}) {
+  const rates = cachedRates(dataDir);
+  app.get('/api/hub/today', requireLogin, route(async (req, res) => res.json(await today(db, req.session.user.id, new Date(), {rates}))));
   app.get('/api/hub/search', requireLogin, rateLimit(90, 60_000), route(async (req, res) => {
     try { res.json(await search(db, req.session.user.id, req.query.q)); }
     catch (error) { if (!error.status) throw error; res.status(error.status).json({message: error.message}); }
   }));
 }
 
-module.exports = {register, today, search, snippet, localDate};
+module.exports = {register, today, search, snippet, localDate, budget};

@@ -51,28 +51,36 @@ function calendar(tasks, name = 'GaryHub') {
   return lines.map(fold).join('\r\n') + '\r\n';
 }
 
+// Shared with the settings centre (notify-api.js, v2.4.1.6).
+async function feedStatus(db, userId) {
+  const row = await db.get('SELECT created_at,last_used_at FROM calendar_feeds WHERE user_id=?', [userId]);
+  return {enabled: !!row, createdAt: row?.created_at || null, lastUsedAt: row?.last_used_at || null};
+}
+// Creating again replaces the address, so an address that leaked stops working at once.
+async function createFeed(db, userId) {
+  const token = crypto.randomBytes(24).toString('base64url');
+  await db.run(`INSERT INTO calendar_feeds(user_id,token_hash) VALUES(?,?) ON CONFLICT(user_id) DO UPDATE SET
+    token_hash=excluded.token_hash,created_at=CURRENT_TIMESTAMP,last_used_at=NULL`, [userId, digest(token)]);
+  return BASE() + '/feed/' + token + '.ics';
+}
+const removeFeed = (db, userId) => db.run('DELETE FROM calendar_feeds WHERE user_id=?', [userId]);
+
 function register(app, {db, requireLogin}) {
-  const status = async userId => {
-    const row = await db.get('SELECT created_at,last_used_at FROM calendar_feeds WHERE user_id=?', [userId]);
-    return {accountId: userId, enabled: !!row, createdAt: row?.created_at || null, lastUsedAt: row?.last_used_at || null};
-  };
+  const status = async userId => ({accountId: userId, ...await feedStatus(db, userId)});
   const same = (req, res) => {
     if (req.body?.accountId === req.session.user.id) return true;
     res.status(409).json({message: '登录账号已变化，请刷新页面'});
     return false;
   };
   app.get('/api/calendar-feed', requireLogin, route(async (req, res) => res.json(await status(req.session.user.id))));
-  // Creating again replaces the address, so an address that leaked stops working at once.
   app.post('/api/calendar-feed', requireLogin, rateLimit(20, 60 * 60_000), route(async (req, res) => {
     if (!same(req, res)) return;
-    const token = crypto.randomBytes(24).toString('base64url');
-    await db.run(`INSERT INTO calendar_feeds(user_id,token_hash) VALUES(?,?) ON CONFLICT(user_id) DO UPDATE SET
-      token_hash=excluded.token_hash,created_at=CURRENT_TIMESTAMP,last_used_at=NULL`, [req.session.user.id, digest(token)]);
-    res.status(201).json({...await status(req.session.user.id), url: BASE() + '/feed/' + token + '.ics'});
+    const url = await createFeed(db, req.session.user.id);
+    res.status(201).json({...await status(req.session.user.id), url});
   }));
   app.delete('/api/calendar-feed', requireLogin, route(async (req, res) => {
     if (!same(req, res)) return;
-    await db.run('DELETE FROM calendar_feeds WHERE user_id=?', [req.session.user.id]);
+    await removeFeed(db, req.session.user.id);
     res.json(await status(req.session.user.id));
   }));
   app.get('/feed/:file', rateLimit(120, 15 * 60_000), route(async (req, res) => {
@@ -90,4 +98,4 @@ function register(app, {db, requireLogin}) {
   }));
 }
 
-module.exports = {migrate, register, calendar, fold, escapeText, digest};
+module.exports = {migrate, register, calendar, fold, escapeText, digest, feedStatus, createFeed, removeFeed};

@@ -20,7 +20,7 @@ async function fixture() {
     CREATE TABLE diary_entries(id INTEGER PRIMARY KEY AUTOINCREMENT,user_id INTEGER,entry_date TEXT,title TEXT DEFAULT '',body TEXT DEFAULT '');
     CREATE TABLE ledger_entries(id TEXT PRIMARY KEY,user_id INTEGER,kind TEXT,currency TEXT,date TEXT,category_id TEXT,amount INTEGER,notes TEXT DEFAULT '');
     CREATE TABLE research_projects(id TEXT PRIMARY KEY,user_id INTEGER,name TEXT,entries TEXT DEFAULT '[]',updated_at TEXT DEFAULT CURRENT_TIMESTAMP);`);
-  await feed.migrate(db); await push.migrate(db); await alerts.migrate(db);
+  await feed.migrate(db); await push.migrate(db); await alerts.migrate(db); await require('../preferences-api').migrate(db);
   return db;
 }
 async function serve(db, register) {
@@ -269,10 +269,10 @@ test('push reminders fire once per slot for accounts with a subscribed browser',
       INSERT INTO push_subscriptions(user_id,endpoint,p256dh,auth) VALUES(1,'https://fcm.googleapis.com/x','k','a');`);
     const seen = [], notify = async (user, message) => { seen.push([user, message.title, message.body]); };
     // 01:00 UTC is 09:00 in Shanghai on the task's day.
-    assert.deepEqual(await push.runReminders({db, notify, now: new Date('2026-11-17T01:00:20Z')}), {sent: 1});
+    assert.deepEqual(await push.runReminders({db, notify, now: new Date('2026-11-17T01:00:20Z')}), {sent: 1, inApp: 0});
     assert.deepEqual(seen, [[1, 'Gary Hub 提醒：Review', '2026-11-17 09:00']]);
-    assert.deepEqual(await push.runReminders({db, notify, now: new Date('2026-11-17T01:02:00Z')}), {sent: 0});
-    assert.deepEqual(await push.runReminders({db, notify, now: new Date('2026-11-17T05:00:00Z')}), {sent: 0});
+    assert.deepEqual(await push.runReminders({db, notify, now: new Date('2026-11-17T01:02:00Z')}), {sent: 0, inApp: 0});
+    assert.deepEqual(await push.runReminders({db, notify, now: new Date('2026-11-17T05:00:00Z')}), {sent: 0, inApp: 0});
     assert.equal(seen.length, 1);
   } finally { db.close(); }
 });

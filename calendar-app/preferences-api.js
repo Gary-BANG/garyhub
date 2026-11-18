@@ -6,6 +6,12 @@
 const {isValidTimeZone} = require('./reminder-utils');
 const {rateLimit} = require('./rate-limit');
 
+// v2.4.1.6: some settings are ordered lists drawn from a fixed set (no repeats), and times are whole or half hours.
+const list = (values, max) => ({list: values, max});
+const HALF_HOURS = Array.from({length: 48}, (_, i) => String(Math.floor(i / 2)).padStart(2, '0') + (i % 2 ? ':30' : ':00'));
+const TOOLS = ['grades', 'study', 'lab', 'research', 'calendar', 'files', 'stocks', 'reading', 'status', 'server-monitor', 'ai-logs',
+  'access', 'totp', 'eraser', 'markdown', 'pdf'];
+const BOOL = [true, false];
 const SCHEMA = {
   'appearance.theme': ['system', 'light', 'dark'],
   'appearance.sky': ['full', 'calm', 'still'],
@@ -23,8 +29,23 @@ const SCHEMA = {
   'companion.off': [true, false],
   'ledger.currency': ['CNY', 'USD', 'CAD', 'HKD'],
   'tools.view': ['grid', 'dock'],
+  // v2.4.1.6: homepage "today" cards and portal order; tools desk pins, hidden tools and recent use.
+  'home.cards': list(['schedule', 'todos', 'study', 'notices', 'budget'], 5),
+  'home.portals': list(['tools', 'calendar', 'study', 'sites'], 4),
+  'tools.pinned': list(TOOLS, 8),
+  'tools.hidden': list(TOOLS, TOOLS.length),
+  'tools.recent': list(TOOLS, 6),
+  // v2.4.1.6: channels for each kind of notice (release notes always stay in the in-app inbox), push quiet hours,
+  // and the reminder a new task starts with.
+  'notify.updates.push': BOOL, 'notify.updates.email': BOOL,
+  'notify.reminders.inApp': BOOL, 'notify.reminders.push': BOOL, 'notify.reminders.email': BOOL,
+  'notify.alerts.inApp': BOOL, 'notify.alerts.push': BOOL, 'notify.alerts.email': BOOL,
+  'push.quietFrom': HALF_HOURS, 'push.quietTo': HALF_HOURS,
+  'tasks.reminder': ['once', 'twice'], 'tasks.reminderTime1': HALF_HOURS, 'tasks.reminderTime2': HALF_HOURS,
 };
 const KEYS = Object.keys(SCHEMA);
+const allowed = (rule, value) => Array.isArray(rule) ? rule.includes(value) :
+  Array.isArray(value) && value.length <= rule.max && new Set(value).size === value.length && value.every(item => rule.list.includes(item));
 const route = fn => (req, res, next) => Promise.resolve(fn(req, res)).catch(next);
 const fail = (status, message) => Object.assign(Error(message), {status});
 
@@ -36,7 +57,7 @@ function parse(text) {
   let value = {};
   try { value = JSON.parse(text || '{}'); } catch {}
   const out = {};
-  for (const key of KEYS) out[key] = SCHEMA[key].includes(value?.[key]) ? value[key] : null;
+  for (const key of KEYS) out[key] = allowed(SCHEMA[key], value?.[key]) ? value[key] : null;
   return out;
 }
 // Validates a patch {key: value|null}; unknown keys or values are refused as a whole.
@@ -51,7 +72,7 @@ function validate(set) {
       if (typeof value !== 'string' || value.length > 64 || !isValidTimeZone(value)) throw fail(400, '时区无效，请使用 IANA 时区名，例如 Asia/Shanghai');
       timezone = value;
     } else if (!SCHEMA[key]) throw fail(400, '未知的设置项：' + String(key).slice(0, 40));
-    else if (value !== null && !SCHEMA[key].includes(value)) throw fail(400, '设置值无效：' + key);
+    else if (value !== null && !allowed(SCHEMA[key], value)) throw fail(400, '设置值无效：' + key);
     else prefs[key] = value;
   }
   return {prefs, timezone};
@@ -86,4 +107,4 @@ function register(app, {db, requireLogin}) {
   }));
 }
 
-module.exports = {migrate, register, read, write, validate, SCHEMA, KEYS};
+module.exports = {migrate, register, read, write, validate, parse, SCHEMA, KEYS, TOOLS, HALF_HOURS};
