@@ -78,7 +78,8 @@ async function loadUnified() {
   $("accountEmailStatus").textContent = account.email_verified_at ?
     `已验证邮箱：${account.email}` : "尚未验证邮箱；邮件提醒不会发送。";
   $("reminderHint").textContent = account.email_verified_at && account.mail_enabled ?
-    "将按账号时区、在开始与结束日期之间发送。" : "请先验证邮箱并配置邮件服务，提醒才会发送。";
+    "按账号时区，在开始与结束日期之间提醒；用邮件、推送还是站内通知，在设置中心的“通知与提醒”中选择。" :
+    "邮件提醒需要先验证邮箱；推送和站内通知可在设置中心的“通知与提醒”中开启。";
   $("accountEmail").value = account.email || "";
   $("accountTimeZone").value = account.timezone || "Etc/UTC";
   $("timezoneHint").textContent = `当前保存：${account.timezone || "Etc/UTC"}。浏览器检测：${Intl.DateTimeFormat().resolvedOptions().timeZone || "Etc/UTC"}。修改后请点击“保存时区”。`;
@@ -212,10 +213,29 @@ function renderNotifications() {
   });
 }
 
+// v2.4.1.6: a new task starts with the account's default reminder (Settings → Notifications); editing keeps the task's own.
+function applyReminderDefault() {
+  const prefs = window.GaryHubPrefs, kind = prefs?.get("tasks.reminder");
+  if (kind !== "once" && kind !== "twice") return;
+  const first = prefs.get("tasks.reminderTime1") || "09:00";
+  let second = prefs.get("tasks.reminderTime2") || "18:00";
+  if (second === first) second = first === "18:00" ? "09:00" : "18:00";
+  $("reminderEnabled").checked = true;
+  $("reminderFrequency").value = kind === "twice" ? "2" : "1";
+  $("reminderTime1").value = first;
+  $("reminderTime2").value = second;
+}
+window.GaryHubPrefs?.ready.then(() => {
+  if (editingTaskId || dirtyForms.has($("taskForm"))) return;
+  applyReminderDefault();
+  toggleReminderFields();
+});
+
 function clearUnifiedForm() {
   editingTaskId = null;
   selectedCategoryId = null;
   $("taskForm").reset();
+  applyReminderDefault();
   $("taskForm").dispatchEvent(new Event("saved"));
   $("unifiedFormTitle").textContent = "新增事项";
   $("taskMessage").textContent = "";

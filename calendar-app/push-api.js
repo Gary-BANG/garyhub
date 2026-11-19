@@ -5,6 +5,7 @@
 const crypto = require('node:crypto');
 const {rateLimit} = require('./rate-limit');
 const {dueReminderSlots, localParts} = require('./reminder-utils');
+const {channels, quiet} = require('./notify-channels');
 
 const route = fn => (req, res, next) => Promise.resolve(fn(req, res)).catch(next);
 const b64u = data => Buffer.from(data).toString('base64url');
@@ -22,6 +23,30 @@ async function migrate(db) {
   await db.run('CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user ON push_subscriptions(user_id)');
   await db.run(`CREATE TABLE IF NOT EXISTS push_reminder_log(task_id TEXT NOT NULL,user_id INTEGER NOT NULL,local_date TEXT NOT NULL,
     local_time TEXT NOT NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,PRIMARY KEY(task_id,local_date,local_time))`);
+  // v2.4.1.6: a short browser/system name for the device list. Nullable, so older code keeps inserting without it.
+  const columns = await db.all('PRAGMA table_info(push_subscriptions)');
+  if (!columns.some(column => column.name === 'label')) await db.run('ALTER TABLE push_subscriptions ADD COLUMN label TEXT');
+}
+
+// "Chrome · Windows" from the browser's User-Agent at subscription time; nothing else from it is kept.
+function deviceLabel(agent) {
+  const ua = String(agent || '').slice(0, 512);
+  const browser = /Edg(?:A|iOS)?\//.test(ua) ? 'Edge' : /SamsungBrowser\//.test(ua) ? 'Samsung Internet' : /OPR\/|Opera/.test(ua) ? 'Opera' :
+    /Firefox\/|FxiOS\//.test(ua) ? 'Firefox' : /Chrome\/|CriOS\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : '';
+  const system = /iPad/.test(ua) ? 'iPad' : /iPhone|iPod/.test(ua) ? 'iPhone' : /Android/.test(ua) ? 'Android' : /Windows/.test(ua) ? 'Windows' :
+    /CrOS/.test(ua) ? 'ChromeOS' : /Macintosh|Mac OS X/.test(ua) ? 'macOS' : /Linux/.test(ua) ? 'Linux' : '';
+  return [browser, system].filter(Boolean).join(' · ') || null;
+}
+function service(endpoint) {
+  let host = '';
+  try { host = new URL(endpoint).hostname; } catch {}
+  return host === 'fcm.googleapis.com' ? 'fcm' : host === 'updates.push.services.mozilla.com' ? 'mozilla' :
+    /(^|\.)push\.apple\.com$/.test(host) ? 'apple' : /\.notify\.windows\.com$/.test(host) ? 'windows' : 'other';
+}
+async function devices(db, userId) {
+  const rows = await db.all('SELECT id,endpoint,label,created_at,last_success_at,failures FROM push_subscriptions WHERE user_id=? ORDER BY id', [userId]);
+  return rows.map(row => ({id: row.id, label: row.label || null, service: service(row.endpoint), createdAt: row.created_at,
+    lastSuccessAt: row.last_success_at || null, failing: row.failures > 0}));
 }
 
 function generateKeys() {
@@ -117,15 +142,18 @@ function createPusher(db, {request = fetch} = {}) {
   return {notify};
 }
 
-// Task reminders as push: the same daily times as the e-mail reminder, for accounts with a subscribed browser.
-async function runReminders({db, notify, now = new Date()}) {
+// Task reminders by push and (v2.4.1.6) in-app: the same daily times as the e-mail reminder. Each slot is claimed once;
+// push follows the account's channel choice and quiet hours, in-app only when the account turned it on.
+async function runReminders({db, notify, now = new Date(), settingsOf = userId => channels(db, userId)}) {
   const rows = await db.all(`SELECT t.id,t.title,t.start_date,t.end_date,t.status,t.completed_at,t.user_id,u.timezone,
       r.frequency,r.time_1,r.time_2
     FROM tasks t JOIN users u ON u.id=t.user_id JOIN reminder_settings r ON r.task_id=t.id
+      LEFT JOIN user_preferences p ON p.user_id=t.user_id
     WHERE t.reminder_enabled=1 AND t.status<>'done' AND t.completed_at IS NULL AND u.enabled=1
-      AND EXISTS(SELECT 1 FROM push_subscriptions s WHERE s.user_id=t.user_id)`);
-  const minute = Math.floor(now.getTime() / 60000) * 60000;
-  let sent = 0;
+      AND (EXISTS(SELECT 1 FROM push_subscriptions s WHERE s.user_id=t.user_id) OR json_extract(p.prefs,'$."notify.reminders.inApp"')=1)`);
+  const minute = Math.floor(now.getTime() / 60000) * 60000, known = new Map();
+  const settingsFor = async userId => { if (!known.has(userId)) known.set(userId, await settingsOf(userId)); return known.get(userId); };
+  let sent = 0, inApp = 0;
   for (const row of rows) {
     for (let offset = 4; offset >= 0; offset--) {
       const instant = new Date(minute - offset * 60000);
@@ -138,13 +166,22 @@ async function runReminders({db, notify, now = new Date()}) {
         const claim = await db.run('INSERT OR IGNORE INTO push_reminder_log(task_id,user_id,local_date,local_time) VALUES(?,?,?,?)',
           [row.id, row.user_id, local.date, time]);
         if (!claim.changes) continue;
-        await notify(row.user_id, {title: 'Gary Hub 提醒：' + row.title, body: local.date + ' ' + time, url: 'https://calendar.garyhub.uk/', tag: 'task-' + row.id});
-        sent++;
+        const settings = await settingsFor(row.user_id);
+        if (settings.reminders.inApp) {
+          await db.run(`INSERT OR IGNORE INTO notifications(user_id,type,title,body,action_url,dedupe_key,scope) VALUES(?,'reminder',?,?,?,?,'calendar')`,
+            [row.user_id, '事项提醒：' + row.title, local.date + ' ' + time, 'https://calendar.garyhub.uk/?date=' + local.date,
+              'reminder:' + row.id + ':' + local.date + ':' + time]);
+          inApp++;
+        }
+        if (settings.reminders.push && !quiet(settings, instant)) {
+          await notify(row.user_id, {title: 'Gary Hub 提醒：' + row.title, body: local.date + ' ' + time, url: 'https://calendar.garyhub.uk/', tag: 'task-' + row.id});
+          sent++;
+        }
       }
     }
   }
   await db.run("DELETE FROM push_reminder_log WHERE julianday(created_at)<=julianday('now','-7 days')");
-  return {sent};
+  return {sent, inApp};
 }
 
 function register(app, {db, requireLogin, pusher = createPusher(db)}) {
@@ -166,8 +203,8 @@ function register(app, {db, requireLogin, pusher = createPusher(db)}) {
     if (!valid) return res.status(400).json({message: '此浏览器的推送订阅无效或不受支持'});
     const userId = req.session.user.id;
     // A browser that signs in to another account moves its subscription to that account.
-    await db.run(`INSERT INTO push_subscriptions(user_id,endpoint,p256dh,auth) VALUES(?,?,?,?) ON CONFLICT(endpoint) DO UPDATE SET
-      user_id=excluded.user_id,p256dh=excluded.p256dh,auth=excluded.auth,failures=0`, [userId, sub.endpoint, p256dh, auth]);
+    await db.run(`INSERT INTO push_subscriptions(user_id,endpoint,p256dh,auth,label) VALUES(?,?,?,?,?) ON CONFLICT(endpoint) DO UPDATE SET
+      user_id=excluded.user_id,p256dh=excluded.p256dh,auth=excluded.auth,label=excluded.label,failures=0`, [userId, sub.endpoint, p256dh, auth, deviceLabel(req.get('user-agent'))]);
     await db.run(`DELETE FROM push_subscriptions WHERE user_id=? AND id NOT IN
       (SELECT id FROM push_subscriptions WHERE user_id=? ORDER BY id DESC LIMIT ?)`, [userId, userId, MAX_PER_USER]);
     res.status(201).json({accountId: userId, devices: await count(userId)});
@@ -198,4 +235,5 @@ function start(db, pusher) {
   return timer;
 }
 
-module.exports = {migrate, register, start, createPusher, runReminders, encrypt, authorization, generateKeys, allowedEndpoint, keys, payload};
+module.exports = {migrate, register, start, createPusher, runReminders, encrypt, authorization, generateKeys, allowedEndpoint, keys, payload,
+  deviceLabel, service, devices};

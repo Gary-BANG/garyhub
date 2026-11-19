@@ -1,4 +1,6 @@
-/* A small spring loop runs only while icon positions are changing. */
+/* A small spring loop runs only while icon positions are changing.
+   v2.4.1.6: for a signed-in account, pinned tools come first, hidden tools leave the grid (search still finds them) and a
+   "recently used" row lists the last tools opened; all three are account preferences (tools.pinned/hidden/recent). */
 (() => {
   'use strict';
   const catalog = window.GaryHubTools;
@@ -16,6 +18,8 @@
     tool:catalog.tools.find(tool => tool.id === node.dataset.tool),
     scale:1, lift:0, shift:0, vs:0, vy:0, vx:0, box:null
   })).filter(entry => entry.tool);
+  const original = new Map(entries.map((entry, index) => [entry, index]));
+  const extra = {zh:{recent:'最近使用',manage:'整理工具台',pinned:'已置顶',hiddenCount:n=>'已隐藏 '+n+' 个'},en:{recent:'Recently used',manage:'Arrange tools',pinned:'Pinned',hiddenCount:n=>n+' hidden'}};
   const strings = {
     zh:{eyebrow:'A PERSONAL COLLECTION / GARYHUB',headline:'一方小天地，',headlineAccent:'做更多事。',subtitle:'学习、创作与日常所需，在这里各就其位。',searchLabel:'搜索工具',placeholder:'搜索工具名称或用途…',clear:'清空搜索',view:'显示方式',grid:'多行图标',dock:'单行 Dock',toolbox:'你的工具箱',detailKicker:'为每一件小事，找到顺手的工具',hint:'移动到图标上查看介绍，点击即可进入。',touchHint:'点击图标即可进入工具。',footer:'学习 · 实践 · 记录',region:'工具导航',detail:'工具介绍',prev:'向前浏览工具',next:'向后浏览工具',empty:'没有找到匹配的工具，试试其他名称或用途。',count:(n,total,filtered) => filtered ? `${n} / ${total} 个工具` : `${total} 个工具`},
     en:{eyebrow:'A PERSONAL COLLECTION / GARYHUB',headline:'A little space.',headlineAccent:'For doing more.',subtitle:'Your everyday tools, all in one place.',searchLabel:'Search tools',placeholder:'Search tools or what you want to do…',clear:'Clear search',view:'Display layout',grid:'Icon grid',dock:'Single-row Dock',toolbox:'THE TOOLBOX',detailKicker:'A LITTLE HELP FOR EVERYDAY',hint:'Hover to explore. Click to open.',touchHint:'Tap an icon to open the tool.',footer:'STUDY · BUILD · KEEP TRACK',region:'Tools navigation',detail:'Tool description',prev:'Browse previous tools',next:'Browse next tools',empty:'No matching tools. Try another name or purpose.',count:(n,total,filtered) => filtered ? `${n} / ${total} tools` : `${total} tools`}
@@ -100,13 +104,71 @@
       running.onfinish=()=>{if(descriptionAnimation===running)descriptionAnimation=undefined;};
     }
   }
+  // ---- Pinned, hidden and recently used tools (v2.4.1.6) ----
+  const prefList = key => { const value = window.GaryHubPrefs?.get(key); return Array.isArray(value) ? value : []; };
+  const signedIn = () => !!window.GaryHubPrefs?.accountId;
+  const isHidden = entry => signedIn() && prefList('tools.hidden').includes(entry.tool.id);
+  const recentRow = document.createElement('nav');
+  recentRow.className = 'tools-recent'; recentRow.id = 'tools-recent'; recentRow.hidden = true;
+  browser.querySelector('.tools-caption')?.before(recentRow);
+  const manage = document.createElement('a');
+  manage.className = 'tools-manage'; manage.href = '/personalize/#tools'; manage.hidden = true;
+  browser.querySelector('.tools-caption')?.append(manage);
+  function arrange() {
+    const pinned = signedIn() ? prefList('tools.pinned') : [];
+    const rank = entry => { const at = pinned.indexOf(entry.tool.id); return at < 0 ? 100 + original.get(entry) : at; };
+    entries.sort((a, b) => rank(a) - rank(b));
+    for (const entry of entries) {
+      list.append(entry.node);
+      entry.node.toggleAttribute('data-pinned', pinned.includes(entry.tool.id));
+      if (pinned.includes(entry.tool.id)) entry.node.title = extra[lang].pinned; else entry.node.removeAttribute('title');
+    }
+    dirty = true;
+  }
+  function renderRecent() {
+    const recent = signedIn() ? prefList('tools.recent').map(id => entries.find(entry => entry.tool.id === id)).filter(entry => entry && permitted(entry.tool)).slice(0, 5) : [];
+    const label = document.createElement('span');
+    label.className = 'tools-recent-label'; label.textContent = extra[lang].recent;
+    recentRow.setAttribute('aria-label', extra[lang].recent);
+    recentRow.replaceChildren(label, ...recent.map(entry => {
+      const link = document.createElement('a');
+      link.className = 'tools-recent-link'; link.href = entry.link.getAttribute('href'); link.dataset.recent = entry.tool.id;
+      if (entry.link.target) { link.target = entry.link.target; link.rel = entry.link.rel; }
+      const glyph = entry.glyph.cloneNode(true); glyph.removeAttribute('style');
+      const name = document.createElement('span'); name.textContent = entry.tool.name[lang];
+      link.append(glyph, name);
+      return link;
+    }));
+    recentRow.hidden = !recent.length;
+    manage.hidden = !signedIn(); manage.textContent = extra[lang].manage;
+  }
+  // Opening a tool moves it to the front of "recently used"; the save survives the navigation (keepalive).
+  function remember(id) {
+    if (!signedIn() || !id) return;
+    const next = [id, ...prefList('tools.recent').filter(item => item !== id)].slice(0, 6);
+    window.GaryHubPrefs.save({'tools.recent': next}, {now: true});
+  }
+  const used = event => {
+    if (event.type === 'auxclick' && event.button !== 1) return;
+    const link = event.target.closest?.('a');
+    remember(link?.dataset.recent || link?.closest('[data-tool]')?.dataset.tool);
+  };
+  for (const type of ['click', 'auxclick']) { list.addEventListener(type, used); recentRow.addEventListener(type, used); }
+  document.addEventListener('garyhub:preferences', () => { arrange(); renderRecent(); filter(); });
+  window.GaryHubPrefs?.ready.then(() => { arrange(); renderRecent(); filter(); window.GaryHubPrefs.prepare?.(); });
+
+  function countText() {
+    const searching=!!catalog.normalize(search.value),hiddenCount=searching?0:entries.filter(e=>permitted(e.tool)&&isHidden(e)).length;
+    return strings[lang].count(visible().length,entries.filter(e=>permitted(e.tool)&&(searching||!isHidden(e))).length,searching)+(hiddenCount?' · '+extra[lang].hiddenCount(hiddenCount):'');
+  }
   function filter() {
-    for (const entry of entries) entry.node.hidden=!permitted(entry.tool)||!catalog.matches(entry.tool,search.value);
+    const searching=!!catalog.normalize(search.value);
+    for (const entry of entries) entry.node.hidden=!permitted(entry.tool)||!catalog.matches(entry.tool,search.value)||(!searching&&isHidden(entry));
     if (current?.node.hidden) show(null);
     if (focused?.node.hidden) focused=null;
     pointer=null;dirty=true;resetIcons();
     const count=visible().length;
-    $('tool-count').textContent=strings[lang].count(count,entries.filter(e=>permitted(e.tool)).length,!!catalog.normalize(search.value));
+    $('tool-count').textContent=countText();
     $('no-tools').hidden=count!==0;$('no-tools').textContent=strings[lang].empty;
     $('search-clear').hidden=!search.value;
     scroll.scrollLeft=0;arrows();
@@ -130,8 +192,8 @@
       entry.link.setAttribute('aria-label',entry.tool.name[lang]);
     }
     // Keep the query, layout, active description and scroll position when translating.
-    $('tool-count').textContent=s.count(visible().length,entries.filter(e=>permitted(e.tool)).length,!!catalog.normalize(search.value));
-    $('no-tools').textContent=s.empty;show(current,false);dirty=true;arrows();
+    $('tool-count').textContent=countText();
+    $('no-tools').textContent=s.empty;show(current,false);dirty=true;arrows();renderRecent();
   }
   search.addEventListener('input',filter);
   $('search-clear').addEventListener('click',()=>{search.value='';filter();search.focus();});

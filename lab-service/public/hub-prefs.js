@@ -1,4 +1,5 @@
-/* GaryHub preferences (v2.4.1.4). Load early in <head> on every GaryHub page (both services keep identical copies).
+/* GaryHub preferences (v2.4.1.4; v2.4.1.6 adds immediate saves). Load early in <head> on every GaryHub page (both
+   services keep identical copies).
    GaryHubTheme: one day/night setting (system, light or dark) for every sub-site. The cookie garyhub_prefs on
    .garyhub.uk carries it between sub-sites before the account answers; each page's own ◐ button still switches
    light/dark, and that choice is saved too.
@@ -176,7 +177,8 @@
     const set = pending; pending = {}; lastError = null;
     try {
       if (!csrf) csrf = (await (await fetch('/api/csrf', {cache: 'no-store', credentials: 'same-origin'})).json()).token;
-      const response = await fetch('/api/hub/preferences', {method: 'PUT', cache: 'no-store', credentials: 'same-origin',
+      // keepalive (v2.4.1.6): a save started as the page navigates away (a tool opened from the tools desk) still completes.
+      const response = await fetch('/api/hub/preferences', {method: 'PUT', cache: 'no-store', credentials: 'same-origin', keepalive: true,
         headers: {'Content-Type': 'application/json', 'X-CSRF-Token': csrf}, body: JSON.stringify({accountId: state.accountId, set})});
       if (response.status === 403) csrf = null;
       const data = await response.json().catch(() => ({}));
@@ -225,7 +227,14 @@
     get prefs() { return state.prefs; },
     get timezone() { return state.timezone; },
     get: key => state.prefs ? state.prefs[key] : null,
-    save: queue,
+    // {now: true} sends at once instead of after a short pause (v2.4.1.6).
+    save(patch, {now = false} = {}) { queue(patch); if (now) { clearTimeout(timer); flush(); } },
+    // Fetches the page token ahead of time, so a later save needs a single request (v2.4.1.6).
+    async prepare() {
+      await ready;
+      if (!state.accountId || csrf) return;
+      try { csrf = (await (await fetch('/api/csrf', {cache: 'no-store', credentials: 'same-origin'})).json()).token; } catch {}
+    },
     // Saves at once and reports the outcome; the settings centre uses this for its "saved" messages.
     async saveNow(patch) { await ready; queue(patch); clearTimeout(timer); if (!await flush()) throw lastError || Error('save failed'); return state; }
   };

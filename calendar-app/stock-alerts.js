@@ -5,6 +5,7 @@
 const crypto = require('node:crypto');
 const {market, symbolPattern, fail} = require('./stock-market');
 const {localParts} = require('./reminder-utils');
+const notifyChannels = require('./notify-channels');
 
 const LIMITS = {standard: 3, vip: 20};
 const KEEP = 60;
@@ -40,7 +41,9 @@ function trading(now = new Date()) {
   return (time >= '09:30' && time <= '11:30') || (time >= '13:00' && time <= '15:00');
 }
 
-async function checkAlerts({db, provider, notify = async () => {}, now = new Date(), force = false}) {
+// v2.4.1.6: each fired alert goes to the channels the account chose (in-app, push outside quiet hours, e-mail).
+async function checkAlerts({db, provider, notify = async () => {}, now = new Date(), force = false,
+  settingsOf = userId => notifyChannels.channels(db, userId), email = (userId, message) => notifyChannels.email(db, userId, message)}) {
   if (!force && !trading(now)) return {checked: 0, triggered: 0};
   const symbols = await db.all('SELECT DISTINCT symbol FROM stock_alerts WHERE triggered_at IS NULL ORDER BY symbol LIMIT 120');
   let triggered = 0;
@@ -59,9 +62,11 @@ async function checkAlerts({db, provider, notify = async () => {}, now = new Dat
       const name = alert.name || quote.name || symbol;
       const title = name + ' 到价提醒';
       const body = `${name}（${symbol.slice(2)}）现价 ${showPrice(current)}，已${alert.direction === 'above' ? '达到或高于' : '达到或低于'}你设定的 ${showPrice(alert.price)}。`;
-      await db.run(`INSERT OR IGNORE INTO notifications(user_id,type,title,body,action_url,dedupe_key,scope) VALUES(?,'stock-alert',?,?,?,?,'tools')`,
+      const settings = await settingsOf(alert.user_id);
+      if (settings.alerts.inApp) await db.run(`INSERT OR IGNORE INTO notifications(user_id,type,title,body,action_url,dedupe_key,scope) VALUES(?,'stock-alert',?,?,?,?,'tools')`,
         [alert.user_id, title, body, 'https://calendar.garyhub.uk/stocks/', 'stock-alert:' + alert.id]);
-      await notify(alert.user_id, {title, body, url: 'https://calendar.garyhub.uk/stocks/', tag: 'stock-' + alert.id});
+      if (settings.alerts.push && !notifyChannels.quiet(settings, now)) await notify(alert.user_id, {title, body, url: 'https://calendar.garyhub.uk/stocks/', tag: 'stock-' + alert.id});
+      if (settings.alerts.email) await email(alert.user_id, {subject: 'Gary Hub ' + title, text: body + '\n\nhttps://calendar.garyhub.uk/stocks/'});
       triggered++;
     }
   }

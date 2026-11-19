@@ -22,7 +22,31 @@ test('validation accepts only known keys and values', () => {
     {'appearance.accent': 'teal', 'appearance.density': 'compact', 'region.weekStart': 'sunday', 'region.dateFormat': 'eu', 'calendar.view': 'list'});
   for (const bad of [{'appearance.accent': 'red'}, {'appearance.density': 'tiny'}, {'region.weekStart': 'saturday'}, {'region.dateFormat': 'dd.mm'}, {'calendar.view': 'day'}])
     assert.throws(() => preferences.validate(bad), {status: 400}, JSON.stringify(bad));
-  assert.equal(preferences.KEYS.length, 15);
+  assert.equal(preferences.KEYS.length, 33);
+});
+
+test('v2.4.1.6: ordered lists from a fixed set, notification channels, quiet hours and the default reminder', async () => {
+  const ok = {'home.cards': ['budget', 'schedule'], 'home.portals': ['study', 'tools', 'calendar', 'sites'], 'tools.pinned': ['totp', 'study'],
+    'tools.hidden': [], 'tools.recent': ['pdf', 'markdown', 'eraser', 'totp', 'study', 'grades'], 'notify.updates.email': true, 'notify.reminders.email': false,
+    'notify.alerts.inApp': false, 'push.quietFrom': '22:30', 'push.quietTo': '07:00', 'tasks.reminder': 'twice', 'tasks.reminderTime1': '08:00', 'tasks.reminderTime2': '20:30'};
+  assert.deepEqual(preferences.validate(ok).prefs, ok);
+  for (const bad of [{'home.cards': ['schedule', 'schedule']}, {'home.cards': ['weather']}, {'home.cards': 'schedule'}, {'home.portals': ['tools', 'tools']},
+    {'tools.pinned': ['grades', 'study', 'lab', 'research', 'calendar', 'files', 'stocks', 'reading', 'status']}, {'tools.recent': ['pdf', 'markdown', 'eraser', 'totp', 'study', 'grades', 'lab']},
+    {'tools.hidden': [1]}, {'tools.hidden': ['__proto__']}, {'notify.updates.push': 'yes'}, {'notify.updates.inApp': false}, {'push.quietFrom': '22:15'}, {'push.quietTo': '24:00'},
+    {'tasks.reminder': 'always'}, {'tasks.reminderTime1': '9:00'}])
+    assert.throws(() => preferences.validate(bad), {status: 400}, JSON.stringify(bad));
+  assert.equal(preferences.HALF_HOURS.length, 48);
+  const db = await fixture();
+  try {
+    const state = await preferences.write(db, 1, ok);
+    assert.deepEqual(state.prefs['home.cards'], ['budget', 'schedule']);
+    // A list replaces the stored one as a whole (merge patch), and null clears it.
+    assert.deepEqual((await preferences.write(db, 1, {'tools.pinned': ['lab']})).prefs['tools.pinned'], ['lab']);
+    assert.equal((await preferences.write(db, 1, {'tools.pinned': null})).prefs['tools.pinned'], null);
+    // A stored list that is no longer valid reads back as unset.
+    await db.run("UPDATE user_preferences SET prefs=json_set(prefs,'$.\"home.cards\"',json('[\"weather\"]')) WHERE user_id=1");
+    assert.equal((await preferences.read(db, 1)).prefs['home.cards'], null);
+  } finally { db.close(); }
 });
 
 test('reads defaults, merges patches, resets with null and keeps accounts apart', async () => {
@@ -30,7 +54,7 @@ test('reads defaults, merges patches, resets with null and keeps accounts apart'
   try {
     const empty = await preferences.read(db, 1);
     assert.equal(empty.revision, 0); assert.equal(empty.timezone, 'Etc/UTC');
-    assert.deepEqual(Object.values(empty.prefs), Array(15).fill(null));
+    assert.deepEqual(Object.values(empty.prefs), Array(33).fill(null));
     let state = await preferences.write(db, 1, {'appearance.theme': 'dark', language: 'en', 'companion.char': 'pudding'});
     assert.equal(state.revision, 1);
     state = await preferences.write(db, 1, {'ledger.currency': 'USD', 'appearance.theme': null, 'region.timezone': 'America/Chicago'});
