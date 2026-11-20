@@ -77,4 +77,4 @@ Calendar 新增的 `games.test.js`（5 项）：
 
 ## 构建前检查
 
-见下一节（构建后补充）。
+上述修正之后，提交前重跑了 Calendar 128 与 Lab 113 单元测试、两种能力组合的十五组隔离套件、适配器与共享更新器测试和 `manage.py check`，全部通过（见上表）。升级包在 LF worktree 中构建，之后核对外层 SHA256SUMS、安装器占位符与结束语、payload 清单哈希、LF 行尾、无私有文件、两种能力组合的新文件与游戏页面哈希，并在 WSL 中载入包内的 `deploy.py` 核对链（不执行）：链为 `prior_0416.py` → … → `prior_0404.py`，各层配置均为 2.4.2.0，钩子只有本版的 prepare／apply／rollback。
