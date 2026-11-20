@@ -1,0 +1,189 @@
+/* Daydreamer (v2.4.2.0): boxes, prize board, offers and the final reveal. Shared tokens come from games.css. */
+.loading{color:var(--muted);text-align:center;padding:80px 0}
+.home-head,.game-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;padding:22px 0 20px;flex-wrap:wrap}
+.home-head h1{font-size:clamp(1.8rem,4vw,2.8rem)}
+.rules{padding:14px 20px;margin-bottom:22px;box-shadow:none}
+.rules summary{cursor:pointer;font-weight:700}
+.rules ol{margin:12px 0 4px;padding-left:1.3em;color:var(--muted);display:grid;gap:6px}
+
+/* My games */
+.lists{display:grid;gap:26px}
+.list h2{display:flex;align-items:center;gap:10px}
+.list ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.match{display:grid;gap:8px;padding:16px 18px;text-decoration:none;transition:transform .2s,border-color .2s;box-shadow:none}
+.match:hover{transform:translateY(-2px);border-color:var(--line-strong)}
+.match.me{border-color:color-mix(in srgb,var(--gold) 55%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--gold) 30%,transparent),0 12px 30px rgba(246,200,110,.12)}
+.match .line{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.match strong{font-size:1.05rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.match small{color:var(--muted)}
+.progress{height:6px;border-radius:99px;background:var(--card-strong);overflow:hidden}
+.progress i{display:block;height:100%;width:var(--p,0%);background:linear-gradient(90deg,var(--violet),var(--gold));border-radius:inherit}
+
+/* New game */
+.create-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr);gap:22px;align-items:start}
+.panel{padding:20px 22px}
+.panel h2{font-size:1.1rem}
+.mt{margin-top:22px}
+.row-2{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:12px;margin-bottom:18px}
+.prize-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.prize-head h2{margin:0}
+.prize-head .spacer{flex:1}
+.prize-rows{list-style:none;margin:12px 0;padding:0;display:grid;gap:8px;counter-reset:prize}
+.prize-row{display:grid;grid-template-columns:28px 108px minmax(0,1fr) 36px;gap:8px;align-items:center;counter-increment:prize}
+.prize-row::before{content:counter(prize);color:var(--faint);font-size:.82rem;text-align:right;font-variant-numeric:tabular-nums}
+.kind{display:flex;border:1px solid var(--line-strong);border-radius:12px;overflow:hidden}
+.kind button{flex:1;border:0;background:transparent;padding:9px 0;cursor:pointer;font-size:.85rem;color:var(--muted)}
+.kind button[aria-pressed="true"]{background:color-mix(in srgb,var(--violet) 35%,transparent);color:var(--ink);font-weight:700}
+.prize-input{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.prize-input.gift{grid-template-columns:52px minmax(0,1fr) 110px}
+.icon-pick{width:52px;padding:8px 0;text-align:center;font-size:1.2rem;cursor:pointer}
+.remove{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:transparent;cursor:pointer;color:var(--muted);font-size:1.1rem}
+.remove:hover{color:var(--danger);border-color:var(--danger)}
+.remove[disabled]{opacity:.3;cursor:not-allowed}
+.add-row{margin-top:4px}
+.side{display:grid;gap:18px;position:sticky;top:16px}
+.recent{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.recent button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 12px;cursor:pointer;font-size:.85rem}
+.recent button:hover{border-color:var(--gold)}
+.stepper{display:flex;align-items:center;gap:12px;margin:6px 0 8px}
+.stepper button{width:40px;height:40px;border-radius:50%;border:1px solid var(--line-strong);background:var(--card-strong);cursor:pointer;font-size:1.2rem}
+.stepper button[disabled]{opacity:.35;cursor:not-allowed}
+.stepper output{min-width:46px;text-align:center;font-size:1.6rem;font-weight:800;font-variant-numeric:tabular-nums}
+.big{padding:15px 22px;font-size:1.05rem;width:100%}
+.icon-menu{position:absolute;z-index:30;display:grid;grid-template-columns:repeat(4,44px);gap:6px;padding:10px;border-radius:16px;background:var(--card-strong);border:1px solid var(--line-strong);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:var(--shadow)}
+.icon-menu button{width:44px;height:44px;border-radius:12px;border:1px solid transparent;background:transparent;font-size:1.3rem;cursor:pointer}
+.icon-menu button:hover,.icon-menu button[aria-pressed="true"]{border-color:var(--gold);background:var(--card)}
+
+/* Prize board */
+.board{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}
+.board .col{display:grid;gap:6px;align-content:start}
+.board .col.gifts{grid-column:1/-1}
+.board h3{font-size:.76rem;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:6px 0 2px;grid-column:1/-1}
+.prize{display:flex;align-items:center;gap:8px;justify-content:space-between;padding:7px 12px;border-radius:12px;font-weight:700;font-variant-numeric:tabular-nums;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--violet) 26%,transparent),transparent);border:1px solid var(--line);transition:opacity .4s,filter .4s}
+.prize.high{background:linear-gradient(90deg,color-mix(in srgb,var(--gold) 30%,transparent),transparent);border-color:color-mix(in srgb,var(--gold) 35%,transparent)}
+.prize .gift-name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prize small{color:var(--faint);font-weight:500}
+.prize.gone{opacity:.28;filter:grayscale(1);text-decoration:line-through}
+.prize.kept{box-shadow:var(--glow)}
+.board-card{padding:16px 18px;align-self:start;position:sticky;top:16px}
+.board-card summary{cursor:pointer;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px;list-style:none}
+.board-card summary::-webkit-details-marker{display:none}
+.board-card summary::after{content:"▾";margin-left:auto;color:var(--faint);transition:transform .2s}
+.board-card details:not([open]) summary::after{transform:rotate(-90deg)}
+
+/* Game */
+.game-head .eyebrow{text-transform:none;letter-spacing:.04em}
+.game-title{font-size:clamp(1.6rem,3.6vw,2.4rem);margin:0 0 6px}
+.banner{margin:0;font-size:1.08rem;color:var(--muted);min-height:1.6em}
+.banner b{color:var(--gold)}
+.seal{font-family:ui-monospace,"SFMono-Regular",Consolas,monospace;font-size:.8rem;max-width:100%}
+.seal.ok{border-color:color-mix(in srgb,var(--mint) 60%,transparent);color:var(--mint)}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:22px;align-items:start}
+.table{padding:22px}
+.boxes{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}
+.boxes.n-many{grid-template-columns:repeat(5,minmax(0,1fr))}
+
+.box{position:relative;aspect-ratio:1/0.92;perspective:900px;border:0;background:transparent;padding:0;cursor:default}
+.box.pickable{cursor:pointer}
+.box .flip{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .8s cubic-bezier(.2,.8,.2,1)}
+.box.open .flip{transform:rotateY(180deg)}
+.box .face{position:absolute;inset:0;border-radius:16px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:grid;place-items:center}
+.box .front{background:linear-gradient(160deg,var(--box-a),var(--box-b));border:1px solid var(--box-edge);box-shadow:inset 0 2px 0 rgba(255,255,255,.25),0 10px 24px rgba(10,5,40,.35);overflow:hidden;transition:transform .25s,box-shadow .25s}
+.box .front::before{content:"";position:absolute;left:0;right:0;top:20%;height:16%;background:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,.08));border-bottom:1px solid rgba(0,0,0,.12)}
+.box .front::after{content:"";position:absolute;top:0;bottom:0;left:calc(50% - 6%);width:12%;background:linear-gradient(90deg,var(--ribbon),#ffe7b0,var(--ribbon));opacity:.95}
+.box .num{position:relative;z-index:1;width:42%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:clamp(.85rem,2vw,1.15rem);color:#3a2400;
+  background:radial-gradient(circle at 35% 30%,#ffe6a8,var(--gold) 55%,var(--gold-deep));box-shadow:0 3px 10px rgba(0,0,0,.3),inset 0 -2px 0 rgba(0,0,0,.15);font-variant-numeric:tabular-nums}
+.box .back{transform:rotateY(180deg);background:var(--open-bg);border:1px dashed var(--line-strong);padding:6px;text-align:center;align-content:center;gap:2px}
+.box .back .emoji{font-size:1.6rem;line-height:1}
+.box .back .val{font-weight:800;font-size:clamp(.78rem,1.7vw,1rem);word-break:break-word;line-height:1.2}
+.box .back .tag{font-size:.7rem;color:var(--faint)}
+.box.pickable:hover .front,.box.pickable:focus-visible .front{transform:translateY(-5px) rotate(-1.5deg);box-shadow:inset 0 2px 0 rgba(255,255,255,.3),0 16px 30px rgba(10,5,40,.45)}
+.box.selected .front{box-shadow:var(--glow);transform:translateY(-6px)}
+.box.kept .front{box-shadow:var(--glow)}
+.box .mark{position:absolute;z-index:2;top:-9px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:.7rem;font-weight:800;padding:2px 9px;border-radius:999px;background:var(--gold);color:#2b1a00;box-shadow:0 4px 10px rgba(0,0,0,.25)}
+.box.kept.open .mark{background:var(--mint)}
+.box.fresh .flip{animation:pop .8s ease-out}
+.box.waiting .front{animation:breathe 2.6s ease-in-out infinite}
+@keyframes pop{0%{transform:rotateY(0)}100%{transform:rotateY(180deg)}}
+@keyframes breathe{50%{transform:translateY(-3px)}}
+
+/* Action dock */
+.dock{margin-top:22px;padding-top:18px;border-top:1px solid var(--line);display:grid;gap:14px}
+.dock .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.dock .say{margin:0;color:var(--muted)}
+.dock .say b{color:var(--ink)}
+.offer-form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:12px;align-items:end}
+.offer-form .stepper{margin:0}
+.offer-stats{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:.88rem}
+.offer-stats b{color:var(--ink);font-variant-numeric:tabular-nums}
+.envelope{position:relative;padding:22px 24px 20px;border-radius:18px;text-align:center;overflow:hidden;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--gold) 26%,var(--card-strong)),var(--card-strong));border:1px solid color-mix(in srgb,var(--gold) 45%,transparent)}
+.envelope::before{content:"";position:absolute;inset:0 0 auto 0;height:46%;background:linear-gradient(160deg,transparent 49.5%,color-mix(in srgb,var(--gold) 22%,transparent) 50%),linear-gradient(200deg,transparent 49.5%,color-mix(in srgb,var(--gold) 22%,transparent) 50%);pointer-events:none}
+.envelope .from{color:var(--muted);margin:0;position:relative}
+.envelope .amount{font-size:clamp(2rem,6vw,3rem);font-weight:900;margin:4px 0;color:var(--gold);position:relative;font-variant-numeric:tabular-nums}
+.envelope .note{margin:0 0 14px;font-style:italic;position:relative}
+.envelope .row{justify-content:center;position:relative}
+.waiting-dots::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:dots 1.4s steps(4) infinite}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+.result{display:grid;gap:10px;text-align:center;padding:6px 0}
+.result .big-prize{font-size:clamp(1.8rem,5vw,2.6rem);font-weight:900;color:var(--gold);margin:0}
+.result .verdict{font-size:1.05rem;margin:0}
+.history{margin-top:16px;border-top:1px solid var(--line);padding-top:14px;display:grid;gap:8px;font-size:.88rem;color:var(--muted)}
+.history h3{margin:0 0 2px;font-size:.76rem;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.history p{margin:0}
+.history b{color:var(--ink)}
+
+/* Final reveal */
+.reveal{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:20px;background:rgba(6,3,22,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:fade .3s ease-out}
+.reveal[hidden]{display:none}
+.confetti{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.reveal-card{position:relative;text-align:center;display:grid;justify-items:center;gap:8px;max-width:420px;color:#fff}
+.reveal-box{position:relative;width:150px;height:140px;margin-bottom:12px}
+.reveal-box .base{position:absolute;left:8px;right:8px;bottom:0;height:96px;border-radius:14px;background:linear-gradient(160deg,#8f74ff,#3b23a8);box-shadow:0 18px 50px rgba(0,0,0,.45)}
+.reveal-box .base::after,.reveal-box .lid::after{content:"";position:absolute;top:0;bottom:0;left:calc(50% - 9px);width:18px;background:linear-gradient(90deg,#f6c86e,#ffe7b0,#f6c86e)}
+.reveal-box .lid{position:absolute;left:0;right:0;top:20px;height:32px;border-radius:10px;background:linear-gradient(180deg,#b3a0ff,#7a5cf0);z-index:2;transform-origin:20% 100%;box-shadow:0 6px 16px rgba(0,0,0,.3)}
+.reveal.go .reveal-box{animation:shake .9s ease-in-out}
+.reveal.go .reveal-box .lid{animation:lid .7s .9s cubic-bezier(.3,1.4,.5,1) forwards}
+.reveal-label{margin:0;color:#d9d0ff}
+.reveal-prize{margin:0;font-size:clamp(2rem,8vw,3.2rem);font-weight:900;color:#f6c86e;opacity:0;transform:scale(.6)}
+.reveal.go .reveal-prize{animation:grow .6s 1.3s cubic-bezier(.2,1.4,.4,1) forwards}
+.reveal-note{margin:0 0 10px;color:#e8e2ff;opacity:0}
+.reveal.go .reveal-note{animation:fade .5s 1.7s forwards}
+@keyframes shake{0%,100%{transform:rotate(0)}20%{transform:rotate(-6deg)}40%{transform:rotate(5deg)}60%{transform:rotate(-4deg)}80%{transform:rotate(3deg)}}
+@keyframes lid{to{transform:translate(-30px,-60px) rotate(-28deg);opacity:.9}}
+@keyframes grow{to{opacity:1;transform:scale(1)}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){
+  .reveal-prize,.reveal-note{opacity:1;transform:none}
+  .box .flip{transition:none}
+}
+
+@media (max-width:980px){
+  .stage{grid-template-columns:1fr}
+  .board-card{position:static;order:-1}
+  .board-card details:not([open]) + .history{display:none}
+  .create-grid{grid-template-columns:1fr}
+  .side{position:static}
+}
+@media (max-width:640px){
+  .boxes{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+  .table{padding:14px}
+  .box .face{border-radius:12px}
+  .box .back .emoji{font-size:1.2rem}
+  .board-card details:not([open]) summary{margin-bottom:0}
+  .dock{margin-top:16px;padding-top:14px}
+  .dock .row .btn{flex:1}
+  .box .back{padding:4px 2px}
+  .box .back .val{font-size:clamp(.66rem,3.2vw,.9rem)}
+  .box .back .tag{display:none}
+  .offer-form{grid-template-columns:1fr}
+  .prize-row{grid-template-columns:22px minmax(0,1fr) 32px;grid-template-areas:"n k r" "n i i"}
+  .prize-row::before{grid-area:n;align-self:start;padding-top:10px}
+  .prize-row .kind{grid-area:k}
+  .prize-row .prize-input{grid-area:i}
+  .prize-row .remove{grid-area:r;width:32px;height:32px}
+  .prize-input.gift{grid-template-columns:48px minmax(0,1fr) 92px}
+  .row-2{grid-template-columns:minmax(0,1fr) 100px}
+  .game-head{padding-top:12px}
+}

@@ -77,3 +77,9 @@
 - **回滚与源码**：`ROLLBACK.cmd` 恢复 v2.4.1.3 并保留当前记录；`PUSH-TO-GITHUB.cmd` 只推审查分支。
 
 构建：`python scripts/updater/manage.py build --release 2.4.1.4 --output <ZIP绝对路径>`（在 `core.autocrlf=false` 的 LF worktree 中）。验证见 [GARYHUB_V2_4_1_4_TESTS.md](GARYHUB_V2_4_1_4_TESTS.md)。
+
+## 项目档案历史记录
+
+以下条目于 2026-11-20 从 `docs/PROJECT_CONTEXT.md` 原样移入，是写入当时的记录；其中“尚未推送／合并／部署”等状态描述以写入时为准，后续状态见项目档案的版本索引。
+
+- **v2.4.1.4（PR #47 已合并为 main `0041a4e`；2026-11-17 tools／calendar `/health` 返回 2.4.1.4，安装输出与通知人数未收录；以下为交付时记录）** 基于 PR #46 的 main `5306dd9b56d753b4b7fd99a92400196b392fe6f8`（树与 v2.4.1.3 提交 `c669e6b` 相同），独立分支 `update/garyhub-v2.4.1.4`；清单 `releases/2.4.1.4.json`，适配器 `scripts/releases/v2.4.1.4/`（baseline_adapter v2.4.1.3，安装器 v2.4.1.4-r1，严格要求实际 v2.4.1.3）。设置中心：原个性化页 `personalize/` 改为六节（外观、语言与地区、网站伙伴、学习中心、记账与工具台、通知与订阅），每项改动立即保存并跨设备同步；头像图标改名“设置”。Calendar `preferences-api.js`：新表 `user_preferences`（无外键，已加入删除清单），`GET`／`PUT /api/hub/preferences`，10 个键各有固定取值、null 复位，一条 `json_patch` 语句原子合并，时区写 `users.timezone`，账号不一致 409，每 IP 每分钟 120 次；经 `extras.js` 注册，`app.js` 只改版本号。Lab `server.cjs` 把该路由加入账号代理并在主页主机放行 `/hub-prefs.js`（无 TOTP 覆盖同样）。共享 `hub-prefs.js`（两服务相同副本，除外站页与 Lab 登录跳转页外全部页面在 `<head>` 中加载，Calendar 页面在 `theme.js` 之前）：`GaryHubTheme` 统一日夜（跟随系统／浅色／深色，`.garyhub.uk` 下 Cookie `garyhub_prefs` 跨子站与首屏），各页 ◐ 按钮保留并保存到账号（维护者要求）；登录后账号值写入各页原有缓存，本浏览器已有而账号没有的选择上传一次；旧 localStorage 键只迁移一次（Cookie 中 `m=1`），不再写回——第一版写回导致“跟随系统”第二次打开变“深色”，已修。伙伴 `boot.js` 保存时发 `garyhub:companion-prefs`（两份副本相同）；`cosmos.js` 支持安静与静止；记账等账号偏好就绪后再取默认币种；工具台跟随账号布局；`academic.cjs` 阅读偏好增加 `lineHeight`（1.4–2.5）与 `readerWidth`（600–1400）。隔离检查 13 组：新增 `prefs-http.cjs`（测试地址 192.0.2.246–248），`study-http.cjs` 换成本版副本（只改期望的偏好字段）。站内通知两条：home、tools。本地验证：Calendar 115、Lab 113 单元测试；13 组隔离套件两种能力组合全部通过（WSL bwrap）；浏览器桌面与 375 px 检查设置页与日夜往返。源码已准备／本地已验证，尚未推送、合并或部署。详见 GARYHUB_V2_4_1_4.md 与 _TESTS.md。

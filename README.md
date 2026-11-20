@@ -2,11 +2,11 @@
 
 GaryHub 是使用统一账号的个人工作空间，包含日历与私人记录、账本、待办、学习工具和服务器工具。仓库保存应用源码、脱敏文档与可复现更新器；正式服务通过经过验证的升级包部署，GitHub 合并不会自动更新服务器。
 
-**当前源码版本 v2.4.1.6。** 主页“今天”面板可以自选卡片和顺序（新增“本月预算”卡），入口卡片可排序；工具台可置顶、隐藏工具并显示“最近使用”；设置中心新增“通知与提醒”：网站更新、事项提醒、A 股到价提醒分别选择站内、推送或邮件，推送免打扰时段，新建事项的默认提醒，已开启推送的设备列表（可逐台移除）和日历订阅。这些设置与 v2.4.1.4、v2.4.1.5 的外观、地区、伙伴、学习中心等设置一样随账号保存。
+**当前源码版本 v2.4.2.0。** 新增游戏厅 [games.garyhub.uk](https://games.garyhub.uk/)（主页“更多”菜单 → Games），第一个游戏是双人轮流的“白日梦想家”：发起人设置 10–20 个金额或礼品封进盒子，参与人守住一个，每轮由发起人决定揭开几个、参与人决定揭开哪几个，发起人再出价收购；成交或拒绝最后出价后逐个揭晓。不需要同时在线，轮到你时收到站内通知；开局公布封箱指纹，结束后可核对。游戏只做记录，不处理付款。
 
-本版源码基于 PR #48（v2.4.1.5，main `d0e49a9`），源码已准备、本地验证，尚未推送／合并／部署。安装器 v2.4.1.6-r1 严格要求两服务运行 v2.4.1.5：2026-11-18 tools 与 calendar 的 `/health` 均返回 2.4.1.5，但安装输出与通知人数未收录；已收到完整安装输出的最新版本仍为 v2.4.0.0（八阶段完成、8 个通知接收账号）。完整解压后双击 `RUN-UPDATE.cmd`，回滚用 `ROLLBACK.cmd`，源码审查分支同步用 `PUSH-TO-GITHUB.cmd`。构建：`python scripts/updater/manage.py build --release 2.4.1.6 --output <ZIP绝对路径>`（Windows 上在 `core.autocrlf=false` 的 LF worktree 中构建）。见[版本说明](docs/GARYHUB_V2_4_1_6.md)与[验证记录](docs/GARYHUB_V2_4_1_6_TESTS.md)；上一版见 [v2.4.1.5 说明](docs/GARYHUB_V2_4_1_5.md)。
+本版源码基于 PR #49（v2.4.1.6，main `ca696d2`），源码已准备、本地验证，尚未推送／合并／部署。安装器 v2.4.2.0-r1 严格要求两服务运行 v2.4.1.6：2026-11-20 tools 与 calendar 的 `/health` 均返回 2.4.1.6，但安装输出与通知人数未收录；已收到完整安装输出的最新版本仍为 v2.4.0.0（八阶段完成、8 个通知接收账号）。**安装前须在 Cloudflare 添加 `games` 的 A 记录（与 `garyhub.uk` 同一 IPv4，仅 DNS）**，安装器会核对 DNS 并为该主机追加、校验 Caddy 站点块。完整解压后双击 `RUN-UPDATE.cmd`，回滚用 `ROLLBACK.cmd`（同时恢复原 Caddyfile），源码审查分支同步用 `PUSH-TO-GITHUB.cmd`。构建：`python scripts/updater/manage.py build --release 2.4.2.0 --output <ZIP绝对路径>`（Windows 上在 `core.autocrlf=false` 的 LF worktree 中构建）。见[版本说明](docs/GARYHUB_V2_4_2_0.md)与[验证记录](docs/GARYHUB_V2_4_2_0_TESTS.md)；上一版见 [v2.4.1.6 说明](docs/GARYHUB_V2_4_1_6.md)。
 
-维护日期：2026-11-18（America/Chicago）。
+维护日期：2026-11-20（America/Chicago）。
 
 ## 应用入口
 
@@ -17,12 +17,14 @@ GaryHub 是使用统一账号的个人工作空间，包含日历与私人记录
 | [Calendar](https://calendar.garyhub.uk) | 日历事项与只读订阅（ICS）、浏览器推送、日记、健康记录、私人账本与月度预算、固定开支、Todo、Research Dictionary、个人音乐库 | `calendar-app/` |
 | [Tools](https://tools.garyhub.uk) | 可搜索工具图标与 Dock；设置中心（`/personalize/`）；学习中心、成绩规划、Markdown Viewer、PDF 浅灰转换、图片局部消除、Reading、服务器监控、AI 日志及权限控制工具 | `lab-service/` |
 | [ECE 470 Lab](https://lab.garyhub.uk/lab/) | 机器人学练习、题库导入、代码运行、个人进度与作业分发 | `lab-service/public/lab/` |
+| [游戏厅](https://games.garyhub.uk) | 双人轮流游戏“白日梦想家”（需登录）：封箱打乱、选盒与揭盒、出价收购、逐个揭晓与封箱指纹核对 | `lab-service/games-host.cjs`、`lab-service/public/games/`、`calendar-app/games-api.js` |
 | [外站链接](https://sites.garyhub.uk) | GaryHub 之外的公开网站（ECE 470 Motion Notes、光影手记摄影课程），粒子背景与悬停预览；链接在新标签页打开 | `lab-service/public/sites/` |
 
 Calendar 使用 Node.js 20、Express 与 SQLite；Tools/Lab 使用 Node 原生 HTTP，浏览器端运行文档处理和 Python/WASM。应用依赖已包含在既有生产镜像和本地静态资源中；升级器基于现场镜像离线构建，无需在生产服务器在线安装 npm 包。
 
 ## 当前功能与使用边界
 
+- 游戏厅（v2.4.2.0）：`games.garyhub.uk` 由 Tools/Lab 容器的 `games-host.cjs` 提供，只开放大厅、对局页（需登录）、自身脚本样式和账号／游戏接口，使用严格 CSP，其他主机的 `/games/` 返回 404；该来源在 Calendar 与 Lab 中明确加入可信列表（不改 Compose）。对局存在 Calendar 的 `dream_games`（`/api/hub/games`），每一步按修订号条件写入，只有双方能读取，未揭开盒子的内容和顺序在结束前不返回给任何一方；轮到谁谁收到站内通知，推送跟随“事项提醒”的推送设置与免打扰；30 天无进展的对局过期。新增游戏时在 `public/games/` 加页面并在 `games-host.cjs` 的允许列表登记。
 - 主页、工具台与通知（v2.4.1.6）：主页“今天”卡片和入口顺序、工具台置顶／隐藏／最近使用都是账号偏好；“通知与提醒”按类别选择站内、推送或邮件（网站更新始终有站内通知，推送／邮件只补发一天内未读的更新说明），推送免打扰按账号时区，新建事项默认提醒由日历表单应用，设备列表与日历订阅经 `/api/hub/notify` 管理。关闭邮件提醒时，Calendar 用 `reminder_deliveries` 占位让独立提醒 worker 跳过，worker 本身不改动。
 - 设置补齐（v2.4.1.5）：强调色与界面密度经 `brand.css` 作用于带 GaryHub 页头的页面（学习中心与本地工具保留各自配色）；周起始日用于日历与日记日期格，日期格式用于日历列表、记账、日记、主页“今日”和搜索结果（存储与输入仍为 YYYY-MM-DD），日历默认视图决定打开时的视图；学习中心代码字体与公式大小存于学习中心记录。这五个显示设置镜像到共享 Cookie，以账号值为准。
 - 设置中心（v2.4.1.4）：`tools.garyhub.uk/personalize/` 分六节，偏好存在 Calendar 的 `user_preferences`（`/api/hub/preferences`，固定取值、原子合并），时区仍是账号的 `users.timezone`，学习中心阅读设置仍存在学习中心自己的记录。共享 `hub-prefs.js` 在每个页面早期加载：统一日夜主题（`.garyhub.uk` 下 Cookie `garyhub_prefs`，页面 ◐ 按钮保留并保存到账号），登录后把账号偏好写入各页原有缓存，并把伙伴、语言、记账币种、工具台布局的改动保存回账号；访客只在浏览器保存。主页与开发者页固定星空深色。

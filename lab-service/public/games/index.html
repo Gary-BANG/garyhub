@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title data-en="Games · Gary Hub">游戏厅 · Gary Hub</title>
+<meta name="description" content="Games on GaryHub, played with friends one move at a time.">
+<meta name="theme-color" content="#0a0720">
+<script src="/hub-prefs.js?v=2.4.2.0"></script>
+<link rel="stylesheet" href="/games.css?v=2.4.2.0">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<canvas class="sky" aria-hidden="true"></canvas>
+<div class="clouds" aria-hidden="true"><span></span><span></span><span></span></div>
+<header class="top">
+<a class="brand" href="https://garyhub.uk/">Gary<span> Hub.</span></a>
+<span class="crumb" data-en="Games">游戏厅</span>
+<span class="spacer"></span>
+<span class="who" id="who"></span>
+<button class="chip-btn" id="theme" type="button" aria-label="切换日夜" data-en-label="Switch day / night">◐</button>
+<button class="chip-btn" id="lang" type="button">English</button>
+</header>
+<main>
+<section class="hero">
+<p class="eyebrow" data-en="GaryHub Games">GaryHub 游戏厅</p>
+<h1 data-en="Play together, one move at a time.">和朋友慢慢玩，轮到你时再来。</h1>
+<p class="lede" data-en="No need to be online together: make your move, and the other player is told when it is their turn.">不需要同时在线：做完你这一步，轮到对方时会收到提醒。</p>
+</section>
+<section class="lobby" aria-label="游戏" data-en-label="Games">
+<a class="card game-card" href="/dream/">
+<span class="pill badge" id="dreamBadge" data-en="New">新游戏</span>
+<div class="art" aria-hidden="true">
+<svg viewBox="0 0 400 190" preserveAspectRatio="xMidYMid slice">
+<defs>
+<radialGradient id="moon" cx=".4" cy=".4" r=".7"><stop offset="0" stop-color="#fff6d8"/><stop offset="1" stop-color="#f6c86e"/></radialGradient>
+<linearGradient id="boxA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8f74ff"/><stop offset="1" stop-color="#4a2fc4"/></linearGradient>
+<linearGradient id="boxB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7a8d8"/><stop offset="1" stop-color="#b44d97"/></linearGradient>
+</defs>
+<circle cx="318" cy="52" r="30" fill="url(#moon)"/>
+<circle cx="306" cy="44" r="30" fill="#2f1f84" opacity=".55"/>
+<g fill="#fff8e6"><circle class="twinkle" cx="60" cy="30" r="1.6"/><circle class="twinkle" cx="140" cy="18" r="1.2"/><circle class="twinkle" cx="230" cy="40" r="1.4"/><circle class="twinkle" cx="372" cy="110" r="1.2"/><circle class="twinkle" cx="24" cy="98" r="1.1"/></g>
+<g opacity=".5" fill="#fff"><ellipse cx="90" cy="168" rx="120" ry="26"/><ellipse cx="300" cy="176" rx="140" ry="24"/></g>
+<g class="float"><rect x="70" y="88" width="62" height="56" rx="8" fill="url(#boxA)"/><rect x="66" y="80" width="70" height="16" rx="5" fill="#a48dff"/><rect x="96" y="80" width="10" height="64" fill="#f6c86e"/><circle cx="101" cy="120" r="10" fill="#d99a2b"/><text x="101" y="124" font-size="11" text-anchor="middle" fill="#2b1a00" font-weight="700">7</text></g>
+<g class="float b"><rect x="170" y="66" width="70" height="64" rx="9" fill="url(#boxB)"/><rect x="165" y="57" width="80" height="18" rx="6" fill="#f9c3e4"/><rect x="200" y="57" width="10" height="73" fill="#f6c86e"/><path d="M205 57c-14-16-26-4-14 0M205 57c14-16 26-4 14 0" stroke="#f6c86e" stroke-width="4" fill="none"/></g>
+<g class="float c"><rect x="276" y="98" width="56" height="50" rx="8" fill="url(#boxA)"/><rect x="272" y="91" width="64" height="14" rx="5" fill="#a48dff"/><rect x="300" y="91" width="9" height="57" fill="#f6c86e"/><circle cx="304" cy="125" r="9" fill="#d99a2b"/><text x="304" y="129" font-size="10" text-anchor="middle" fill="#2b1a00" font-weight="700">12</text></g>
+</svg>
+</div>
+<div class="body">
+<h3 data-en="Daydreamer">白日梦想家</h3>
+<p data-en="Set up to 20 prizes, shuffle them into sealed boxes, and see whether your friend sells their box or keeps dreaming.">设置一组金额或礼品，打乱封进盒子。对方选好自己的盒子后，你来出价收购——成交，还是继续做梦？</p>
+<div class="meta"><span class="pill" data-en="2 players">双人</span><span class="pill" data-en="Turn by turn">轮流进行</span><span class="pill" data-en="10–20 boxes">10–20 个盒子</span></div>
+</div>
+</a>
+<div class="card soon"><p data-en="More games are on the way.">更多游戏，敬请期待。</p></div>
+</section>
+</main>
+<script src="/games.js?v=2.4.2.0" defer></script>
+</body>
+</html>

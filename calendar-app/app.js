@@ -79,7 +79,7 @@ app.use("/api", async (req,res,next) => {
       if(user.must_change_password&&!new Set(["/api/me","/api/csrf","/api/logout","/api/hub/me","/api/account/password"]).has(req.path.startsWith("/api/")?req.path:"/api"+req.path))return res.status(428).json({message:"请先修改临时密码",mustChangePassword:true,changePasswordUrl:"https://calendar.garyhub.uk/change-password/"});
     }
     if(!["GET","HEAD","OPTIONS"].includes(req.method)){
-      const allowed=new Set((process.env.TRUSTED_ORIGINS||"https://garyhub.uk,https://calendar.garyhub.uk,https://tools.garyhub.uk,https://lab.garyhub.uk").split(","));
+      const allowed=new Set([...(process.env.TRUSTED_ORIGINS||"https://garyhub.uk,https://calendar.garyhub.uk,https://tools.garyhub.uk,https://lab.garyhub.uk").split(","),"https://games.garyhub.uk"]);
       if(!allowed.has(req.get("origin")))return res.status(403).json({message:"Origin check failed"});
     }
     next();
@@ -162,7 +162,7 @@ async function resolveTargetUserId(req) {
 }
 
 app.get("/health", (req, res) => {
-  res.json({ ok: true, hubVersion: "2.4.1.6" });
+  res.json({ ok: true, hubVersion: "2.4.2.0" });
 });
 
 // 登录

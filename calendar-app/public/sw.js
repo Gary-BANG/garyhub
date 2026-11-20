@@ -1,7 +1,7 @@
 /* GaryHub Calendar service worker (v2.4.1.3): shows push notifications and opens their page when tapped.
    It does not cache or intercept any request. */
 'use strict';
-const HOSTS = new Set(['garyhub.uk', 'calendar.garyhub.uk', 'tools.garyhub.uk', 'lab.garyhub.uk']);
+const HOSTS = new Set(['garyhub.uk', 'calendar.garyhub.uk', 'tools.garyhub.uk', 'lab.garyhub.uk', 'games.garyhub.uk']);
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
 self.addEventListener('push', event => {
