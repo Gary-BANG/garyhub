@@ -74,9 +74,11 @@ Object.assign(window.GARYHUB_TRANSLATIONS,{
  "输入访问码": "Enter access code",
  "请输入管理员提供的访问码，授权有效期为 24 小时。": "Enter the access code provided by the administrator. Access lasts 24 hours.",
  "开发者档案": "Developer Profile",
- "开发者档案访问控制": "Developer profile access"
+ "开发者档案访问控制": "Developer profile access",
+ "双人轮流小游戏：白日梦想家": "Two-player games, turn by turn: Daydreamer"
 });
 Object.assign(window.GARYHUB_CHINESE,{
  "More ▾": "更多 ▾",
- "Developer Profile": "开发者档案"
+ "Developer Profile": "开发者档案",
+ "Games": "游戏厅"
 });

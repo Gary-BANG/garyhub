@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title data-en="Daydreamer · Gary Hub Games">白日梦想家 · Gary Hub 游戏厅</title>
+<meta name="description" content="Daydreamer: sealed boxes, a buyer's offer and a dream worth keeping.">
+<meta name="theme-color" content="#0a0720">
+<script src="/hub-prefs.js?v=2.4.2.0"></script>
+<link rel="stylesheet" href="/games.css?v=2.4.2.0">
+<link rel="stylesheet" href="/dream/dream.css?v=2.4.2.0">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<canvas class="sky" aria-hidden="true"></canvas>
+<div class="clouds" aria-hidden="true"><span></span><span></span><span></span></div>
+<header class="top">
+<a class="brand" href="https://garyhub.uk/">Gary<span> Hub.</span></a>
+<a class="crumb" href="/" data-en="Games">游戏厅</a>
+<a class="crumb" href="/dream/" data-en="Daydreamer">白日梦想家</a>
+<span class="spacer"></span>
+<span class="who" id="who"></span>
+<button class="chip-btn" id="theme" type="button" aria-label="切换日夜" data-en-label="Switch day / night">◐</button>
+<button class="chip-btn" id="lang" type="button">English</button>
+</header>
+<main>
+<p class="loading" id="loading" data-en="Opening the dream…">正在进入梦境…</p>
+
+<!-- My games -->
+<section id="home" hidden>
+<div class="home-head">
+<div>
+<p class="eyebrow" data-en="Daydreamer">白日梦想家</p>
+<h1 data-en="Keep the box, or take the offer?">守住盒子，还是接受报价？</h1>
+<p class="lede" data-en="The host fills sealed boxes with prizes everyone can see. You keep one box; each round you open others, and the host offers to buy yours.">发起人把大家都看得到的奖品封进盒子。参与人守住其中一个，每轮揭开几个别的盒子，发起人再出价收购你的盒子。</p>
+</div>
+<a class="btn btn-gold" href="/dream/?new=1" data-en="Start a new game">发起新的一局</a>
+</div>
+<details class="card rules">
+<summary data-en="How to play">玩法说明</summary>
+<ol>
+<li data-en="The host sets 10–20 amounts or gifts and invites a player by username. The server shuffles them into numbered boxes; nobody can see inside.">发起人设置 10–20 个金额或礼品，输入对方用户名发出邀请。服务器把它们打乱封进编号盒子，谁都看不到里面。</li>
+<li data-en="The player picks one box to keep. Then, round by round, the player opens as many other boxes as the host asks for.">参与人选一个盒子留给自己。之后每一轮，发起人决定揭开几个盒子，参与人挑选揭开哪几个。</li>
+<li data-en="After each round the host offers to buy the player's box. Deal, or no deal and on to the next round.">每轮结束后发起人出价收购参与人的盒子：成交，或者不卖、进入下一轮。</li>
+<li data-en="After a deal, or a refused last offer, the host opens the remaining boxes one by one and finally the player's own.">成交后，或最后一次出价被拒绝后，发起人逐个揭开剩下的盒子，最后揭开参与人的盒子。</li>
+<li data-en="A seal fingerprint is shown from the start; at the end the order is published so anyone can check nothing was changed. The game records results only and never moves money.">开局就公布封箱指纹，结束后公开盒子顺序，可核对中途没有改动。游戏只做记录，不处理任何付款。</li>
+</ol>
+</details>
+<div class="lists" id="lists"></div>
+</section>
+
+<!-- New game -->
+<section id="create" hidden>
+<div class="home-head">
+<div>
+<p class="eyebrow" data-en="New game">发起新的一局</p>
+<h1 data-en="Fill the dream boxes">装满梦境盒子</h1>
+<p class="lede" data-en="The player will see this list before choosing; which box holds what stays secret.">参与人会先看到这份奖品清单；哪个盒子装着什么，谁都不知道。</p>
+</div>
+</div>
+<form class="create-grid" id="createForm" novalidate>
+<div class="card panel">
+<div class="row-2">
+<label class="field"><span data-en="Title (optional)">标题（可选）</span><input class="input" id="title" maxlength="30" placeholder="比如：周末的小梦想" data-en-placeholder="e.g. A weekend daydream"></label>
+<label class="field"><span data-en="Currency">币种</span><select class="select" id="currency"><option>CNY</option><option>USD</option><option>CAD</option><option>HKD</option></select></label>
+</div>
+<div class="prize-head">
+<h2 data-en="Prizes">奖品</h2>
+<span class="pill" id="prizeCount">0</span>
+<span class="spacer"></span>
+<button class="btn btn-ghost btn-sm" type="button" id="presetMoney" data-en="Classic amounts">经典金额</button>
+<button class="btn btn-ghost btn-sm" type="button" id="presetMix" data-en="Amounts + gifts">金额 + 礼品</button>
+</div>
+<p class="hint" data-en="10–20 prizes. A gift may carry an estimated value, used only to sort the prize board.">10–20 个。礼品可以填估值，只用于奖池排序。</p>
+<ol class="prize-rows" id="prizeRows"></ol>
+<button class="btn btn-ghost btn-sm add-row" type="button" id="addRow" data-en="+ Add a prize">+ 添加一项</button>
+</div>
+<div class="side">
+<div class="card panel">
+<h2 data-en="Player">参与人</h2>
+<label class="field"><span data-en="Their GaryHub username">对方的 GaryHub 用户名</span><input class="input" id="player" maxlength="64" autocomplete="off" required></label>
+<div class="recent" id="recent"></div>
+<h2 class="mt" data-en="First round">第一轮</h2>
+<div class="stepper" id="firstStepper"></div>
+<p class="hint" id="firstHint"></p>
+</div>
+<div class="card panel">
+<h2 data-en="Prize board preview">奖池预览</h2>
+<div class="board" id="previewBoard"></div>
+</div>
+<button class="btn btn-gold big" type="submit" id="createSubmit" data-en="Seal the boxes and invite">封箱并邀请</button>
+<p class="error" id="createError" role="alert"></p>
+</div>
+</form>
+</section>
+
+<!-- A game -->
+<section id="game" hidden>
+<div class="game-head">
+<div>
+<p class="eyebrow" id="gameEyebrow"></p>
+<h1 class="game-title" id="gameTitle"></h1>
+<p class="banner" id="banner" aria-live="polite"></p>
+</div>
+<button class="chip-btn seal" id="seal" type="button"></button>
+</div>
+<div class="stage">
+<div class="table card">
+<div class="boxes" id="boxes" role="group"></div>
+<div class="dock" id="dock"></div>
+</div>
+<aside class="card board-card">
+<details id="boardWrap" open>
+<summary><span data-en="Prize board">奖池</span> <span class="pill" id="leftCount"></span></summary>
+<div class="board" id="board"></div>
+</details>
+<div class="history" id="history"></div>
+</aside>
+</div>
+</section>
+</main>
+
+<div class="reveal" id="reveal" hidden>
+<canvas class="confetti" id="confetti" aria-hidden="true"></canvas>
+<div class="reveal-card">
+<div class="reveal-box" id="revealBox" aria-hidden="true"><span class="lid"></span><span class="base"></span></div>
+<p class="reveal-label" id="revealLabel"></p>
+<p class="reveal-prize" id="revealPrize"></p>
+<p class="reveal-note" id="revealNote"></p>
+<button class="btn btn-gold" type="button" id="revealClose" data-en="See the result">查看结果</button>
+</div>
+</div>
+<script src="/games.js?v=2.4.2.0" defer></script>
+<script src="/dream/dream.js?v=2.4.2.0" defer></script>
+</body>
+</html>

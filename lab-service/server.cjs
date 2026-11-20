@@ -10,7 +10,7 @@ const ROOT = path.join(__dirname, 'public');
 const DATA = process.env.LAB_DATA_DIR || '/data';
 const CALENDAR = process.env.CALENDAR_URL || 'http://calendar-app:3000';
 const ORIGIN = process.env.PUBLIC_ORIGIN || 'https://lab.garyhub.uk';
-const TRUSTED = new Set(['https://garyhub.uk','https://tools.garyhub.uk','https://lab.garyhub.uk','https://calendar.garyhub.uk']);
+const TRUSTED = new Set(['https://garyhub.uk','https://tools.garyhub.uk','https://lab.garyhub.uk','https://calendar.garyhub.uk','https://games.garyhub.uk']);
 const LIMIT = 24 * 1024 * 1024;
 fs.mkdirSync(DATA, {recursive:true, mode:0o700});
 const access = createAccessStore(DATA);
@@ -56,6 +56,7 @@ const distribution=require('./lab-distribution.cjs').createDistribution({DATA,RO
 const monitor=require('./server-monitor.cjs').createMonitor({identity,calendar,json});
 const readingProxy=require('./reading-proxy.cjs').createReadingProxy({calendar,json});
 const hubExtras=require('./hub-extras.cjs').createExtras({DATA,identity,calendar,json});
+const games=require('./games-host.cjs').createGamesHost({identity,json,auth});
 const server = http.createServer(async (req,res)=>{
   res.setHeader('X-Content-Type-Options','nosniff');
   res.setHeader('X-Frame-Options','DENY');
@@ -72,6 +73,7 @@ const server = http.createServer(async (req,res)=>{
       res.setHeader('Content-Security-Policy',"default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'");
       url.pathname='/sites'+page;
     }else if(/^\/sites(\/|$)/i.test(url.pathname))return json(res,404,{message:'Not found'});
+    if(await games(req,res,url,host))return;
     if(['/login','/login/','/login.html'].includes(url.pathname))return redirectLogin(url.searchParams.get('next')||(host==='garyhub.uk'?'/':'/lab/'));
 
     if(await hubExtras(req,res,url))return;
@@ -83,7 +85,7 @@ const server = http.createServer(async (req,res)=>{
     if(await academic(req,res,url))return;
     if(['/grades','/grades/','/study','/study/'].includes(url.pathname))url.pathname='/academic/index.html';
     url.pathname=decodeURIComponent(url.pathname);
-    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"2.4.1.6"});
+    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"2.4.2.0"});
     if(url.pathname.startsWith('/sub/')) {
       if(req.method!=='GET') return json(res,405,{message:'Method not allowed'});
       const sub=connections.subscription(url.pathname.slice(5));
@@ -102,7 +104,7 @@ const server = http.createServer(async (req,res)=>{
         return json(res,200,{allowed:true,gpa:p.gpa,rank:p.rank});
       }
       const profileRoute=/^\/api\/hub\/(?:profile-access|profile-unlock|profile-lock|admin\/profile-privacy|admin\/profile-revoke)$/.test(url.pathname);
-      const hubRoute=/^\/api\/hub\/(?:me|preferences|notifications(?:\/\d+\/read|\/(?:read-all|delete-all))?|notify(?:\/devices\/\d+\/remove|\/feed)?|admin\/users(?:\/\d+\/(?:academics|status|reset-password|deletion-preview|tier|stock-vip))?)$/.test(url.pathname);
+      const hubRoute=/^\/api\/hub\/(?:me|preferences|notifications(?:\/\d+\/read|\/(?:read-all|delete-all))?|notify(?:\/devices\/\d+\/remove|\/feed)?|games(?:\/[1-9]\d{0,8}(?:\/(?:decline|cancel|choose|open|offer|answer|reveal|honor))?)?|admin\/users(?:\/\d+\/(?:academics|status|reset-password|deletion-preview|tier|stock-vip))?)$/.test(url.pathname);
       const registrationRoute=/^\/api\/admin\/register-requests(?:\/\d+\/(?:approve|reject))?$/.test(url.pathname);
       const totpRoute=/^\/api\/hub\/totp(?:\/codes|\/[0-9a-f-]{36}(?:\/reveal|\/grants(?:\/[1-9][0-9]*)?)?)?$/.test(url.pathname);
       if(hubRoute||registrationRoute||profileRoute||totpRoute){

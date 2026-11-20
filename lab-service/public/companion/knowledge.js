@@ -114,7 +114,13 @@
       name:{zh:'开发者档案',en:'Developer Profile'}, short:{zh:'开发者简介与项目经历',en:'About the developer'},
       zh:['开发者档案','开发者信息','开发者','站长','网站作者','关于作者','作者是谁','谁做的','谁开发的','个人简历','个人简介'],
       en:['developer profile','developer','about the developer','who made','who built','site author','about the author','resume','curriculum vitae'],
-      howto:{zh:'开发者档案在主页导航的“更多”菜单里，介绍 GaryHub 开发者的教育背景、项目经历与专业技能；能看到哪些内容由管理员按访问身份设置。',en:'The developer profile is in the More menu on the homepage. It covers the GaryHub developer\'s education, projects and skills; the administrator decides which parts each kind of visitor can see.'}}
+      howto:{zh:'开发者档案在主页导航的“更多”菜单里，介绍 GaryHub 开发者的教育背景、项目经历与专业技能；能看到哪些内容由管理员按访问身份设置。',en:'The developer profile is in the More menu on the homepage. It covers the GaryHub developer\'s education, projects and skills; the administrator decides which parts each kind of visitor can see.'}},
+    // v2.4.2.0: the games site (homepage More menu); for now it holds Daydreamer, a two-player game played turn by turn.
+    {id:'games', url:'https://games.garyhub.uk/', access:'login',
+      name:{zh:'游戏厅',en:'Games'}, short:{zh:'白日梦想家等双人游戏',en:'Daydreamer and more'},
+      zh:['游戏厅','游戏','小游戏','玩游戏','一起玩','白日梦想家','开盒子','盲盒游戏'],
+      en:['games','game room','play a game','daydreamer','mystery boxes','box game'],
+      howto:{zh:'游戏厅在主页导航的“更多”菜单里。白日梦想家：发起人设置 10–20 个金额或礼品封进盒子，参与人守住一个，每轮揭开几个别的盒子，发起人出价收购。不需要同时在线，轮到你时会收到提醒。',en:'Games is in the More menu on the homepage. In Daydreamer the host seals 10–20 amounts or gifts into boxes, the player keeps one and opens others round by round, and the host offers to buy it. You do not need to be online together; you are told when it is your turn.'}}
   ];
   const categories = [
     {id:'study', name:{zh:'学习',en:'Study'}, zh:['学习','学业','上课','课程','考试','作业'], en:['study','school','class','course','exam','homework']},
