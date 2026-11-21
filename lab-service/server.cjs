@@ -56,7 +56,7 @@ const distribution=require('./lab-distribution.cjs').createDistribution({DATA,RO
 const monitor=require('./server-monitor.cjs').createMonitor({identity,calendar,json});
 const readingProxy=require('./reading-proxy.cjs').createReadingProxy({calendar,json});
 const hubExtras=require('./hub-extras.cjs').createExtras({DATA,identity,calendar,json});
-const games=require('./games-host.cjs').createGamesHost({identity,json,auth});
+const games=require('./games-host.cjs').createGamesHost({identity,json,auth,calendarUrl:CALENDAR});
 const server = http.createServer(async (req,res)=>{
   res.setHeader('X-Content-Type-Options','nosniff');
   res.setHeader('X-Frame-Options','DENY');
@@ -85,7 +85,7 @@ const server = http.createServer(async (req,res)=>{
     if(await academic(req,res,url))return;
     if(['/grades','/grades/','/study','/study/'].includes(url.pathname))url.pathname='/academic/index.html';
     url.pathname=decodeURIComponent(url.pathname);
-    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"2.4.2.0"});
+    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"2.4.3.0"});
     if(url.pathname.startsWith('/sub/')) {
       if(req.method!=='GET') return json(res,405,{message:'Method not allowed'});
       const sub=connections.subscription(url.pathname.slice(5));
@@ -104,7 +104,7 @@ const server = http.createServer(async (req,res)=>{
         return json(res,200,{allowed:true,gpa:p.gpa,rank:p.rank});
       }
       const profileRoute=/^\/api\/hub\/(?:profile-access|profile-unlock|profile-lock|admin\/profile-privacy|admin\/profile-revoke)$/.test(url.pathname);
-      const hubRoute=/^\/api\/hub\/(?:me|preferences|notifications(?:\/\d+\/read|\/(?:read-all|delete-all))?|notify(?:\/devices\/\d+\/remove|\/feed)?|games(?:\/[1-9]\d{0,8}(?:\/(?:decline|cancel|choose|open|offer|answer|reveal|honor))?)?|admin\/users(?:\/\d+\/(?:academics|status|reset-password|deletion-preview|tier|stock-vip))?)$/.test(url.pathname);
+      const hubRoute=/^\/api\/hub\/(?:me|preferences|notifications(?:\/\d+\/read|\/(?:read-all|delete-all))?|notify(?:\/devices\/\d+\/remove|\/feed)?|games(?:\/[1-9]\d{0,8}(?:\/(?:decline|cancel|choose|open|offer|answer|reveal|honor))?)?|play|admin\/users(?:\/\d+\/(?:academics|status|reset-password|deletion-preview|tier|stock-vip))?)$/.test(url.pathname);
       const registrationRoute=/^\/api\/admin\/register-requests(?:\/\d+\/(?:approve|reject))?$/.test(url.pathname);
       const totpRoute=/^\/api\/hub\/totp(?:\/codes|\/[0-9a-f-]{36}(?:\/reveal|\/grants(?:\/[1-9][0-9]*)?)?)?$/.test(url.pathname);
       if(hubRoute||registrationRoute||profileRoute||totpRoute){
@@ -230,5 +230,6 @@ const server = http.createServer(async (req,res)=>{
     pipeline(fs.createReadStream(file),res,()=>{});
   } catch(e) {if(e.status===428&&!req.url.startsWith('/api/')){res.writeHead(302,{Location:'https://calendar.garyhub.uk/change-password/','Cache-Control':'no-store'});return res.end();}if(!res.headersSent)json(res,e.code==='ENOENT'?404:e.status||503,{message:e.code==='ENOENT'?'Not found':e.status?e.message:'服务暂时不可用，请稍后重试。'});else res.destroy();}
 });
+server.on('upgrade',games.upgrade);
 server.listen(Number(process.env.PORT||3000),'0.0.0.0');
 

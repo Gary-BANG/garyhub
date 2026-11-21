@@ -32,7 +32,7 @@
     {zh: '待办清单', en: 'To-do list', url: 'https://calendar.garyhub.uk/todos/', keys: 'todo todos 待办 清单'},
     {zh: '设置', en: 'Settings', url: 'https://tools.garyhub.uk/personalize/', keys: 'personalize settings preferences 个性化 设置 外观 主题 语言 时区 伙伴'},
     {zh: '外站与课程', en: 'Elsewhere', url: 'https://sites.garyhub.uk/', keys: 'elsewhere sites course 外站 课程'},
-    {zh: '游戏厅', en: 'Games', url: 'https://games.garyhub.uk/', keys: 'games game daydreamer play 游戏 游戏厅 白日梦想家 小游戏'}
+    {zh: '游戏厅', en: 'Games', url: 'https://games.garyhub.uk/', keys: 'games game daydreamer play word sync number duel room 游戏 游戏厅 白日梦想家 小游戏 词语默契 猜数字 对战猜数字 房间'}
   ];
   const lang = () => window.GaryHubI18n?.language === 'en' ? 'en' : 'zh';
   const t = () => TEXT[lang()];

@@ -6,7 +6,7 @@
     'https://tools.garyhub.uk':['/','/grades/','/study/','/personalize/','/academic/index.html','/access/','/admin/','/server-monitor/','/ai-logs/','/totp/','/lab/','/useful/image-eraser/','/useful/markdown-viewer/','/useful/pdf-gray/'],
     'https://lab.garyhub.uk':['/','/lab/','/grades/','/study/','/access/','/totp/','/admin/','/useful/image-eraser/','/useful/markdown-viewer/','/useful/pdf-gray/'],
     'https://garyhub.uk':['/','/index.html'],
-    'https://games.garyhub.uk':['/','/dream/'],
+    'https://games.garyhub.uk':['/','/dream/','/play/'],
     'https://files.garyhub.uk':['/'],
     'https://kuma.garyhub.uk':['/'],
     'https://rss.garyhub.uk':['/']
