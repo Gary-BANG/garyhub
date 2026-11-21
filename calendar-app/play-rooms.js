@@ -173,7 +173,8 @@ function armBot(room) {
   for (const [seat, s] of room.seats.entries()) {
     const level = s.bot || (room.auto[seat] && (s.user || game.away === 'autoplay') ? 'normal' : null);
     if (!level) continue;
-    const plan = game.bot(room.state, seat, level, rng);
+    // v2.4.3.3: the game is told when it plays for an absent player (托管) rather than for a computer seat.
+    const plan = game.bot(room.state, seat, level, rng, {auto: !s.bot});
     if (!plan) continue;
     const key = game.botKey ? seat + ':' + game.botKey(room.state, seat, plan) : seat + ':' + room.state.phase + ':' + room.state.round + ':' + plan.action;
     if (room.botPlan && room.botPlan.key === key && room.botTimer) return;
@@ -183,9 +184,10 @@ function armBot(room) {
       room.botTimer = null; room.botPlan = null;
       const lv = room.seats[seat]?.bot || (room.auto[seat] ? 'normal' : null);
       if (room.status !== 'playing' || room.paused || !lv) return;
-      const now = game.bot(room.state, seat, lv, rng);
+      const now = game.bot(room.state, seat, lv, rng, {auto: !room.seats[seat]?.bot});
       if (!now) return armBot(room);
-      try { mutate(room, (g, state, ctx) => g.act(state, seat, now.action, now.data, room.settings, ctx)); } catch (error) { console.error('Computer move failed:', error.message); armBot(room); }
+      // ctx.bot: the move comes from the computer (a game may keep its stated reason).
+      try { mutate(room, (g, state, ctx) => { ctx.bot = true; return g.act(state, seat, now.action, now.data, room.settings, ctx); }); } catch (error) { console.error('Computer move failed:', error.message); armBot(room); }
     }, plan.delay * TUNING.botScale);
     room.botTimer.unref?.();
     return;
@@ -224,10 +226,11 @@ function pause(room, reason) {
 function resume(room) {
   const someone = GAMES[room.game].away === 'autoplay' ? !humans(room).some(s => room.conns.has(s.user)) : humans(room).some(s => !room.conns.has(s.user));
   if (!room.paused || someone) return;
+  const pausedFor = Date.now() - room.paused.since;
   room.paused = null;
   // A board game resumes as soon as one player is back; whoever is still away is played by the computer.
   if (GAMES[room.game].away === 'autoplay') room.seats.forEach((s, i) => { if (s.user && !room.conns.has(s.user)) room.auto[i] = true; });
-  GAMES[room.game].resume?.(room.state);
+  GAMES[room.game].resume?.(room.state, {pausedFor});
   if (room.clock.remaining != null) room.clock = {deadline: Date.now() + Math.max(TUNING.resumeMin, room.clock.remaining), remaining: null};
   changed(room);
 }

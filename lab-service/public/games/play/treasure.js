@@ -1,5 +1,6 @@
 /* GaryHub Games (v2.4.3.2): 骰子抢宝箱 / Treasure Dash in a live room. Draws the 7×7 map with Board (board.js): roll, then
-   tap a highlighted tile; carry a chest home to open it. Chest contents and other players' traps never reach this page. */
+   tap a highlighted tile; carry a chest home to open it. Chest contents and other players' traps never reach this page.
+   v2.4.3.3: the animation speed control from board.js under the players. */
 (() => {
   'use strict';
   const G = window.Games, {t, el} = G, B = window.Board;
@@ -25,7 +26,7 @@
     const dice = B.dice(1), duel = el('div', {class: 'tr-duel', hidden: true});
     const side = el('div', {class: 'tr-side'});
     const root = el('div', {class: 'treasure'}, el('div', {class: 'tr-board-wrap'}, board.root, duel), side);
-    return {root, board, dice, duel, side, key: '', animSeq: -1, rollSeq: -1, placing: false, api, view: null};
+    return {root, board, dice, duel, side, speed: B.speedControl(), key: '', animSeq: -1, rollSeq: -1, placing: false, api, view: null};
   }
 
   function tap(i) {
@@ -149,6 +150,7 @@
       side.append(el('div', {class: 'actions quiet'}, el('span', {class: 'hint', text: auto ? t('电脑正在替你玩', 'The computer is playing for you') : t('暂时离开可以交给电脑', 'Stepping away? Let the computer play')}),
         el('button', {class: 'btn btn-ghost btn-sm', type: 'button', text: auto ? t('接管', 'Take over') : t('托管', 'Auto-play'), onclick: () => api.act('takeover', {auto: !auto}).catch(() => {})})));
     }
+    side.append(ui.speed);
     const log = el('ol', {class: 'tr-log'});
     for (const e of s.log.slice().reverse()) { const text = line(api, e); if (text) log.append(el('li', {text})); }
     side.append(el('h3', {text: t('记录', 'Log')}), log);
