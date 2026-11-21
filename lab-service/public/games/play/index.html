@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title data-en="Live rooms · Gary Hub Games">实时房间 · Gary Hub 游戏厅</title>
-<meta name="description" content="Live game rooms on GaryHub: Word Sync, Number Duel and Co-op Car, played together at the same time.">
+<meta name="description" content="Live game rooms on GaryHub: Word Sync, Number Duel, Co-op Car, Treasure Dash and Tycoon, played together at the same time.">
 <meta name="theme-color" content="#0a0720">
-<script src="/hub-prefs.js?v=2.4.3.1"></script>
-<link rel="stylesheet" href="/games.css?v=2.4.3.1">
-<link rel="stylesheet" href="/play/play.css?v=2.4.3.1">
+<script src="/hub-prefs.js?v=2.4.3.2"></script>
+<link rel="stylesheet" href="/games.css?v=2.4.3.2">
+<link rel="stylesheet" href="/play/play.css?v=2.4.3.2">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 </head>
 <body>
@@ -41,6 +41,8 @@
 <label class="pick"><input type="radio" name="game" value="word" checked><span><strong data-en="Word Sync">词语默契</strong><small data-en="Write the same word together">两人写出同一个词</small></span></label>
 <label class="pick"><input type="radio" name="game" value="digits"><span><strong data-en="Number Duel">对战猜数字</strong><small data-en="Crack the other code first">先猜中对方的密码</small></span></label>
 <label class="pick"><input type="radio" name="game" value="car"><span><strong data-en="Co-op Car">合作小车</strong><small data-en="One steers, one drives the pedals">一人方向，一人油门</small></span></label>
+<label class="pick"><input type="radio" name="game" value="treasure"><span><strong data-en="Treasure Dash">骰子抢宝箱</strong><small data-en="2–4 players, quick and rough">2–4 人，快节奏抢宝</small></span></label>
+<label class="pick"><input type="radio" name="game" value="monopoly"><span><strong data-en="Tycoon">大富翁</strong><small data-en="2–5 players, computers fill seats">2–5 人，电脑可补位</small></span></label>
 </div>
 <div class="settings" id="wordSettings">
 <label class="field"><span data-en="Time per round">每轮限时</span>
@@ -63,6 +65,24 @@
 <label class="field"><span data-en="Easy mode">宽松模式</span>
 <select class="select" name="easy"><option value="0" selected data-en="Off">关</option><option value="1" data-en="On: wider road">开：路面更宽</option></select></label>
 <p class="hint" data-en="Two players drive one car: one steers, the other works the throttle, brake and boosts. Talk to each other — or use the quick calls.">两人开同一辆车：一人只管方向，另一人管油门、刹车和氮气。边玩边说话，或者用快捷呼叫。</p>
+</div>
+<div class="settings" id="treasureSettings" hidden>
+<label class="field"><span data-en="Players">玩家人数</span>
+<select class="select" name="tplayers"><option value="2" data-en="2">2 人</option><option value="3" selected data-en="3">3 人</option><option value="4" data-en="4">4 人</option></select></label>
+<label class="field"><span data-en="Rounds">回合数</span>
+<select class="select" name="trounds"><option value="8" data-en="8">8 回合</option><option value="12" selected data-en="12">12 回合</option><option value="16" data-en="16">16 回合</option></select></label>
+<label class="field"><span data-en="Time per step">每步限时</span>
+<select class="select" name="tlimit"><option value="20" selected data-en="20 s">20 秒</option><option value="40" data-en="40 s">40 秒</option><option value="0" data-en="No limit">不限时</option></select></label>
+<p class="hint" data-en="Empty seats can be filled with computer players in the room.">空座位可以在房间里添加电脑对手。</p>
+</div>
+<div class="settings" id="monopolySettings" hidden>
+<label class="field"><span data-en="Players">玩家人数</span>
+<select class="select" name="mplayers"><option value="2" data-en="2">2 人</option><option value="3" data-en="3">3 人</option><option value="4" selected data-en="4">4 人</option><option value="5" data-en="5">5 人</option></select></label>
+<label class="field"><span data-en="Rounds">回合数</span>
+<select class="select" name="mrounds"><option value="15" data-en="15">15 回合</option><option value="20" selected data-en="20">20 回合</option><option value="25" data-en="25">25 回合</option><option value="30" data-en="30">30 回合</option></select></label>
+<label class="field"><span data-en="Time per step">每步限时</span>
+<select class="select" name="mlimit"><option value="30" data-en="30 s">30 秒</option><option value="45" selected data-en="45 s">45 秒</option><option value="90" data-en="90 s">90 秒</option><option value="0" data-en="No limit">不限时</option></select></label>
+<p class="hint" data-en="Two friends can play with computers in the other seats (beginner, regular or sharp).">只有两三个人时，其他座位加电脑对手（新手、普通、精明）。</p>
 </div>
 <button class="btn btn-gold" type="submit" data-en="Create room">创建房间</button>
 <p class="error" id="createError" role="alert"></p>
@@ -122,11 +142,14 @@
 <div class="actions"><a class="btn btn-gold" href="/play/" data-en="Live rooms">实时房间</a><button class="btn btn-ghost" id="retry" type="button" hidden data-en="Continue here">在这里继续</button></div>
 </section>
 </main>
-<script src="/games.js?v=2.4.3.1" defer></script>
-<script src="/play/play.js?v=2.4.3.1" defer></script>
-<script src="/play/word.js?v=2.4.3.1" defer></script>
-<script src="/play/digits.js?v=2.4.3.1" defer></script>
-<script src="/play/car-sim.js?v=2.4.3.1" defer></script>
-<script src="/play/car.js?v=2.4.3.1" defer></script>
+<script src="/games.js?v=2.4.3.2" defer></script>
+<script src="/play/play.js?v=2.4.3.2" defer></script>
+<script src="/play/word.js?v=2.4.3.2" defer></script>
+<script src="/play/digits.js?v=2.4.3.2" defer></script>
+<script src="/play/car-sim.js?v=2.4.3.2" defer></script>
+<script src="/play/car.js?v=2.4.3.2" defer></script>
+<script src="/play/board.js?v=2.4.3.2" defer></script>
+<script src="/play/treasure.js?v=2.4.3.2" defer></script>
+<script src="/play/monopoly.js?v=2.4.3.2" defer></script>
 </body>
 </html>
