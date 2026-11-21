@@ -6,10 +6,11 @@
 //
 // v2.4.3.0 adds the live game rooms (/play/, Calendar play-rooms.js): their one WebSocket path is passed through to
 // Calendar byte for byte, which checks the session and the origin itself; no other upgrade is accepted.
+// v2.4.3.1 adds the co-op car: car.js and car-sim.js (a byte-identical copy of Calendar's play-car-sim.js).
 const http = require('node:http');
 const PAGES = new Map([['/', '/index.html'], ['/index.html', '/index.html'], ['/dream/', '/dream/index.html'], ['/dream/index.html', '/dream/index.html'],
   ['/play/', '/play/index.html'], ['/play/index.html', '/play/index.html']]);
-const ASSETS = /^\/(?:games\.(?:css|js)|dream\/dream\.(?:css|js)|play\/(?:play\.(?:css|js)|word\.js|digits\.js))$/;
+const ASSETS = /^\/(?:games\.(?:css|js)|dream\/dream\.(?:css|js)|play\/(?:play\.(?:css|js)|word\.js|digits\.js|car\.js|car-sim\.js))$/;
 const SHARED = new Set(['/hub-prefs.js', '/favicon.svg', '/icons/icon-192.png', '/icons/apple-touch-icon.png']);
 const API = /^\/api\/(?:csrf|me|hub\/me|hub\/preferences|hub\/play|hub\/games(?:\/[1-9]\d{0,8}(?:\/(?:decline|cancel|choose|open|offer|answer|reveal|honor))?)?)$/;
 const SOCKET = '/api/hub/play/socket';

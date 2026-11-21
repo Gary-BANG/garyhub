@@ -1,11 +1,12 @@
 /* GaryHub Games (v2.4.3.0): live rooms on games.garyhub.uk — the start page (new room, join by code, my rooms), the
    room socket (reconnects by itself, corrects for this device's clock, measures latency), seats, the lobby, and the
-   frame that each game draws into. Games register with Play.register(id, {...}) from word.js and digits.js. */
+   frame that each game draws into. Games register with Play.register(id, {...}) from word.js, digits.js and (v2.4.3.1)
+   car.js, which also receives the realtime frames and quick calls. */
 (() => {
   'use strict';
   const G = window.Games, {$, t, el} = G;
   const games = {};
-  const NAMES = {word: ['词语默契', 'Word Sync'], digits: ['对战猜数字', 'Number Duel']};
+  const NAMES = {word: ['词语默契', 'Word Sync'], digits: ['对战猜数字', 'Number Duel'], car: ['合作小车', 'Co-op Car']};
   const BOTS = {easy: ['新手', 'Beginner'], normal: ['普通', 'Regular'], smart: ['精明', 'Sharp']};
   const gameName = id => NAMES[id] ? t(NAMES[id][0], NAMES[id][1]) : id;
   const botName = level => BOTS[level] ? t('电脑·' + BOTS[level][0], 'Computer · ' + BOTS[level][1]) : t('电脑', 'Computer');
@@ -58,6 +59,9 @@
       return;
     }
     if (m.t === 'net') { if (view) { view.seats = m.seats; seatsPanel(); netPanel(); } return; }
+    // v2.4.3.1: realtime frames and quick calls go straight to the game that draws them.
+    if (m.t === 'f') { if (view) games[view.game]?.frame?.(m, api); return; }
+    if (m.t === 'said') { if (view) games[view.game]?.said?.(m, api); return; }
     if (m.t === 'pong') {
       const rtt = Date.now() - m.c;
       if (rtt < 0 || rtt > 30000) return;
@@ -210,7 +214,7 @@
       if (view.status === 'lobby' || !view.state) lobby(stage);
       else {
         games[view.game]?.render(stage, view, api);
-        if (view.status === 'finished') stage.append(footer());
+        if (view.status === 'finished' && !games[view.game]?.ownFooter) stage.append(footer());
       }
     });
     tick();
@@ -335,6 +339,7 @@
 
   // ---- Start page ---------------------------------------------------------------------------------------------------
   const STATUS = {lobby: ['等人中', 'Waiting'], playing: ['进行中', 'Playing'], finished: ['已结束', 'Finished']};
+  const SETTINGS = {word: 'wordSettings', digits: 'digitsSettings', car: 'carSettings'};
   let listing = null;
   function roomsList() {
     const box = $('myRooms');
@@ -356,15 +361,16 @@
   async function start() {
     show('start');
     const form = $('createForm');
-    const pick = () => { const game = form.elements.game.value; $('wordSettings').hidden = game !== 'word'; $('digitsSettings').hidden = game !== 'digits'; };
-    if (['word', 'digits'].includes(params.get('game'))) form.elements.game.value = params.get('game');
+    const pick = () => { const game = form.elements.game.value; for (const [id, box] of Object.entries(SETTINGS)) $(box).hidden = game !== id; };
+    if (SETTINGS[params.get('game')]) form.elements.game.value = params.get('game');
     pick();
     for (const radio of form.querySelectorAll('input[name=game]')) radio.addEventListener('change', pick);
     form.addEventListener('submit', async event => {
       event.preventDefault();
       const game = form.elements.game.value, button = form.querySelector('button[type=submit]');
       const settings = game === 'word' ? {limit: Number(form.elements.limit.value), cap: Number(form.elements.cap.value), target: Number(form.elements.target.value)}
-        : {limit: Number(form.elements.dlimit.value)};
+        : game === 'digits' ? {limit: Number(form.elements.dlimit.value)}
+        : {level: Number(form.elements.level.value), steer: Number(form.elements.steer.value), easy: Number(form.elements.easy.value)};
       button.disabled = true; $('createError').textContent = '';
       try { const room = await G.api.post('/api/hub/play', {game, settings}); location.href = '/play/?room=' + room.code; }
       catch (error) { $('createError').textContent = error.message; button.disabled = false; }
@@ -379,7 +385,9 @@
   }
 
   // ---- Shared with the games ----------------------------------------------------------------------------------------
-  const api = {act: run, clock, seatName, serverNow, botName, gameName, fmt, redraw: () => render(), get view() { return view; }};
+  // input/say send realtime controls and quick calls without waiting for a reply (v2.4.3.1).
+  const api = {act: run, clock, seatName, serverNow, botName, gameName, fmt, redraw: () => render(), get view() { return view; },
+    input: (k, q) => send({t: 'in', q, k}), say: c => send({t: 'say', c}), get online() { return !!socket && socket.readyState === 1; }};
   window.Play = {register: (id, game) => { games[id] = game; }, api, label};
 
   function boot() {
