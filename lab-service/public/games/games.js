@@ -1,5 +1,5 @@
 /* GaryHub Games (v2.4.2.0): helpers shared by the lobby and each game on games.garyhub.uk — language, account,
-   API calls with the page token, money formatting, the starry sky — and the lobby itself. */
+   API calls with the page token, money formatting, the starry sky — and the lobby itself (v2.4.3.0: live rooms). */
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
@@ -150,9 +150,27 @@
       badge.textContent = mine ? t(mine + ' 局轮到你', mine + ' waiting for you') : live ? t(live + ' 局进行中', live + ' in progress') : t('新游戏', 'New');
       badge.classList.toggle('me', mine > 0);
     };
-    let data = null;
+    // v2.4.3.0: live rooms — how many open rooms each game has for this account, and joining by room code.
+    const showRooms = data => {
+      for (const game of ['word', 'digits']) {
+        const node = $(game + 'Badge');
+        if (!node) continue;
+        const open = data.rooms.filter(room => room.game === game && ['lobby', 'playing'].includes(room.status)).length;
+        node.textContent = open ? t(open + ' 个房间', open + (open === 1 ? ' room' : ' rooms')) : t('实时', 'Live');
+        node.classList.toggle('me', open > 0);
+      }
+    };
+    const form = $('joinCode');
+    form?.addEventListener('submit', event => {
+      event.preventDefault();
+      const code = $('joinInput').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (!/^[A-HJ-NP-Z2-9]{6}$/.test(code)) { $('joinError').textContent = t('房间码是 6 位字母或数字', 'A room code has 6 letters or digits'); return; }
+      location.href = '/play/?room=' + code;
+    });
+    let data = null, rooms = null;
     try { data = await api.get('/api/hub/games'); show(data); } catch {}
-    listeners.add(() => data && show(data));
+    try { rooms = await api.get('/api/hub/play'); showRooms(rooms); } catch {}
+    listeners.add(() => { if (data) show(data); if (rooms) showRooms(rooms); });
   }
 
   window.Games = {$, t, el, api, account, money, prizeText, prizeValue, ICONS, toast, reduced, onLanguage: fn => listeners.add(fn), get lang() { return lang; }, paint};

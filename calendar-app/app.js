@@ -27,7 +27,7 @@ const {migrateMusic,registerMusic}=require("./music-api");
 const { findLoginIdentity } = require("./login-identity");
 const { migratePasswordReset, registerPasswordReset } = require("./password-reset");
 const { migrateAssistant, registerAssistant } = require("./assistant-api");
-const { migrateExtras, registerExtras } = require("./extras");
+const { migrateExtras, registerExtras, attachExtras } = require("./extras");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -162,7 +162,7 @@ async function resolveTargetUserId(req) {
 }
 
 app.get("/health", (req, res) => {
-  res.json({ ok: true, hubVersion: "2.4.2.0" });
+  res.json({ ok: true, hubVersion: "2.4.3.0" });
 });
 
 // 登录
@@ -714,9 +714,10 @@ initDb()
     return require("./notification-policy").startNotificationCleanup(require("./db"));
   })
   .then(() => {
-    app.listen(PORT, "0.0.0.0", () => {
+    const server = app.listen(PORT, "0.0.0.0", () => {
       console.log(`Calendar app listening on port ${PORT}`);
     });
+    attachExtras(app, server);
   })
   .catch((err) => {
     console.error("数据库初始化失败:", err);

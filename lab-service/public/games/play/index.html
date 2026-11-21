@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title data-en="Live rooms · Gary Hub Games">实时房间 · Gary Hub 游戏厅</title>
+<meta name="description" content="Live game rooms on GaryHub: Word Sync and Number Duel, played together at the same time.">
+<meta name="theme-color" content="#0a0720">
+<script src="/hub-prefs.js?v=2.4.3.0"></script>
+<link rel="stylesheet" href="/games.css?v=2.4.3.0">
+<link rel="stylesheet" href="/play/play.css?v=2.4.3.0">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<canvas class="sky" aria-hidden="true"></canvas>
+<div class="clouds" aria-hidden="true"><span></span><span></span><span></span></div>
+<header class="top">
+<a class="brand" href="https://garyhub.uk/">Gary<span> Hub.</span></a>
+<a class="crumb" href="/" data-en="Games">游戏厅</a>
+<a class="crumb" href="/play/" id="crumbRoom" data-en="Live rooms">实时房间</a>
+<span class="spacer"></span>
+<span class="who" id="who"></span>
+<button class="chip-btn" id="theme" type="button" aria-label="切换日夜" data-en-label="Switch day / night">◐</button>
+<button class="chip-btn" id="lang" type="button">English</button>
+</header>
+<main>
+<p class="loading" id="loading" data-en="Connecting…">正在连接…</p>
+
+<!-- No room yet: create one, join one, or go back to one -->
+<section id="start" hidden>
+<div class="home-head">
+<div>
+<p class="eyebrow" data-en="Live rooms">实时房间</p>
+<h1 data-en="Open a room, share the code, play together.">开一个房间，发出房间码，一起玩。</h1>
+<p class="lede" data-en="Everyone in the room sees every move at once, from a phone or a computer, wherever you are.">无论在哪里，用手机还是电脑，房间里的每个人都会同时看到每一步。</p>
+</div>
+</div>
+<div class="start-grid">
+<form class="card panel create" id="createForm" novalidate>
+<h2 data-en="New room">新房间</h2>
+<div class="game-pick" role="radiogroup" aria-label="游戏" data-en-label="Game">
+<label class="pick"><input type="radio" name="game" value="word" checked><span><strong data-en="Word Sync">词语默契</strong><small data-en="Write the same word together">两人写出同一个词</small></span></label>
+<label class="pick"><input type="radio" name="game" value="digits"><span><strong data-en="Number Duel">对战猜数字</strong><small data-en="Crack the other code first">先猜中对方的密码</small></span></label>
+</div>
+<div class="settings" id="wordSettings">
+<label class="field"><span data-en="Time per round">每轮限时</span>
+<select class="select" name="limit"><option value="30" data-en="30 s">30 秒</option><option value="60" selected data-en="60 s">60 秒</option><option value="90" data-en="90 s">90 秒</option><option value="0" data-en="No limit">不限时</option></select></label>
+<label class="field"><span data-en="Most rounds">轮数上限</span>
+<select class="select" name="cap"><option value="10" data-en="10 rounds">10 轮</option><option value="20" selected data-en="20 rounds">20 轮</option><option value="30" data-en="30 rounds">30 轮</option></select></label>
+<label class="field"><span data-en="Challenge">挑战目标</span>
+<select class="select" name="target"><option value="0" selected data-en="None">不设</option><option value="3" data-en="Within 3 rounds">3 轮内</option><option value="6" data-en="Within 6 rounds">6 轮内</option><option value="10" data-en="Within 10 rounds">10 轮内</option></select></label>
+</div>
+<div class="settings" id="digitsSettings" hidden>
+<label class="field"><span data-en="Time per guess">每轮限时</span>
+<select class="select" name="dlimit"><option value="30" selected data-en="30 s">30 秒</option><option value="60" data-en="60 s">60 秒</option><option value="0" data-en="No limit">不限时</option></select></label>
+<p class="hint" data-en="Four different digits, 0 may lead. Add a computer player in the room if you want to play alone.">密码为 4 个不同的数字，可以 0 开头。想一个人玩，进房间后添加电脑对手。</p>
+</div>
+<button class="btn btn-gold" type="submit" data-en="Create room">创建房间</button>
+<p class="error" id="createError" role="alert"></p>
+</form>
+<div class="start-side">
+<form class="card panel" id="joinForm" novalidate>
+<h2 data-en="Join with a code">用房间码加入</h2>
+<div class="join-code">
+<label class="visually-hidden" for="joinRoom" data-en="Room code">房间码</label>
+<input class="input code-input" id="joinRoom" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="例如 K7MPQ2" data-en-placeholder="e.g. K7MPQ2">
+<button class="btn btn-violet" type="submit" data-en="Join">加入</button>
+</div>
+<p class="error" id="joinError" role="alert"></p>
+</form>
+<section class="card panel">
+<h2 data-en="My rooms">我的房间</h2>
+<div id="myRooms"><p class="empty" data-en="No rooms yet.">还没有房间。</p></div>
+</section>
+</div>
+</div>
+</section>
+
+<!-- A room -->
+<section id="room" hidden>
+<div class="room-bar card">
+<div class="room-title">
+<p class="eyebrow" id="roomGame"></p>
+<div class="room-code"><span data-en="Room">房间</span> <strong id="roomCode"></strong>
+<button class="chip-btn" id="copyLink" type="button" data-en="Copy invite link">复制邀请链接</button></div>
+</div>
+<div class="room-status">
+<span class="conn" id="conn"><span class="dot"></span><span id="connText"></span></span>
+<span class="pill" id="myPing" hidden></span>
+</div>
+</div>
+<div class="banner" id="banner" hidden></div>
+<div class="room-grid">
+<aside class="card panel seats-panel">
+<h2 data-en="Players">玩家</h2>
+<ol class="seats" id="seats"></ol>
+<div class="netbox" id="netbox">
+<h3 data-en="Network">网络</h3>
+<dl id="netList"></dl>
+<button class="btn btn-ghost btn-sm" id="netTest" type="button" data-en="Measure now">测一测</button>
+<p class="hint" data-en="Round trip to the server for each player; between the two of you a move takes about half of each, added together.">每人到服务器的往返时间；你们之间一步操作大约要走各自的一半之和。</p>
+</div>
+<button class="btn btn-danger btn-sm leave" id="leave" type="button" data-en="Leave room">离开房间</button>
+</aside>
+<section class="card panel stage" id="stage" aria-live="polite"></section>
+</div>
+</section>
+
+<!-- Could not enter -->
+<section id="problem" class="card panel problem" hidden>
+<h2 id="problemTitle"></h2>
+<p id="problemText"></p>
+<div class="actions"><a class="btn btn-gold" href="/play/" data-en="Live rooms">实时房间</a><button class="btn btn-ghost" id="retry" type="button" hidden data-en="Continue here">在这里继续</button></div>
+</section>
+</main>
+<script src="/games.js?v=2.4.3.0" defer></script>
+<script src="/play/play.js?v=2.4.3.0" defer></script>
+<script src="/play/word.js?v=2.4.3.0" defer></script>
+<script src="/play/digits.js?v=2.4.3.0" defer></script>
+</body>
+</html>

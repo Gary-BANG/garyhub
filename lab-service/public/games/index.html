@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title data-en="Games · Gary Hub">游戏厅 · Gary Hub</title>
-<meta name="description" content="Games on GaryHub, played with friends one move at a time.">
+<meta name="description" content="Games on GaryHub: live rooms to play together, and games played one move at a time.">
 <meta name="theme-color" content="#0a0720">
-<script src="/hub-prefs.js?v=2.4.2.0"></script>
-<link rel="stylesheet" href="/games.css?v=2.4.2.0">
+<script src="/hub-prefs.js?v=2.4.3.0"></script>
+<link rel="stylesheet" href="/games.css?v=2.4.3.0">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 </head>
 <body>
@@ -23,10 +23,51 @@
 <main>
 <section class="hero">
 <p class="eyebrow" data-en="GaryHub Games">GaryHub 游戏厅</p>
-<h1 data-en="Play together, one move at a time.">和朋友慢慢玩，轮到你时再来。</h1>
-<p class="lede" data-en="No need to be online together: make your move, and the other player is told when it is their turn.">不需要同时在线：做完你这一步，轮到对方时会收到提醒。</p>
+<h1 data-en="Play together, now or one move at a time.">一起玩：现在开一局，或者慢慢来。</h1>
+<p class="lede" data-en="Word Sync and Number Duel are live rooms: share the room code and play at the same time, on a phone or a computer. Daydreamer is played turn by turn — you are told when it is your move.">词语默契和对战猜数字是实时房间：分享房间码，在手机或电脑上同时玩。白日梦想家轮流进行，轮到你时会收到提醒。</p>
+<form class="join-code" id="joinCode" novalidate>
+<label class="visually-hidden" for="joinInput" data-en="Room code">房间码</label>
+<input class="input code-input" id="joinInput" name="room" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="房间码，例如 K7MPQ2" data-en-placeholder="Room code, e.g. K7MPQ2">
+<button class="btn btn-violet" type="submit" data-en="Join">加入房间</button>
+</form>
+<p class="error" id="joinError" role="alert"></p>
 </section>
 <section class="lobby" aria-label="游戏" data-en-label="Games">
+<a class="card game-card live" href="/play/?game=word">
+<span class="pill badge" id="wordBadge" data-en="Live">实时</span>
+<div class="art art-word" aria-hidden="true">
+<svg viewBox="0 0 400 190" preserveAspectRatio="xMidYMid slice">
+<g fill="#fff8e6"><circle class="twinkle" cx="40" cy="26" r="1.5"/><circle class="twinkle" cx="190" cy="18" r="1.2"/><circle class="twinkle" cx="360" cy="34" r="1.4"/><circle class="twinkle" cx="300" cy="150" r="1.1"/></g>
+<g class="float"><rect x="34" y="56" width="120" height="58" rx="18" fill="#a98bff"/><path d="M70 112l-8 22 26-20z" fill="#a98bff"/><text x="94" y="93" font-size="22" text-anchor="middle" fill="#1d1147" font-weight="800">水果</text></g>
+<g class="float b"><rect x="246" y="48" width="120" height="58" rx="18" fill="#f7a8d8"/><path d="M330 104l8 22-26-20z" fill="#f7a8d8"/><text x="306" y="85" font-size="22" text-anchor="middle" fill="#3a0f2e" font-weight="800">天气</text></g>
+<path d="M160 96c30 22 52 30 40 46M240 90c-30 24-46 34-40 52" stroke="#f6c86e" stroke-width="3" stroke-dasharray="4 7" fill="none" stroke-linecap="round"/>
+<g class="float c"><rect x="148" y="132" width="104" height="44" rx="22" fill="#f6c86e"/><text x="200" y="161" font-size="20" text-anchor="middle" fill="#2b1a00" font-weight="800">西瓜 ✓</text></g>
+</svg>
+</div>
+<div class="body">
+<h3 data-en="Word Sync">词语默契</h3>
+<p data-en="Both write a word at the same time. Different? Next round, each writes a word that links the last two — until you both write the same one.">两人同时写一个词，一起揭晓。不一样？下一轮各写一个能连起上两个词的新词，直到你们写出同一个词。</p>
+<div class="meta"><span class="pill" data-en="2 players">双人</span><span class="pill" data-en="Live room">实时房间</span><span class="pill" data-en="Play together">合作</span></div>
+</div>
+</a>
+<a class="card game-card live" href="/play/?game=digits">
+<span class="pill badge" id="digitsBadge" data-en="Live">实时</span>
+<div class="art art-digits" aria-hidden="true">
+<svg viewBox="0 0 400 190" preserveAspectRatio="xMidYMid slice">
+<g fill="#fff8e6"><circle class="twinkle" cx="30" cy="30" r="1.4"/><circle class="twinkle" cx="370" cy="24" r="1.2"/><circle class="twinkle" cx="210" cy="14" r="1.1"/></g>
+<g class="float"><rect x="52" y="50" width="56" height="70" rx="12" fill="#2f1f84" stroke="#a98bff" stroke-width="2"/><text x="80" y="98" font-size="34" text-anchor="middle" fill="#fff8e6" font-weight="800">4</text></g>
+<g class="float b"><rect x="122" y="50" width="56" height="70" rx="12" fill="#2f1f84" stroke="#f6c86e" stroke-width="2"/><text x="150" y="98" font-size="34" text-anchor="middle" fill="#f6c86e" font-weight="800">2</text></g>
+<g class="float c"><rect x="192" y="50" width="56" height="70" rx="12" fill="#2f1f84" stroke="#a98bff" stroke-width="2"/><text x="220" y="98" font-size="34" text-anchor="middle" fill="#fff8e6" font-weight="800">7</text></g>
+<g class="float"><rect x="262" y="50" width="56" height="70" rx="12" fill="#2f1f84" stroke="#a98bff" stroke-width="2"/><text x="290" y="98" font-size="34" text-anchor="middle" fill="#fff8e6" font-weight="800">1</text></g>
+<g><circle cx="140" cy="150" r="9" fill="#f6c86e"/><circle cx="168" cy="150" r="9" fill="none" stroke="#f6c86e" stroke-width="3"/><circle cx="196" cy="150" r="9" fill="none" stroke="#f6c86e" stroke-width="3"/><text x="246" y="157" font-size="20" fill="#fff8e6" font-weight="800">1A2B</text></g>
+</svg>
+</div>
+<div class="body">
+<h3 data-en="Number Duel">对战猜数字</h3>
+<p data-en="Each sets a secret of four different digits. Guess at the same time, read the hints (xA yB), and crack the other code first — against a friend or the computer.">各设一个 4 位不重复的密码，每轮同时猜一次，看提示（几 A 几 B）推理，先猜中对方密码者获胜。可以和朋友，也可以和电脑对战。</p>
+<div class="meta"><span class="pill" data-en="2 players">双人</span><span class="pill" data-en="Live room">实时房间</span><span class="pill" data-en="vs computer">可选电脑对手</span></div>
+</div>
+</a>
 <a class="card game-card" href="/dream/">
 <span class="pill badge" id="dreamBadge" data-en="New">新游戏</span>
 <div class="art" aria-hidden="true">
@@ -54,6 +95,6 @@
 <div class="card soon"><p data-en="More games are on the way.">更多游戏，敬请期待。</p></div>
 </section>
 </main>
-<script src="/games.js?v=2.4.2.0" defer></script>
+<script src="/games.js?v=2.4.3.0" defer></script>
 </body>
 </html>

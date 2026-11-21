@@ -94,6 +94,12 @@ h2{font-size:1.3rem;margin:0 0 14px}
 .game-card .meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px}
 .badge{position:absolute;top:14px;right:14px;z-index:2}
 .soon{display:grid;place-items:center;min-height:260px;border-style:dashed;color:var(--faint);text-align:center;padding:24px;box-shadow:none}
+/* v2.4.3.0: live rooms in the lobby */
+.join-code{display:flex;gap:10px;max-width:460px;margin-top:16px}
+.code-input{text-transform:uppercase;letter-spacing:.18em;font-weight:700}
+.code-input::placeholder{letter-spacing:normal;font-weight:400;text-transform:none}
+.game-card .art.art-word{background:radial-gradient(circle at 50% 120%,color-mix(in srgb,var(--gold) 40%,transparent),transparent 55%),linear-gradient(160deg,#3b2a9e,#1a1150)}
+.game-card .art.art-digits{background:radial-gradient(circle at 20% 20%,color-mix(in srgb,var(--pink) 30%,transparent),transparent 50%),linear-gradient(160deg,#241a6e,#120b3d)}
 .float{animation:float 6s ease-in-out infinite}
 .float.b{animation-delay:-2s}.float.c{animation-delay:-4s}
 @keyframes float{50%{transform:translateY(-8px)}}
@@ -112,4 +118,5 @@ h2{font-size:1.3rem;margin:0 0 14px}
   .chip-btn{padding:7px 11px}
   .hero{padding:18px 0 16px}
   .lobby{grid-template-columns:1fr}
+  .join-code .btn{padding:11px 16px}
 }
