@@ -10,13 +10,18 @@
 //
 // Rules are in play-word.js and play-digits.js. Computer players (where a game has them) act through the same moves
 // with a short, human-like delay and only see what their seat sees.
+//
+// v2.4.3.1 adds realtime games (play-car.js): while one is playing, the room steps it on a timer and sends a small
+// frame to everyone many times a second. Controls arrive as 'in' messages (no reply, not saved, latest wins) and quick
+// calls as 'say'; only moments the game marks as worth keeping are saved and sent in full.
 const http = require('node:http');
 const crypto = require('node:crypto');
 const ws = require('./play-socket');
 const {rateLimit} = require('./rate-limit');
 const {channels, quiet} = require('./notify-channels');
 
-const GAMES = {word: require('./play-word'), digits: require('./play-digits')};
+const GAMES = {word: require('./play-word'), digits: require('./play-digits'), car: require('./play-car')};
+const NAMES = {word: '词语默契', digits: '对战猜数字', car: '合作小车'};
 const ORIGIN = 'https://games.garyhub.uk', SITE = ORIGIN + '/play/', SOCKET_PATH = '/api/hub/play/socket';
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const MAX_ACTIVE = 3, MAX_SOCKETS = 4, MAX_INVITES = 10, MAX_MESSAGE = 2048;
@@ -89,7 +94,7 @@ function persist(room) {
 }
 // The room no longer exists (its host's account was deleted, or the sweep removed it): tell whoever is still in it.
 function gone(room, reason) {
-  clearTimeout(room.timer); clearTimeout(room.botTimer);
+  clearTimeout(room.timer); clearTimeout(room.botTimer); clearInterval(room.loop); room.loop = null;
   for (const timer of room.graces.values()) clearTimeout(timer);
   for (const conn of room.conns.values()) { send(conn, {t: 'bye', reason}); conn.close(1000, reason); }
   room.conns.clear();
@@ -120,7 +125,7 @@ function broadcast(room) { for (const [userId, conn] of room.conns) send(conn, {
 function changed(room, {save = true} = {}) {
   room.revision++; room.updatedAt = Date.now();
   if (save) persist(room);
-  arm(room); armBot(room); broadcast(room);
+  arm(room); armBot(room); loop(room); broadcast(room);
 }
 function finishRoom(room, result) {
   const game = GAMES[room.game];
@@ -180,6 +185,29 @@ function armBot(room) {
   }
   clearTimeout(room.botTimer); room.botTimer = null; room.botPlan = null;
 }
+// Realtime games step on a timer while playing and not paused; every few steps the frame goes to everyone in the room.
+function loop(room) {
+  const game = GAMES[room.game], run = !!game.realtime && room.status === 'playing' && !room.paused && rooms.get(room.code) === room;
+  if (!run) { if (room.loop) { clearInterval(room.loop); room.loop = null; } return; }
+  if (room.loop) return;
+  const every = Math.max(1, Math.round(game.realtime.hz / game.realtime.send));
+  let last = Date.now(), n = 0;
+  room.loop = setInterval(() => {
+    if (room.status !== 'playing' || room.paused) { clearInterval(room.loop); room.loop = null; return; }
+    const now = Date.now(), dt = Math.min(now - last, 250);
+    last = now;
+    let save = false, finished = null;
+    try { game.step(room.state, dt, {now, rng, save: () => { save = true; }, finish: result => { finished = result; }}); }
+    catch (error) { console.error('Room step failed:', error.message); return; }
+    if (finished) { finishRoom(room, finished); changed(room); return; }
+    if (save) changed(room);
+    if (++n % every === 0 || save) {
+      const text = JSON.stringify({t: 'f', s: now, d: game.frame(room.state)});
+      for (const conn of room.conns.values()) { try { conn.send(text); } catch {} }
+    }
+  }, 1000 / game.realtime.hz);
+  room.loop.unref?.();
+}
 function pause(room, reason) {
   if (room.status !== 'playing' || room.paused) return;
   room.paused = {since: Date.now(), reason};
@@ -189,6 +217,7 @@ function pause(room, reason) {
 function resume(room) {
   if (!room.paused || humans(room).some(s => !room.conns.has(s.user))) return;
   room.paused = null;
+  GAMES[room.game].resume?.(room.state);
   if (room.clock.remaining != null) room.clock = {deadline: Date.now() + Math.max(TUNING.resumeMin, room.clock.remaining), remaining: null};
   changed(room);
 }
@@ -209,9 +238,12 @@ function detach(conn) {
   room.conns.delete(conn.userId); conn.room = null;
   room.offline.set(conn.userId, Date.now());
   room.lastActive = Date.now();
-  // A short drop (switching apps, a tunnel) does not stop the clock; ten seconds away pauses the game.
-  if (room.status === 'playing' && !room.paused && seatOf(room, conn.userId) >= 0) {
-    const timer = setTimeout(() => { room.graces.delete(conn.userId); if (!room.conns.has(conn.userId)) pause(room, 'away'); }, TUNING.grace);
+  // A short drop (switching apps, a tunnel) does not stop the clock; ten seconds away (three in a realtime game) pauses
+  // it. A realtime game lets go of the controls of whoever dropped out at once.
+  const seat = seatOf(room, conn.userId), game = GAMES[room.game];
+  if (room.status === 'playing' && seat >= 0) game.drop?.(room.state, seat);
+  if (room.status === 'playing' && !room.paused && seat >= 0) {
+    const timer = setTimeout(() => { room.graces.delete(conn.userId); if (!room.conns.has(conn.userId)) pause(room, 'away'); }, Math.min(TUNING.grace, game.grace ?? Infinity));
     timer.unref?.(); room.graces.set(conn.userId, timer);
   }
   broadcast(room);
@@ -301,6 +333,16 @@ const MOVES = {
   rematch(room, seat, d, host) {
     if (!host) throw fail(403, '只有房主可以再来一局');
     if (room.status !== 'finished') throw fail(409, '这一局还没有结束');
+    // A game that allows it starts again at once (the car: try again, or the next level), skipping the lobby.
+    const game = GAMES[room.game], again = d.start === true && game.instantRematch;
+    if (again) {
+      if (room.seats.some(s => !s.user && !s.bot)) throw fail(409, '还有空座位，请回到大厅等人');
+      if (humans(room).some(s => !room.conns.has(s.user))) throw fail(409, '还有玩家不在线');
+      if (d.settings) room.settings = game.settings(d.settings);
+      for (const s of room.seats) if (s.user) s.ready = true;
+      room.status = 'lobby';
+      return MOVES.start(room, seat, {}, host);
+    }
     room.status = 'lobby'; room.state = null; room.clock = {deadline: null, remaining: null};
     for (const s of room.seats) if (s.user) s.ready = s.user === room.hostId;
   },
@@ -335,7 +377,7 @@ async function invite(room, conn, d) {
   if (target.id === conn.userId) throw fail(400, '不能邀请自己');
   if (seatOf(room, target.id) >= 0) throw fail(409, '对方已经在房间里了');
   room.invites++;
-  const name = room.game === 'word' ? '词语默契' : '对战猜数字';
+  const name = NAMES[room.game];
   await tell(target.id, room.code, name + '：' + conn.username + ' 邀请你进房间', '房间码 ' + room.code + '，点开即可加入。');
   return {invited: target.username};
 }
@@ -377,16 +419,35 @@ function validNet(net) {
   if (!Number.isSafeInteger(net.n) || net.n < 1 || net.n > 1000) return null;
   return {...out, n: net.n, at: Date.now()};
 }
+// Controls and quick calls of a realtime game: no reply, nothing saved. Controls are ignored while paused, so the ones
+// released for a player who dropped out stay released until that player sends new ones.
+function realtime(conn, message, now) {
+  const room = conn.room;
+  if (!room || room.status !== 'playing' || rooms.get(room.code) !== room) return;
+  const game = GAMES[room.game], seat = seatOf(room, conn.userId);
+  if (seat < 0 || !game.realtime) return;
+  if (message.t === 'in') { if (!room.paused) game.input(room.state, seat, message.k, message.q); return; }
+  if (!game.calls.includes(message.c) || now - (conn.saidAt || 0) < 400) return;
+  conn.saidAt = now;
+  const text = JSON.stringify({t: 'said', seat, c: message.c, s: now});
+  for (const other of room.conns.values()) { try { other.send(text); } catch {} }
+}
 function serve(conn) {
-  let tokens = 20, refilled = Date.now();
+  let tokens = 20, refilled = Date.now(), fast = 60, fastAt = Date.now();
   conn.on('message', text => {
     const now = Date.now();
-    tokens = Math.min(20, tokens + (now - refilled) / 125); refilled = now;
-    if (--tokens < 0) return conn.close(1008, 'too many messages');
     if (text.length > MAX_MESSAGE) return conn.close(1009, 'too big');
     let message;
     try { message = JSON.parse(text); } catch { return conn.close(1007, 'invalid json'); }
     if (!message || typeof message !== 'object' || typeof message.t !== 'string') return conn.close(1007, 'invalid message');
+    // Realtime controls have their own allowance (bursts of 60, 40 a second); extra ones are dropped, not punished.
+    if (message.t === 'in' || message.t === 'say') {
+      fast = Math.min(60, fast + (now - fastAt) / 25); fastAt = now;
+      if (--fast < 0) return;
+      return realtime(conn, message, now);
+    }
+    tokens = Math.min(20, tokens + (now - refilled) / 125); refilled = now;
+    if (--tokens < 0) return conn.close(1008, 'too many messages');
     if (message.t === 'ping') {
       send(conn, {t: 'pong', c: message.c, s: now});
       const net = validNet(message.net), room = conn.room;

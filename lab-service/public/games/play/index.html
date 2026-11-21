@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title data-en="Live rooms · Gary Hub Games">实时房间 · Gary Hub 游戏厅</title>
-<meta name="description" content="Live game rooms on GaryHub: Word Sync and Number Duel, played together at the same time.">
+<meta name="description" content="Live game rooms on GaryHub: Word Sync, Number Duel and Co-op Car, played together at the same time.">
 <meta name="theme-color" content="#0a0720">
-<script src="/hub-prefs.js?v=2.4.3.0"></script>
-<link rel="stylesheet" href="/games.css?v=2.4.3.0">
-<link rel="stylesheet" href="/play/play.css?v=2.4.3.0">
+<script src="/hub-prefs.js?v=2.4.3.1"></script>
+<link rel="stylesheet" href="/games.css?v=2.4.3.1">
+<link rel="stylesheet" href="/play/play.css?v=2.4.3.1">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 </head>
 <body>
@@ -40,6 +40,7 @@
 <div class="game-pick" role="radiogroup" aria-label="游戏" data-en-label="Game">
 <label class="pick"><input type="radio" name="game" value="word" checked><span><strong data-en="Word Sync">词语默契</strong><small data-en="Write the same word together">两人写出同一个词</small></span></label>
 <label class="pick"><input type="radio" name="game" value="digits"><span><strong data-en="Number Duel">对战猜数字</strong><small data-en="Crack the other code first">先猜中对方的密码</small></span></label>
+<label class="pick"><input type="radio" name="game" value="car"><span><strong data-en="Co-op Car">合作小车</strong><small data-en="One steers, one drives the pedals">一人方向，一人油门</small></span></label>
 </div>
 <div class="settings" id="wordSettings">
 <label class="field"><span data-en="Time per round">每轮限时</span>
@@ -53,6 +54,15 @@
 <label class="field"><span data-en="Time per guess">每轮限时</span>
 <select class="select" name="dlimit"><option value="30" selected data-en="30 s">30 秒</option><option value="60" data-en="60 s">60 秒</option><option value="0" data-en="No limit">不限时</option></select></label>
 <p class="hint" data-en="Four different digits, 0 may lead. Add a computer player in the room if you want to play alone.">密码为 4 个不同的数字，可以 0 开头。想一个人玩，进房间后添加电脑对手。</p>
+</div>
+<div class="settings" id="carSettings" hidden>
+<label class="field"><span data-en="Level">关卡</span>
+<select class="select" name="level"><option value="1" selected data-en="1 · First drive">1 · 直道起步</option><option value="2" data-en="2 · S bends and cones">2 · S 弯与锥桶</option><option value="3" data-en="3 · Bridge and jump">3 · 窄桥与跳台</option></select></label>
+<label class="field"><span data-en="Steering">谁负责方向</span>
+<select class="select" name="steer"><option value="0" selected data-en="Me (the host)">我（房主）</option><option value="1" data-en="The other player">另一位</option></select></label>
+<label class="field"><span data-en="Easy mode">宽松模式</span>
+<select class="select" name="easy"><option value="0" selected data-en="Off">关</option><option value="1" data-en="On: wider road">开：路面更宽</option></select></label>
+<p class="hint" data-en="Two players drive one car: one steers, the other works the throttle, brake and boosts. Talk to each other — or use the quick calls.">两人开同一辆车：一人只管方向，另一人管油门、刹车和氮气。边玩边说话，或者用快捷呼叫。</p>
 </div>
 <button class="btn btn-gold" type="submit" data-en="Create room">创建房间</button>
 <p class="error" id="createError" role="alert"></p>
@@ -112,9 +122,11 @@
 <div class="actions"><a class="btn btn-gold" href="/play/" data-en="Live rooms">实时房间</a><button class="btn btn-ghost" id="retry" type="button" hidden data-en="Continue here">在这里继续</button></div>
 </section>
 </main>
-<script src="/games.js?v=2.4.3.0" defer></script>
-<script src="/play/play.js?v=2.4.3.0" defer></script>
-<script src="/play/word.js?v=2.4.3.0" defer></script>
-<script src="/play/digits.js?v=2.4.3.0" defer></script>
+<script src="/games.js?v=2.4.3.1" defer></script>
+<script src="/play/play.js?v=2.4.3.1" defer></script>
+<script src="/play/word.js?v=2.4.3.1" defer></script>
+<script src="/play/digits.js?v=2.4.3.1" defer></script>
+<script src="/play/car-sim.js?v=2.4.3.1" defer></script>
+<script src="/play/car.js?v=2.4.3.1" defer></script>
 </body>
 </html>

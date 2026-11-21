@@ -99,6 +99,7 @@ h2{font-size:1.3rem;margin:0 0 14px}
 .code-input{text-transform:uppercase;letter-spacing:.18em;font-weight:700}
 .code-input::placeholder{letter-spacing:normal;font-weight:400;text-transform:none}
 .game-card .art.art-word{background:radial-gradient(circle at 50% 120%,color-mix(in srgb,var(--gold) 40%,transparent),transparent 55%),linear-gradient(160deg,#3b2a9e,#1a1150)}
+.game-card .art.art-car{background:radial-gradient(circle at 80% 20%,color-mix(in srgb,var(--mint) 28%,transparent),transparent 50%),linear-gradient(160deg,#1f5a34,#0f2d1b)}
 .game-card .art.art-digits{background:radial-gradient(circle at 20% 20%,color-mix(in srgb,var(--pink) 30%,transparent),transparent 50%),linear-gradient(160deg,#241a6e,#120b3d)}
 .float{animation:float 6s ease-in-out infinite}
 .float.b{animation-delay:-2s}.float.c{animation-delay:-4s}
