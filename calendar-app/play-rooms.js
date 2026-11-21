@@ -14,14 +14,19 @@
 // v2.4.3.1 adds realtime games (play-car.js): while one is playing, the room steps it on a timer and sends a small
 // frame to everyone many times a second. Controls arrive as 'in' messages (no reply, not saved, latest wins) and quick
 // calls as 'say'; only moments the game marks as worth keeping are saved and sent in full.
+//
+// v2.4.3.2 adds the board games (play-treasure.js, play-monopoly.js): the number of seats comes from the settings, and in
+// games that declare away: 'autoplay' a player who drops out, or misses turns, is played by the computer (托管) instead
+// of pausing everyone, until they take over again. Only when no player is left online does the game pause.
 const http = require('node:http');
 const crypto = require('node:crypto');
 const ws = require('./play-socket');
 const {rateLimit} = require('./rate-limit');
 const {channels, quiet} = require('./notify-channels');
 
-const GAMES = {word: require('./play-word'), digits: require('./play-digits'), car: require('./play-car')};
-const NAMES = {word: '词语默契', digits: '对战猜数字', car: '合作小车'};
+const GAMES = {word: require('./play-word'), digits: require('./play-digits'), car: require('./play-car'), treasure: require('./play-treasure'), monopoly: require('./play-monopoly')};
+const NAMES = {word: '词语默契', digits: '对战猜数字', car: '合作小车', treasure: '骰子抢宝箱', monopoly: '大富翁'};
+const seatCount = (game, config) => game.seatCount ? game.seatCount(config) : game.seats;
 const ORIGIN = 'https://games.garyhub.uk', SITE = ORIGIN + '/play/', SOCKET_PATH = '/api/hub/play/socket';
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const MAX_ACTIVE = 3, MAX_SOCKETS = 4, MAX_INVITES = 10, MAX_MESSAGE = 2048;
@@ -29,7 +34,7 @@ const IDLE_LOBBY = 30 * 60_000, EVICT_AFTER = 10 * 60_000;
 const STALE_DAYS = 7, KEEP_DAYS = 180, HEARTBEAT = 15_000, DEAD_AFTER = 45_000, REVALIDATE = 60_000;
 // Timings that tests shorten; production uses these values.
 const TUNING = {grace: 10_000, resumeMin: 5_000, botScale: 1};
-const PLATFORM = new Set(['ready', 'start', 'settings', 'addBot', 'removeBot', 'kick', 'leave', 'rematch', 'invite']);
+const PLATFORM = new Set(['ready', 'start', 'settings', 'addBot', 'removeBot', 'kick', 'leave', 'rematch', 'invite', 'takeover']);
 
 const fail = (status, message) => Object.assign(Error(message), {status});
 const route = fn => (req, res, next) => Promise.resolve(fn(req, res)).catch(next);
@@ -58,7 +63,7 @@ function fromRow(row) {
   const room = {id: row.id, code: row.code, game: row.game, hostId: row.user_id, status: row.status, revision: row.revision,
     settings: data.settings, seats: data.seats, state: data.state ?? null, clock: data.clock || {deadline: null, remaining: null},
     paused: data.paused ?? null, result: data.result ?? null, tally: data.tally ?? null, matches: data.matches || 0, invites: data.invites || 0,
-    net: data.net || {}, kicked: data.kicked || [], createdAt: row.created_at, finishedAt: row.finished_at || null, updatedAt: Date.now(),
+    net: data.net || {}, kicked: data.kicked || [], auto: data.auto || [], createdAt: row.created_at, finishedAt: row.finished_at || null, updatedAt: Date.now(),
     conns: new Map(), offline: new Map(), timer: null, botTimer: null, botPlan: null, graces: new Map(), saving: Promise.resolve(), seen: new Map()};
   // A game that was running when the server stopped comes back paused with the time it had left.
   if (room.status === 'playing' && !room.paused) {
@@ -70,7 +75,7 @@ function fromRow(row) {
 }
 function data(room) {
   return JSON.stringify({settings: room.settings, seats: room.seats, state: room.state, clock: room.clock, paused: room.paused, result: room.result,
-    tally: room.tally, matches: room.matches, invites: room.invites, net: room.net, kicked: room.kicked, savedAt: Date.now()});
+    tally: room.tally, matches: room.matches, invites: room.invites, net: room.net, kicked: room.kicked, auto: room.auto, savedAt: Date.now()});
 }
 async function load(code) {
   if (typeof code !== 'string' || !/^[A-Z2-9]{6}$/.test(code)) return null;
@@ -108,14 +113,14 @@ function view(room, userId) {
     code: room.code, game: room.game, status: room.status, revision: room.revision, now: Date.now(),
     you: seat < 0 ? null : seat, host: seatOf(room, room.hostId), isHost: room.hostId === userId, settings: room.settings,
     seats: room.seats.map(s => ({name: s.user ? s.name : null, bot: s.bot || null, ready: !!s.ready, empty: !s.user && !s.bot,
-      online: s.bot ? true : room.conns.has(s.user), net: s.user ? room.net[s.user] || null : null})),
+      online: s.bot ? true : room.conns.has(s.user), net: s.user ? room.net[s.user] || null : null, auto: !!room.auto[room.seats.indexOf(s)]})),
     paused: room.paused ? {since: room.paused.since, reason: room.paused.reason} : null,
     deadline: room.clock.deadline, remaining: room.clock.remaining,
     // Since when (server time) each player has been away during a game; null while connected.
     away: room.status === 'playing' ? room.seats.map(s => s.user && !room.conns.has(s.user) ? room.offline.get(s.user) || Date.now() : null) : null,
     state: room.state ? game.view(room.state, seat < 0 ? null : seat) : null,
     result: room.result, tally: room.tally, matches: room.matches, invitesLeft: MAX_INVITES - room.invites,
-    rules: {seats: game.seats, bots: game.bots, maxActive: MAX_ACTIVE}
+    rules: {seats: room.seats.length, bots: game.bots, autoplay: game.away === 'autoplay', maxActive: MAX_ACTIVE}
   };
 }
 function send(conn, message) { try { conn.send(JSON.stringify(message)); } catch {} }
@@ -134,7 +139,7 @@ function finishRoom(room, result) {
   const net = {};
   room.seats.forEach((s, i) => { if (s.user && room.net[s.user]) net[i] = room.net[s.user]; });
   room.result = {...result, at: Date.now(), net, players: room.seats.map(s => s.user ? s.name : s.bot ? '@' + s.bot : null)};
-  room.tally = game.tally(room.tally, result); room.matches++;
+  room.tally = game.tally(room.tally, result); room.matches++; room.auto = [];
   for (const s of room.seats) if (s.user) s.ready = false;
 }
 // Runs one change of the game against a copy of its state, so a refused move leaves nothing half applied.
@@ -143,7 +148,7 @@ function mutate(room, fn) {
   const draft = structuredClone(room.state);
   let clock = {...room.clock}, finished = null;
   const ctx = {now, rng, setTimer: ms => { clock = {deadline: now + ms, remaining: null}; }, clearTimer: () => { clock = {deadline: null, remaining: null}; },
-    finish: result => { finished = result; }, away: seat => { const s = room.seats[seat]; return s && s.user && !room.conns.has(s.user) ? now - (room.offline.get(s.user) || now) : 0; }};
+    finish: result => { finished = result; }, auto: seat => { room.auto[seat] = true; }, away: seat => { const s = room.seats[seat]; return s && s.user && !room.conns.has(s.user) ? now - (room.offline.get(s.user) || now) : 0; }};
   const output = fn(game, draft, ctx);
   room.state = draft; room.clock = clock;
   if (room.paused && room.clock.deadline) room.clock = {deadline: null, remaining: Math.max(TUNING.resumeMin, room.clock.deadline - now)};
@@ -166,17 +171,19 @@ function armBot(room) {
   const game = GAMES[room.game];
   if (room.status !== 'playing' || room.paused || !game.bot) { clearTimeout(room.botTimer); room.botTimer = null; room.botPlan = null; return; }
   for (const [seat, s] of room.seats.entries()) {
-    if (!s.bot) continue;
-    const plan = game.bot(room.state, seat, s.bot, rng);
+    const level = s.bot || (room.auto[seat] && (s.user || game.away === 'autoplay') ? 'normal' : null);
+    if (!level) continue;
+    const plan = game.bot(room.state, seat, level, rng);
     if (!plan) continue;
-    const key = seat + ':' + room.state.phase + ':' + room.state.round + ':' + plan.action;
+    const key = game.botKey ? seat + ':' + game.botKey(room.state, seat, plan) : seat + ':' + room.state.phase + ':' + room.state.round + ':' + plan.action;
     if (room.botPlan && room.botPlan.key === key && room.botTimer) return;
     clearTimeout(room.botTimer);
     room.botPlan = {key};
     room.botTimer = setTimeout(() => {
       room.botTimer = null; room.botPlan = null;
-      if (room.status !== 'playing' || room.paused || !room.seats[seat]?.bot) return;
-      const now = game.bot(room.state, seat, room.seats[seat].bot, rng);
+      const lv = room.seats[seat]?.bot || (room.auto[seat] ? 'normal' : null);
+      if (room.status !== 'playing' || room.paused || !lv) return;
+      const now = game.bot(room.state, seat, lv, rng);
       if (!now) return armBot(room);
       try { mutate(room, (g, state, ctx) => g.act(state, seat, now.action, now.data, room.settings, ctx)); } catch (error) { console.error('Computer move failed:', error.message); armBot(room); }
     }, plan.delay * TUNING.botScale);
@@ -215,8 +222,11 @@ function pause(room, reason) {
   changed(room);
 }
 function resume(room) {
-  if (!room.paused || humans(room).some(s => !room.conns.has(s.user))) return;
+  const someone = GAMES[room.game].away === 'autoplay' ? !humans(room).some(s => room.conns.has(s.user)) : humans(room).some(s => !room.conns.has(s.user));
+  if (!room.paused || someone) return;
   room.paused = null;
+  // A board game resumes as soon as one player is back; whoever is still away is played by the computer.
+  if (GAMES[room.game].away === 'autoplay') room.seats.forEach((s, i) => { if (s.user && !room.conns.has(s.user)) room.auto[i] = true; });
   GAMES[room.game].resume?.(room.state);
   if (room.clock.remaining != null) room.clock = {deadline: Date.now() + Math.max(TUNING.resumeMin, room.clock.remaining), remaining: null};
   changed(room);
@@ -243,7 +253,14 @@ function detach(conn) {
   const seat = seatOf(room, conn.userId), game = GAMES[room.game];
   if (room.status === 'playing' && seat >= 0) game.drop?.(room.state, seat);
   if (room.status === 'playing' && !room.paused && seat >= 0) {
-    const timer = setTimeout(() => { room.graces.delete(conn.userId); if (!room.conns.has(conn.userId)) pause(room, 'away'); }, Math.min(TUNING.grace, game.grace ?? Infinity));
+    const timer = setTimeout(() => {
+      room.graces.delete(conn.userId);
+      if (room.conns.has(conn.userId) || room.status !== 'playing') return;
+      // Board games go on with the computer playing for whoever is away, while anyone is still there.
+      const away = seatOf(room, conn.userId);
+      if (game.away === 'autoplay' && away >= 0 && humans(room).some(s => room.conns.has(s.user))) { room.auto[away] = true; changed(room); }
+      else pause(room, 'away');
+    }, Math.min(TUNING.grace, game.grace ?? Infinity));
     timer.unref?.(); room.graces.set(conn.userId, timer);
   }
   broadcast(room);
@@ -287,7 +304,11 @@ const MOVES = {
   settings(room, seat, d, host) {
     if (!host) throw fail(403, '只有房主可以修改设置');
     if (room.status !== 'lobby') throw fail(409, '开始后不能修改设置');
-    room.settings = GAMES[room.game].settings(d.settings || {});
+    const game = GAMES[room.game], next = game.settings(d.settings || {}), want = seatCount(game, next);
+    if (room.seats.slice(want).some(s => s.user)) throw fail(409, '要减少座位，请先请最后座位上的玩家离开');
+    room.settings = next;
+    room.seats = room.seats.slice(0, want);
+    while (room.seats.length < want) room.seats.push({user: null, name: null, bot: null, ready: false});
     for (const s of room.seats) if (s.user && s.user !== room.hostId) s.ready = false;
   },
   addBot(room, seat, d, host) {
@@ -323,7 +344,7 @@ const MOVES = {
     if (room.seats.some(s => !s.user && !s.bot)) throw fail(409, '还有空座位');
     if (room.seats.some(s => s.user && s.user !== room.hostId && !s.ready)) throw fail(409, '还有玩家没有准备');
     if (humans(room).some(s => !room.conns.has(s.user))) throw fail(409, '还有玩家不在线');
-    room.status = 'playing'; room.result = null; room.paused = null; room.finishedAt = null;
+    room.status = 'playing'; room.result = null; room.paused = null; room.finishedAt = null; room.auto = [];
     room.seats[seatOf(room, room.hostId)].ready = true;
     let clock = {deadline: null, remaining: null};
     const now = Date.now();
@@ -346,6 +367,13 @@ const MOVES = {
     room.status = 'lobby'; room.state = null; room.clock = {deadline: null, remaining: null};
     for (const s of room.seats) if (s.user) s.ready = s.user === room.hostId;
   },
+  // 托管: a player hands their seat to the computer, or takes it back.
+  takeover(room, seat, d) {
+    if (room.status !== 'playing') throw fail(409, '对局没有在进行');
+    if (GAMES[room.game].away !== 'autoplay') throw fail(400, '这个游戏不能托管');
+    if (typeof d.auto !== 'boolean') throw fail(400, '请选择托管或接管');
+    room.auto[seat] = d.auto;
+  },
   leave(room, seat) {
     const game = GAMES[room.game], userId = room.seats[seat].user;
     if (room.status === 'playing') {
@@ -356,6 +384,7 @@ const MOVES = {
       if (finished) finishRoom(room, finished);
     }
     room.seats[seat] = {user: null, name: null, bot: null, ready: false};
+    room.auto[seat] = false;
     delete room.net[userId];
     const conn = room.conns.get(userId);
     if (conn) { room.conns.delete(userId); conn.room = null; send(conn, {t: 'bye', reason: 'left'}); }
@@ -577,10 +606,10 @@ async function create(userId, username, input) {
   if (!game) throw fail(400, '请选择一个游戏');
   const config = game.settings(input.settings || {});
   if (await activeCount(userId) >= MAX_ACTIVE) throw fail(409, '同时最多参加 ' + MAX_ACTIVE + ' 个房间，请先结束或离开一个');
-  const seats = Array.from({length: game.seats}, (_, i) => i === 0 ? {user: userId, name: username, bot: null, ready: true} : {user: null, name: null, bot: null, ready: false});
+  const seats = Array.from({length: seatCount(game, config)}, (_, i) => i === 0 ? {user: userId, name: username, bot: null, ready: true} : {user: null, name: null, bot: null, ready: false});
   for (let attempt = 0; attempt < 8; attempt++) {
     const code = Array.from({length: 6}, () => CODE_CHARS[crypto.randomInt(CODE_CHARS.length)]).join('');
-    const room = {settings: config, seats, state: null, clock: {deadline: null, remaining: null}, paused: null, result: null, tally: null, matches: 0, invites: 0, net: {}, kicked: []};
+    const room = {settings: config, seats, state: null, clock: {deadline: null, remaining: null}, paused: null, result: null, tally: null, matches: 0, invites: 0, net: {}, kicked: [], auto: []};
     try {
       await db.run('INSERT INTO play_rooms(code,game,user_id,members,status,data) VALUES(?,?,?,?,?,?)',
         [code, input.game, userId, ',' + userId + ',', 'lobby', JSON.stringify({...room, savedAt: Date.now()})]);

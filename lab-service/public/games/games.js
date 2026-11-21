@@ -152,7 +152,7 @@
     };
     // v2.4.3.0: live rooms — how many open rooms each game has for this account, and joining by room code.
     const showRooms = data => {
-      for (const game of ['word', 'digits', 'car']) {
+      for (const game of ['word', 'digits', 'car', 'treasure', 'monopoly']) {
         const node = $(game + 'Badge');
         if (!node) continue;
         const open = data.rooms.filter(room => room.game === game && ['lobby', 'playing'].includes(room.status)).length;

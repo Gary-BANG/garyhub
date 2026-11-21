@@ -87,7 +87,7 @@ test('games host: Calendar unavailable gives 503; the room page and scripts are 
     res = await get(lab.port, '/play/?room=ABCDEF', {cookie: 'sid=1'});
     assert.equal(res.headers['x-path'], '/games/play/index.html'); assert.match(res.headers['content-security-policy'], /connect-src 'self' wss:\/\/games\.garyhub\.uk;/);
     assert.equal((await get(lab.port, '/play?room=ABCDEF')).headers.location, '/play/?room=ABCDEF');
-    for (const asset of ['/play/play.js', '/play/play.css', '/play/word.js', '/play/digits.js', '/play/car.js', '/play/car-sim.js'])
+    for (const asset of ['/play/play.js', '/play/play.css', '/play/word.js', '/play/digits.js', '/play/car.js', '/play/car-sim.js', '/play/board.js', '/play/treasure.js', '/play/monopoly.js'])
       assert.equal((await get(lab.port, asset)).headers['x-path'], '/games' + asset);
     for (const path of ['/play/other.js', '/play/car-sim.cjs', SOCKET, '/api/hub/play/1', '/games/play/play.js']) assert.equal((await get(lab.port, path)).statusCode, 404, path);
     assert.equal((await get(lab.port, '/api/hub/play')).headers['x-path'], '/api/hub/play');

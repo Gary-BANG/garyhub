@@ -6,7 +6,7 @@
   'use strict';
   const G = window.Games, {$, t, el} = G;
   const games = {};
-  const NAMES = {word: ['词语默契', 'Word Sync'], digits: ['对战猜数字', 'Number Duel'], car: ['合作小车', 'Co-op Car']};
+  const NAMES = {word: ['词语默契', 'Word Sync'], digits: ['对战猜数字', 'Number Duel'], car: ['合作小车', 'Co-op Car'], treasure: ['骰子抢宝箱', 'Treasure Dash'], monopoly: ['大富翁', 'Tycoon']};
   const BOTS = {easy: ['新手', 'Beginner'], normal: ['普通', 'Regular'], smart: ['精明', 'Sharp']};
   const gameName = id => NAMES[id] ? t(NAMES[id][0], NAMES[id][1]) : id;
   const botName = level => BOTS[level] ? t('电脑·' + BOTS[level][0], 'Computer · ' + BOTS[level][1]) : t('电脑', 'Computer');
@@ -226,6 +226,11 @@
       if (view && !stopped) { node.hidden = false; node.classList.add('warn'); node.append(t('连接中断，正在重新连接…你的进度保存在服务器上。', 'Disconnected, reconnecting… your progress is kept on the server.')); }
       return;
     }
+    // v2.4.3.2: board games hand an absent player's seat to the computer (托管) until they take over.
+    if (!view.paused && view.status === 'playing' && view.seats[view.you]?.auto) {
+      node.hidden = false; node.classList.add('warn');
+      node.append(t('电脑正在替你玩（托管）。', 'The computer is playing for you (auto-play). '), el('button', {class: 'btn btn-gold btn-sm', type: 'button', text: t('接管', 'Take over'), onclick: () => run('takeover', {auto: false}).catch(() => {})}));
+    }
     if (view.paused) {
       node.hidden = false; node.classList.add('warn');
       const missing = view.seats.map((s, i) => i).filter(i => !view.seats[i].bot && !view.seats[i].empty && !view.seats[i].online && i !== view.you);
@@ -245,6 +250,7 @@
       if (i === view.you) tags.append(el('span', {class: 'pill', text: t('你', 'You')}));
       if (view.status === 'lobby' && !s.empty && !s.bot && i !== view.host) tags.append(el('span', {class: 'pill ' + (s.ready ? 'done' : 'off'), text: s.ready ? t('已准备', 'Ready') : t('未准备', 'Not ready')}));
       if (!s.empty && !s.bot && s.net) tags.append(el('span', {class: 'pill off', text: s.net.median + ' ms'}));
+      if (s.auto) tags.append(el('span', {class: 'pill me', text: t('托管中', 'Auto-play')}));
       const item = el('li', {class: 'seat' + (i === view.you ? ' mine' : '') + (s.empty ? ' empty' : '') + (!s.online ? ' away' : '')},
         el('span', {class: 'avatar', 'aria-hidden': 'true', text: s.bot ? '🤖' : s.empty ? '·' : (s.name || '?').slice(0, 1).toUpperCase()}),
         el('span', {class: 'who-name'}, el('span', {class: 'status-dot', title: s.online ? t('在线', 'Online') : t('离线', 'Offline')}), name), tags);
@@ -339,7 +345,7 @@
 
   // ---- Start page ---------------------------------------------------------------------------------------------------
   const STATUS = {lobby: ['等人中', 'Waiting'], playing: ['进行中', 'Playing'], finished: ['已结束', 'Finished']};
-  const SETTINGS = {word: 'wordSettings', digits: 'digitsSettings', car: 'carSettings'};
+  const SETTINGS = {word: 'wordSettings', digits: 'digitsSettings', car: 'carSettings', treasure: 'treasureSettings', monopoly: 'monopolySettings'};
   let listing = null;
   function roomsList() {
     const box = $('myRooms');
@@ -370,6 +376,8 @@
       const game = form.elements.game.value, button = form.querySelector('button[type=submit]');
       const settings = game === 'word' ? {limit: Number(form.elements.limit.value), cap: Number(form.elements.cap.value), target: Number(form.elements.target.value)}
         : game === 'digits' ? {limit: Number(form.elements.dlimit.value)}
+        : game === 'treasure' ? {players: Number(form.elements.tplayers.value), rounds: Number(form.elements.trounds.value), limit: Number(form.elements.tlimit.value)}
+        : game === 'monopoly' ? {players: Number(form.elements.mplayers.value), rounds: Number(form.elements.mrounds.value), limit: Number(form.elements.mlimit.value)}
         : {level: Number(form.elements.level.value), steer: Number(form.elements.steer.value), easy: Number(form.elements.easy.value)};
       button.disabled = true; $('createError').textContent = '';
       try { const room = await G.api.post('/api/hub/play', {game, settings}); location.href = '/play/?room=' + room.code; }

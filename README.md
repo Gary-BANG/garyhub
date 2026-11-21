@@ -2,11 +2,11 @@
 
 GaryHub 是使用统一账号的个人工作空间，包含日历与私人记录、账本、待办、学习工具和服务器工具。仓库保存应用源码、脱敏文档与可复现更新器；正式服务通过经过验证的升级包部署，GitHub 合并不会自动更新服务器。
 
-**当前源码版本 v2.4.3.1。** 游戏厅[实时房间](https://games.garyhub.uk/play/)新增**合作小车**：两个人开同一辆车，一人只管方向，另一人管油门、刹车和氮气；3 关（直道起步、S 弯与锥桶、窄桥与跳台），3 颗心、检查点、限时与 1–3 星，快捷呼叫，结束后可以直接再试或进入下一关。服务器为准、每秒 20 帧，页面插值显示并立即显示自己的操作，“操作回显”显示从按下到服务器回应的毫秒数；有人掉线会暂停，回来后倒数继续。词语默契、对战猜数字与白日梦想家保持不变。
+**当前源码版本 v2.4.3.2。** 游戏厅[实时房间](https://games.garyhub.uk/play/)新增两款棋盘游戏，人不够时可以加电脑对手（新手、普通、精明）。**骰子抢宝箱**（2–4 人）：掷骰子在 7×7 地图上走，把宝箱扛回自己的基地才开箱计分，路上可以抢别人，躲开尖刺、流沙和别人看不见的暗夹，四种道具；先到目标金币者获胜。**大富翁**（2–5 人）：原创 32 格地图，买地、收过路费、凑齐一组盖房到酒店，机会卡与影响所有人的新闻，卖房、抵押、卖地周转，回合结束时比总资产。两款游戏共用棋盘与骰子动画；有人掉线或连续超时由电脑托管，回来后点“接管”继续，只有所有人都离开时才暂停。词语默契、对战猜数字、合作小车与白日梦想家保持不变。
 
-本版源码基于 PR #51（v2.4.3.0，main `e61b200`），源码已准备、本地验证，尚未推送／合并／部署。安装器 v2.4.3.1-r1 严格要求两服务运行 v2.4.3.0：2026-11-20 tools 与 calendar 的 `/health` 均返回 2.4.3.0，房间 socket 经 Caddy 的登录／来源／主机门分别返回 401／403／404，但安装输出与通知人数未收录；已收到完整安装输出的最新版本仍为 v2.4.0.0（八阶段完成、8 个通知接收账号）。本版不需要 DNS 或 Caddy 改动，没有新依赖、没有新表。完整解压后双击 `RUN-UPDATE.cmd`，回滚用 `ROLLBACK.cmd`，源码审查分支同步用 `PUSH-TO-GITHUB.cmd`。构建：`python scripts/updater/manage.py build --release 2.4.3.1 --output <ZIP绝对路径>`（Windows 上在 `core.autocrlf=false` 的 LF worktree 中构建）。见[版本说明](docs/GARYHUB_V2_4_3_1.md)、[验证记录](docs/GARYHUB_V2_4_3_1_TESTS.md)与[五款游戏设计稿](docs/GAMES_V2_4_3_0_DESIGN.md)；上一版见 [v2.4.3.0 说明](docs/GARYHUB_V2_4_3_0.md)。
+本版源码基于 PR #52（v2.4.3.1，main `81ec192`），源码已准备、本地验证，尚未推送／合并／部署。安装器 v2.4.3.2-r1 严格要求两服务运行 v2.4.3.1：2026-11-21 tools 与 calendar 的 `/health` 均返回 2.4.3.1，但安装输出与通知人数未收录；已收到完整安装输出的最新版本仍为 v2.4.0.0（八阶段完成、8 个通知接收账号）。本版不需要 DNS 或 Caddy 改动，没有新依赖、没有新表。完整解压后双击 `RUN-UPDATE.cmd`，回滚用 `ROLLBACK.cmd`，源码审查分支同步用 `PUSH-TO-GITHUB.cmd`。构建：`python scripts/updater/manage.py build --release 2.4.3.2 --output <ZIP绝对路径>`（Windows 上在 `core.autocrlf=false` 的 LF worktree 中构建）。见[版本说明](docs/GARYHUB_V2_4_3_2.md)、[验证记录](docs/GARYHUB_V2_4_3_2_TESTS.md)与[五款游戏设计稿](docs/GAMES_V2_4_3_0_DESIGN.md)；上一版见 [v2.4.3.1 说明](docs/GARYHUB_V2_4_3_1.md)。
 
-维护日期：2026-11-20（America/Chicago）。
+维护日期：2026-11-21（America/Chicago）。
 
 ## 应用入口
 
@@ -17,13 +17,14 @@ GaryHub 是使用统一账号的个人工作空间，包含日历与私人记录
 | [Calendar](https://calendar.garyhub.uk) | 日历事项与只读订阅（ICS）、浏览器推送、日记、健康记录、私人账本与月度预算、固定开支、Todo、Research Dictionary、个人音乐库 | `calendar-app/` |
 | [Tools](https://tools.garyhub.uk) | 可搜索工具图标与 Dock；设置中心（`/personalize/`）；学习中心、成绩规划、Markdown Viewer、PDF 浅灰转换、图片局部消除、Reading、服务器监控、AI 日志及权限控制工具 | `lab-service/` |
 | [ECE 470 Lab](https://lab.garyhub.uk/lab/) | 机器人学练习、题库导入、代码运行、个人进度与作业分发 | `lab-service/public/lab/` |
-| [游戏厅](https://games.garyhub.uk) | 需登录。实时房间（房间码与邀请、准备、服务器计时、掉线暂停与重连、延迟显示）：词语默契、对战猜数字（可加电脑对手）、合作小车；双人轮流游戏“白日梦想家” | `lab-service/games-host.cjs`、`lab-service/public/games/`、`calendar-app/play-rooms.js`、`play-word.js`、`play-digits.js`、`play-car.js`、`games-api.js` |
+| [游戏厅](https://games.garyhub.uk) | 需登录。实时房间（房间码与邀请、准备、服务器计时、掉线暂停与重连、延迟显示）：词语默契、对战猜数字、合作小车，以及可加电脑对手、支持托管的骰子抢宝箱与大富翁；双人轮流游戏“白日梦想家” | `lab-service/games-host.cjs`、`lab-service/public/games/`、`calendar-app/play-rooms.js`、`play-word.js`、`play-digits.js`、`play-car.js`、`play-treasure.js`、`play-monopoly.js`、`games-api.js` |
 | [外站链接](https://sites.garyhub.uk) | GaryHub 之外的公开网站（ECE 470 Motion Notes、光影手记摄影课程），粒子背景与悬停预览；链接在新标签页打开 | `lab-service/public/sites/` |
 
 Calendar 使用 Node.js 20、Express 与 SQLite；Tools/Lab 使用 Node 原生 HTTP，浏览器端运行文档处理和 Python/WASM。应用依赖已包含在既有生产镜像和本地静态资源中；升级器基于现场镜像离线构建，无需在生产服务器在线安装 npm 包。
 
 ## 当前功能与使用边界
 
+- 骰子抢宝箱与大富翁（v2.4.3.2）：规则在 `calendar-app/play-treasure.js` 与 `play-monopoly.js`，各自声明 `seatCount`（座位数随房间设置）与 `away: 'autoplay'`；`play-rooms.js` 在掉线宽限后或连续两次超时后让“普通”电脑托管该座位，本人用 `takeover` 接管，只有所有真人离开才暂停。宝箱内容、别人的暗夹与道具、牌序不发给页面，电脑也只看公开信息。两款共用页面上的 `lab-service/public/games/play/board.js`（格子棋盘、棋子逐格走、骰子动画）。
 - 合作小车（v2.4.3.1）：实时游戏在 `play-car.js` 声明 `realtime`，由 `play-rooms.js` 每秒推进 20 次并向房间发帧；操作走 `in` 消息（只接受该座位负责的字段，不存盘），呼叫走 `say`，两者有单独额度。物理与赛道在 `calendar-app/play-car-sim.js`，页面加载逐字节相同的 `lab-service/public/games/play/car-sim.js`（测试与安装后核对两者一致）。一方掉线立即松开其按键，3 秒后暂停，回来后倒数 3 秒。只有关键时刻（出界、撞锥、捡币、过检查点、倒数结束）存入 `play_rooms`。
 - 实时房间（v2.4.3.0）：页面经 `wss://games.garyhub.uk/api/hub/play/socket` 连接；Tools/Lab 只在 games 主机、只对这一路径接受 WebSocket 升级并原样转发到 Calendar，Calendar 让握手经过会话与账号检查，只接受 games 来源。WebSocket 服务端是 Node 原生实现（`play-socket.js`），没有新依赖。房间在 Calendar 内存中运行，每次变化写入 `play_rooms`，服务重启后进行中的对局以暂停状态恢复；每人只收到自己座位的视图，未揭晓的词和密码不离开服务器；掉线 10 秒后暂停计时，所有人回来后继续。每个账号最多 3 个未结束的房间；30 分钟没人用的大厅、7 天无进展的对局自动关闭。新游戏按 `play-word.js`／`play-digits.js` 的函数接口写规则，在 `play-rooms.js` 的 `GAMES`、`games-host.cjs` 的资源列表登记，并在 `public/games/play/` 注册页面渲染器。
 - 游戏厅（v2.4.2.0）：`games.garyhub.uk` 由 Tools/Lab 容器的 `games-host.cjs` 提供，只开放大厅、对局页（需登录）、自身脚本样式和账号／游戏接口，使用严格 CSP，其他主机的 `/games/` 返回 404；该来源在 Calendar 与 Lab 中明确加入可信列表（不改 Compose）。对局存在 Calendar 的 `dream_games`（`/api/hub/games`），每一步按修订号条件写入，只有双方能读取，未揭开盒子的内容和顺序在结束前不返回给任何一方；轮到谁谁收到站内通知，推送跟随“事项提醒”的推送设置与免打扰；30 天无进展的对局过期。新增游戏时在 `public/games/` 加页面并在 `games-host.cjs` 的允许列表登记。

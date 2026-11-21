@@ -212,9 +212,87 @@
 .car-controls .hint{text-align:center;margin:0}
 .car-calls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 .car.finished .car-controls,.car.finished .car-calls{opacity:.45;pointer-events:none}
-@media (prefers-reduced-motion:reduce){.flip-in .word-card,.result.win .result-emoji,.grace,.car-warn.hot,.car-call.pop{animation:none}}
+/* Board games (v2.4.3.2): shared board, tokens and dice (board.js), 骰子抢宝箱 and 大富翁 */
+.bd{position:relative;width:100%;aspect-ratio:1/1}
+.bd-tiles{position:absolute;inset:0;display:grid;gap:3px}
+.bd-tokens{position:absolute;inset:0;pointer-events:none}
+.bd-token{position:absolute;width:clamp(18px,5.2%,30px);aspect-ratio:1/1;transform:translate(-50%,-50%);border-radius:50%;background:var(--seat,#f6c86e);border:2px solid #1b1530;display:grid;place-items:center;font-size:.72rem;font-weight:900;color:#1b1530;transition:left .15s ease,top .15s ease;box-shadow:0 4px 10px rgba(0,0,0,.35)}
+.bd-token.turn{box-shadow:0 0 0 3px #fff8e6,0 0 18px var(--seat,#f6c86e);z-index:2}
+.bd-token.walking{z-index:3}
+.bd-token.carry::after{content:"🧰";position:absolute;right:-12px;top:-12px;font-size:.8rem}
+.bd-token.jailed{filter:grayscale(.6)}
+.bd-dice{display:inline-flex;gap:10px}
+.bd-die{width:46px;height:46px;border-radius:11px;background:#fff8e6;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:7px;gap:2px;box-shadow:0 6px 16px rgba(0,0,0,.3)}
+.bd-die i{border-radius:50%}
+.bd-die i.on{background:#2b1a00}
+.bd-dice.rolling .bd-die{animation:shake .14s linear infinite}
+@keyframes shake{25%{transform:rotate(8deg) translateY(-2px)}75%{transform:rotate(-8deg) translateY(2px)}}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--seat,#f6c86e);flex:none}
+.treasure,.mono{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(250px,.85fr);gap:18px;align-items:start}
+.mono{grid-template-columns:minmax(0,1.55fr) minmax(230px,.75fr)}
+.tr-board-wrap,.mono-board-wrap{position:relative;max-width:600px;width:100%}
+.tc{border:0;border-radius:8px;background:var(--card-strong);display:grid;place-items:center;position:relative;padding:0;font-size:clamp(.8rem,3.2vw,1.45rem);color:var(--ink);min-width:0}
+.tc[disabled]{cursor:default}
+.tc.wall{background:#120b33}
+.tc.quick{background:color-mix(in srgb,#c9a35a 45%,var(--card-strong))}
+.tc.spike{background:color-mix(in srgb,var(--danger) 30%,var(--card-strong))}
+.tc.itemspot{background:color-mix(in srgb,var(--violet) 22%,var(--card-strong))}
+.tc.centre{background:color-mix(in srgb,var(--gold) 22%,var(--card-strong))}
+.tc.base.owned{background:color-mix(in srgb,var(--seat) 45%,var(--card-strong))}
+.tc-mark{position:absolute;inset:auto 4px 2px auto;font-size:.65em;color:var(--muted)}
+.tc.spike .tc-mark{color:var(--danger);inset:auto auto 2px 4px}
+.tc-thing.chest{filter:drop-shadow(0 0 4px rgba(0,0,0,.4))}
+.tc-thing.chest.wood{filter:sepia(.6) drop-shadow(0 0 3px #8d6e63)}
+.tc-thing.chest.silver{filter:grayscale(1) brightness(1.3) drop-shadow(0 0 4px #cfd8dc)}
+.tc-thing.chest.gold{filter:drop-shadow(0 0 6px #f6c86e)}
+.tc-thing.trap{opacity:.6}
+.tc.target{outline:2px solid var(--gold);outline-offset:-2px;box-shadow:inset 0 0 14px color-mix(in srgb,var(--gold) 45%,transparent);cursor:pointer}
+.tc.placing{outline-color:var(--danger)}
+.tr-duel{position:absolute;left:8%;right:8%;top:38%;display:grid;gap:4px;justify-items:center;background:var(--card-strong);border:1px solid var(--line-strong);border-radius:16px;padding:12px;box-shadow:var(--shadow);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:4}
+.tr-duel .win{color:var(--mint);font-weight:800}.tr-duel .lose{color:var(--danger);font-weight:800}
+.tr-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.tr-head h2{margin:0;font-size:1.15rem}
+.tr-dice,.mono-dice{display:flex;justify-content:center;margin:10px 0}
+.tr-items{display:grid;gap:8px;margin-top:8px}
+.tr-item{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;text-align:left;border:1px solid var(--line-strong);background:var(--card);border-radius:12px;padding:8px 12px;cursor:pointer}
+.tr-item .icon{grid-row:1/span 2;font-size:1.5rem;align-self:center}
+.tr-item small{color:var(--muted)}
+.tr-item[disabled]{opacity:.5;cursor:not-allowed}
+.tr-players,.mono-players,.tr-log,.tr-rank{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.tr-players li,.mono-players li{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:var(--card)}
+.tr-players li.turn,.mono-players li.turn{border-color:var(--gold)}
+.tr-players li.out,.mono-players li.out{opacity:.5}
+.tr-players .gold,.mono-players .cash{font-weight:800;font-variant-numeric:tabular-nums}
+.tr-log{max-height:240px;overflow:auto;font-size:.86rem;color:var(--muted)}
+.tr-log li{border-bottom:1px dashed var(--line);padding-bottom:4px}
+.tr-rank{margin-top:8px}
+.mono-board .bd-tiles{gap:2px}
+.mt{border:1px solid var(--line);background:var(--card-strong);border-radius:6px;padding:2px 2px 3px;display:flex;flex-direction:column;align-items:center;gap:1px;overflow:hidden;font-size:clamp(.46rem,1.15vw,.74rem);position:relative;cursor:pointer;min-width:0;color:var(--ink)}
+.mt-band{display:block;width:100%;height:16%;min-height:4px;border-radius:3px;background:var(--g,transparent)}
+.mt-icon{font-size:1.25em;line-height:1}
+.mt.corner .mt-icon{font-size:2em}
+.mt-name{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.mt-sub{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.mt-houses{color:var(--mint);font-size:.8em;line-height:1}
+.mt.owned{box-shadow:inset 0 0 0 2px var(--owner)}
+.mt.mortgaged{opacity:.55}
+.mt.selected{outline:2px solid var(--gold);outline-offset:-1px;z-index:1}
+.mono-centre{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:4%;border-radius:14px;background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--violet) 22%,transparent),transparent 70%);overflow:auto;min-height:0}
+.mono-centre h2{margin:0;font-size:clamp(.85rem,2.2vw,1.3rem)}
+.mono-centre .eyebrow{margin:0}
+.mono-centre .actions{justify-content:center;margin-top:4px}
+.mono-ask{margin:0;font-weight:700}
+.mono-card{background:linear-gradient(135deg,#ffe2a1,var(--gold));color:#2b1a00;border-radius:12px;padding:8px 12px;display:grid;gap:2px;box-shadow:var(--shadow);max-width:92%}
+.mono-detail h3{margin:0 0 6px;border-left:6px solid var(--g,var(--line-strong));padding-left:8px;color:var(--ink)}
+.mono-detail p{margin:4px 0}
+.mono-players .props{display:flex;flex-wrap:wrap;gap:4px;flex-basis:100%}
+.prop{border:1px solid var(--line-strong);border-top:4px solid var(--g,var(--line-strong));background:var(--card-strong);border-radius:6px;font-size:.72rem;padding:1px 5px;cursor:pointer}
+.prop.mortgaged{opacity:.5;text-decoration:line-through}
+.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+@media (prefers-reduced-motion:reduce){.flip-in .word-card,.result.win .result-emoji,.grace,.car-warn.hot,.car-call.pop,.bd-dice.rolling .bd-die{animation:none}.bd-token{transition:none}}
 @media (max-width:900px){
   .room-grid{grid-template-columns:1fr}
+  .treasure,.mono{grid-template-columns:1fr}
   .seats-panel{position:static;order:2}
   .start-grid{grid-template-columns:1fr}
 }
@@ -236,6 +314,17 @@
   .car-hint{left:10px;transform:none;max-width:calc(100% - 118px);font-size:.8rem}
   .car-controls{grid-template-columns:1fr 92px 1fr;gap:8px}
   .car-controls.steer{grid-template-columns:1fr 1fr}
+  .bd-die{width:34px;height:34px;padding:5px;border-radius:8px}
+  .bd-tiles{gap:2px}
+  .mono-centre{gap:3px;padding:3%}
+  .mono-centre .btn{padding:6px 10px;font-size:.78rem}
+  .mono-centre .clock{min-width:70px}
+  .mono-centre .clock-text{font-size:.9rem}
+  .mono-ask,.mono-centre .hint{font-size:.72rem}
+  .mt{font-size:.58rem;padding:1px}
+  .mt .mt-sub{display:none}
+  .mt.owned .mt-sub{display:block;font-size:.85em}
+  .mt-icon{font-size:1.1em}
   .car-controls .hint{display:none}
   .pad-btn.nitro{padding:0 12px;width:100%}
   .car-time{font-size:1.15rem}
