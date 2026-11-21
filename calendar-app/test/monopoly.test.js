@@ -19,7 +19,8 @@ test('tycoon board: 32 squares, seven groups, corners and prices', () => {
   assert.deepEqual(['chance', 'news', 'tax', 'transit'].map(k => M.TILES.filter(t => t.kind === k).length), [3, 2, 1, 2]);
   const prices = Object.values(M.GROUPS).map(g => g.map(i => M.TILES[i].price));
   for (let g = 1; g < prices.length; g++) assert.ok(Math.min(...prices[g]) > Math.max(...prices[g - 1]), 'later groups cost more');
-  assert.deepEqual(M.settings({}), {players: 4, rounds: 20, limit: 45});
+  // v2.4.3.3: without the new settings a room keeps the v2.4.3.2 rules (a number of rounds, no auction, no trading).
+  assert.deepEqual(M.settings({}), {players: 4, rounds: 20, limit: 45, mode: 'rounds', minutes: 60, auction: 0, trade: 0});
   for (const bad of [{players: 6}, {rounds: 12}, {limit: 60}]) assert.throws(() => M.settings(bad), e => e.status === 400);
 });
 

@@ -5,9 +5,9 @@
 <title data-en="Live rooms · Gary Hub Games">实时房间 · Gary Hub 游戏厅</title>
 <meta name="description" content="Live game rooms on GaryHub: Word Sync, Number Duel, Co-op Car, Treasure Dash and Tycoon, played together at the same time.">
 <meta name="theme-color" content="#0a0720">
-<script src="/hub-prefs.js?v=2.4.3.2"></script>
-<link rel="stylesheet" href="/games.css?v=2.4.3.2">
-<link rel="stylesheet" href="/play/play.css?v=2.4.3.2">
+<script src="/hub-prefs.js?v=2.4.3.3"></script>
+<link rel="stylesheet" href="/games.css?v=2.4.3.3">
+<link rel="stylesheet" href="/play/play.css?v=2.4.3.3">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 </head>
 <body>
@@ -78,11 +78,19 @@
 <div class="settings" id="monopolySettings" hidden>
 <label class="field"><span data-en="Players">玩家人数</span>
 <select class="select" name="mplayers"><option value="2" data-en="2">2 人</option><option value="3" data-en="3">3 人</option><option value="4" selected data-en="4">4 人</option><option value="5" data-en="5">5 人</option></select></label>
-<label class="field"><span data-en="Rounds">回合数</span>
+<label class="field"><span data-en="How to win">胜负方式</span>
+<select class="select" name="mmode"><option value="rounds" selected data-en="Set rounds">限定回合</option><option value="classic" data-en="Classic: last one standing">经典：只剩一人</option><option value="time" data-en="Time limit">限时</option></select></label>
+<label class="field" id="mRoundsField"><span data-en="Rounds">回合数</span>
 <select class="select" name="mrounds"><option value="15" data-en="15">15 回合</option><option value="20" selected data-en="20">20 回合</option><option value="25" data-en="25">25 回合</option><option value="30" data-en="30">30 回合</option></select></label>
+<label class="field" id="mMinutesField" hidden><span data-en="Time limit">限时</span>
+<select class="select" name="mminutes"><option value="30" data-en="30 min">30 分钟</option><option value="60" selected data-en="60 min">60 分钟</option><option value="90" data-en="90 min">90 分钟</option></select></label>
 <label class="field"><span data-en="Time per step">每步限时</span>
 <select class="select" name="mlimit"><option value="30" data-en="30 s">30 秒</option><option value="45" selected data-en="45 s">45 秒</option><option value="90" data-en="90 s">90 秒</option><option value="0" data-en="No limit">不限时</option></select></label>
-<p class="hint" data-en="Two friends can play with computers in the other seats (beginner, regular or sharp).">只有两三个人时，其他座位加电脑对手（新手、普通、精明）。</p>
+<label class="field"><span data-en="Land nobody buys">没人买的地</span>
+<select class="select" name="mauction"><option value="1" selected data-en="Auction">拍卖</option><option value="0" data-en="Stays with the bank">留给银行</option></select></label>
+<label class="field"><span data-en="Trading">玩家交易</span>
+<select class="select" name="mtrade"><option value="1" selected data-en="On">开启</option><option value="0" data-en="Off">关闭</option></select></label>
+<p class="hint" data-en="Two friends can play with computers in the other seats (beginner, regular or sharp). Classic games usually take 40–70 rounds.">只有两三个人时，其他座位加电脑对手（新手、普通、精明）。经典模式通常要 40–70 回合。</p>
 </div>
 <button class="btn btn-gold" type="submit" data-en="Create room">创建房间</button>
 <p class="error" id="createError" role="alert"></p>
@@ -142,14 +150,14 @@
 <div class="actions"><a class="btn btn-gold" href="/play/" data-en="Live rooms">实时房间</a><button class="btn btn-ghost" id="retry" type="button" hidden data-en="Continue here">在这里继续</button></div>
 </section>
 </main>
-<script src="/games.js?v=2.4.3.2" defer></script>
-<script src="/play/play.js?v=2.4.3.2" defer></script>
-<script src="/play/word.js?v=2.4.3.2" defer></script>
-<script src="/play/digits.js?v=2.4.3.2" defer></script>
-<script src="/play/car-sim.js?v=2.4.3.2" defer></script>
-<script src="/play/car.js?v=2.4.3.2" defer></script>
-<script src="/play/board.js?v=2.4.3.2" defer></script>
-<script src="/play/treasure.js?v=2.4.3.2" defer></script>
-<script src="/play/monopoly.js?v=2.4.3.2" defer></script>
+<script src="/games.js?v=2.4.3.3" defer></script>
+<script src="/play/play.js?v=2.4.3.3" defer></script>
+<script src="/play/word.js?v=2.4.3.3" defer></script>
+<script src="/play/digits.js?v=2.4.3.3" defer></script>
+<script src="/play/car-sim.js?v=2.4.3.3" defer></script>
+<script src="/play/car.js?v=2.4.3.3" defer></script>
+<script src="/play/board.js?v=2.4.3.3" defer></script>
+<script src="/play/treasure.js?v=2.4.3.3" defer></script>
+<script src="/play/monopoly.js?v=2.4.3.3" defer></script>
 </body>
 </html>

@@ -265,7 +265,10 @@
     const rules = games[view.game]?.settings || [];
     const box = el('div', {class: 'settings-grid'});
     for (const field of rules) {
-      const current = view.settings[field.name];
+      // v2.4.3.3: a field may apply only with some other settings (show), may hold text (the option's own value is
+      // sent), and has a fallback for rooms created before it existed.
+      if (field.show && !field.show(view.settings)) continue;
+      const current = view.settings[field.name] ?? field.fallback;
       if (!view.isHost) {
         const option = field.options.find(o => o[0] === current);
         box.append(el('div', {class: 'setting'}, el('span', {class: 'hint', text: t(...field.label)}), el('strong', {text: option ? t(option[1], option[2]) : String(current)})));
@@ -274,7 +277,8 @@
       const select = el('select', {class: 'select', 'aria-label': t(...field.label)});
       for (const [value, zh, en] of field.options) select.append(el('option', {value: String(value), text: t(zh, en), selected: value === current}));
       select.addEventListener('change', () => {
-        const next = {...view.settings, [field.name]: Number(select.value)};
+        const picked = field.options.find(o => String(o[0]) === select.value);
+        const next = {...view.settings, [field.name]: picked ? picked[0] : Number(select.value)};
         run('settings', {settings: next}).catch(() => { select.value = String(current); });
       });
       box.append(el('label', {class: 'field'}, el('span', {text: t(...field.label)}), select));
@@ -371,13 +375,17 @@
     if (SETTINGS[params.get('game')]) form.elements.game.value = params.get('game');
     pick();
     for (const radio of form.querySelectorAll('input[name=game]')) radio.addEventListener('change', pick);
+    // v2.4.3.3: 大富翁 asks for rounds or minutes depending on how the game is won.
+    const mode = () => { const m = form.elements.mmode?.value; if (!m) return; $('mRoundsField').hidden = m !== 'rounds'; $('mMinutesField').hidden = m !== 'time'; };
+    form.elements.mmode?.addEventListener('change', mode); mode();
     form.addEventListener('submit', async event => {
       event.preventDefault();
       const game = form.elements.game.value, button = form.querySelector('button[type=submit]');
       const settings = game === 'word' ? {limit: Number(form.elements.limit.value), cap: Number(form.elements.cap.value), target: Number(form.elements.target.value)}
         : game === 'digits' ? {limit: Number(form.elements.dlimit.value)}
         : game === 'treasure' ? {players: Number(form.elements.tplayers.value), rounds: Number(form.elements.trounds.value), limit: Number(form.elements.tlimit.value)}
-        : game === 'monopoly' ? {players: Number(form.elements.mplayers.value), rounds: Number(form.elements.mrounds.value), limit: Number(form.elements.mlimit.value)}
+        : game === 'monopoly' ? {players: Number(form.elements.mplayers.value), mode: form.elements.mmode.value, rounds: Number(form.elements.mrounds.value), minutes: Number(form.elements.mminutes.value),
+          limit: Number(form.elements.mlimit.value), auction: Number(form.elements.mauction.value), trade: Number(form.elements.mtrade.value)}
         : {level: Number(form.elements.level.value), steer: Number(form.elements.steer.value), easy: Number(form.elements.easy.value)};
       button.disabled = true; $('createError').textContent = '';
       try { const room = await G.api.post('/api/hub/play', {game, settings}); location.href = '/play/?room=' + room.code; }
