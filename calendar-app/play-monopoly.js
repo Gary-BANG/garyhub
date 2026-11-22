@@ -12,8 +12,13 @@
 // animate in turn, and the computer's reason for each decision in the log. Rooms created without the new settings, and
 // games saved by v2.4.3.2, keep the old rules.
 //
+// v2.4.3.4: a bankrupt player's houses and land are sold to the bank; the creditor gets that and the cash, up to what was
+// owed, and the land goes back to the bank (rooms made before keep handing everything to the creditor). The computer
+// values land by what it will earn or cost over the rounds still to come, weighs cash more when it is short, builds up
+// to hotels at every level, sells land to players when it is short of cash, and bids up to near the price at auctions.
+//
 // The order of the card decks is the only secret. The computer keeps a cash reserve against the rents it might hit on
-// its next roll, is a little greedy for land that completes or blocks a group, trades for the last city of a group,
+// its next rolls, is a little greedy for land that completes or blocks a group, trades for the cities a group lacks,
 // builds where opponents are likely to land, and sells and mortgages in a set order.
 
 const fail = (status, message) => Object.assign(Error(message), {status});
@@ -75,6 +80,9 @@ function setup(config, seats, ctx) {
     seq: 0, last: null, log: [], outcome: null};
   state.first = state.turn;
   Object.assign(state, fresh(mode, config, clock(ctx)));
+  // v2.4.3.4: bankruptcy settles with the bank; the clock of the last move tells the computer how fast rounds go.
+  state.liquidate = true;
+  state.began = state.clockAt = clock(ctx);
   snapshot(state);
   if (config.limit) ctx.setTimer(config.limit * 1000);
   return state;
@@ -182,20 +190,31 @@ function endTurn(state, ctx) {
   if (newRound) snapshot(state);
   state.turn = next; state.phase = 'roll'; state.dice = null;
 }
-function bankrupt(state, me, to, ctx) {
+// `owed`: the debt that could not be paid. v2.4.3.4 rooms (state.liquidate) settle with the bank: houses at half, land at
+// 60 % and mortgaged land at 10 % (what raising the money would have brought), plus the cash, go to the creditor up to
+// what was owed; the land goes back to the bank. Older rooms hand the land, the cash and the houses' value to the creditor.
+function bankrupt(state, me, to, ctx, owed = 0) {
   const creditor = to == null ? null : state.players[to];
-  for (const i of owned(state, me.seat)) {
-    const houses = level(state, i);
-    delete state.houses[i];
-    if (creditor) { state.owner[i] = to; creditor.cash += houses * (HOUSE[TILES[i].group] || 0) / 2; }
-    else { delete state.owner[i]; delete state.mortgaged[i]; }
+  let settled = null;
+  if (state.liquidate) {
+    const paid = creditor ? ten(Math.min(owed, me.cash + raisable(state, me.seat))) : 0;
+    for (const i of owned(state, me.seat)) { delete state.owner[i]; delete state.houses[i]; delete state.mortgaged[i]; }
+    if (paid > 0) { creditor.cash += paid; coins(state, me.seat, to, paid); }
+    settled = {amount: paid, liquidate: true};
+  } else {
+    for (const i of owned(state, me.seat)) {
+      const houses = level(state, i);
+      delete state.houses[i];
+      if (creditor) { state.owner[i] = to; creditor.cash += houses * (HOUSE[TILES[i].group] || 0) / 2; }
+      else { delete state.owner[i]; delete state.mortgaged[i]; }
+    }
+    if (creditor) { creditor.cash += me.cash; creditor.free += me.free; }
   }
-  if (creditor) { creditor.cash += me.cash; creditor.free += me.free; }
   me.cash = 0; me.free = 0; me.out = true; me.again = false;
   // A trade with this player is off; in an auction they are out (and their bid no longer counts).
   if (state.trade && (state.trade.from === me.seat || state.trade.to === me.seat)) state.trade = null;
   if (state.auction) { const a = state.auction; if (!a.out.includes(me.seat)) a.out.push(me.seat); if (a.leader === me.seat) { a.leader = null; a.bid = 0; } }
-  note(state, {kind: 'bankrupt', seat: me.seat, to: to ?? null});
+  note(state, {kind: 'bankrupt', seat: me.seat, to: to ?? null, ...settled});
   if (active(state).length < 2) return finish(state, ctx, 'bankrupt');
   if (state.turn === me.seat) { state.auction = null; state.phase = 'manage'; endTurn(state, ctx); }
   else if (state.phase === 'auction' && state.auction) advance(state, ctx, true);
@@ -210,7 +229,7 @@ function charge(state, me, amount, to, reason, ctx) {
     note(state, {kind: reason, seat: me.seat, to: to ?? null, amount});
     return proceed(state, me);
   }
-  if (me.cash + raisable(state, me.seat) < amount) return bankrupt(state, me, to, ctx);
+  if (me.cash + raisable(state, me.seat) < amount) return bankrupt(state, me, to, ctx, amount);
   state.phase = 'debt'; state.pending = {amount, to: to ?? null, reason};
 }
 function jail(state, me) {
@@ -461,7 +480,7 @@ const ACTIONS = {
   },
   bankrupt(state, me, d, ctx) {
     if (state.phase !== 'debt') throw fail(409, '只有付不起钱时才能宣布破产');
-    bankrupt(state, me, state.pending.to, ctx);
+    bankrupt(state, me, state.pending.to, ctx, state.pending.amount);
   },
   end(state, me, d, ctx) {
     if (state.phase !== 'manage') throw fail(409, '现在不能结束回合');
@@ -523,7 +542,7 @@ const ACTIONS = {
 
 // The reasons a computer may give; anything else in a move's data is ignored.
 const WHY = new Set(['complete', 'block', 'pair', 'value', 'cash', 'reserve', 'late', 'random', 'ahead', 'build', 'raise', 'redeem', 'early', 'hide', 'poor',
-  'want', 'swap', 'fair', 'unfair', 'gift', 'ask', 'limit', 'autoplay']);
+  'want', 'swap', 'fair', 'unfair', 'gift', 'ask', 'limit', 'autoplay', 'closer', 'sale', 'swap2', 'plan', 'cheap']);
 function cleanWhy(why, seat) {
   if (!why || !WHY.has(why.c)) return null;
   const out = {c: why.c, by: seat};
@@ -536,6 +555,7 @@ function act(state, seat, action, data, config, ctx) {
   if (!rule) throw fail(400, '未知操作');
   if (state.phase === 'finished') throw fail(409, '这一局已经结束');
   const d = data && typeof data === 'object' ? data : {};
+  state.clockAt = clock(ctx);
   if (action === 'cancelTrade') { if (!state.trade || state.trade.from !== seat) throw fail(409, '没有可以撤回的交易'); }
   else if (seat !== actor(state)) throw fail(409, state.trade && seat === state.trade.from ? '先等对方回复交易' : '还没轮到你');
   else if (state.trade && !ANSWERS.has(action)) throw fail(409, '先回复这笔交易');
@@ -555,7 +575,7 @@ function timeout(state, config, ctx) {
   norm(state);
   if (state.phase === 'finished') return;
   const seat = actor(state), me = state.players[seat];
-  state.anim = 0;
+  state.anim = 0; state.clockAt = clock(ctx);
   if (state.trade) { note(state, {kind: 'reject', seat, to: state.trade.from, late: true}); remember(state); state.trade = null; }
   else if (state.phase === 'auction') foldOut(state, me, ctx, true);
   else if (state.phase === 'manage') endTurn(state, ctx);
@@ -586,6 +606,8 @@ function leave(state, seat, config, ctx) {
 // The room was paused (nobody online): a time limit moves on by as long as the pause lasted.
 function resume(state, info) {
   if (state?.endsAt && info?.pausedFor > 0) state.endsAt += info.pausedFor;
+  // The time the room stood still does not count towards how long a round takes (v2.4.3.4).
+  if (state?.began != null && info?.pausedFor > 0) state.began += info.pausedFor;
 }
 
 function view(state) {
@@ -595,37 +617,132 @@ function view(state) {
     turn: s.turn, phase: s.phase, round: s.round, maxRounds: s.maxRounds, dice: s.dice, pending: s.pending, card: s.card,
     effects: s.effects, discount: s.discount, rents: Object.fromEntries(BUYABLE.filter(i => s.owner[i] != null).map(i => [i, s.mortgaged[i] ? 0 : rent(s, i)])),
     last: s.last, log: s.log.slice(-30), seq: s.seq, outcome: s.outcome,
-    mode: s.mode || 'rounds', cap: s.cap || CAP, endsAt: s.endsAt ?? null, growth: growth(s), growthFrom: GROWTH_FROM, growthEvery: GROWTH_EVERY, rules: s.rules || {trade: false, auction: false}, actor: actor(s),
+    mode: s.mode || 'rounds', cap: s.cap || CAP, endsAt: s.endsAt ?? null, growth: growth(s), growthFrom: GROWTH_FROM, growthEvery: GROWTH_EVERY, rules: s.rules || {trade: false, auction: false}, liquidate: !!s.liquidate, actor: actor(s),
     trade: s.trade ? {id: s.trade.id, from: s.trade.from, to: s.trade.to, give: s.trade.give, get: s.trade.get, counters: s.trade.counters} : null,
     auction: s.auction || null, proposed: s.proposed || 0, history: s.history || [], fx: (s.fx || []).slice(-30),
     limits: {step: STEP, counters: COUNTERS, proposals: PROPOSALS, tiles: TRADE_TILES}};
 }
 
 // ---- Computer player ------------------------------------------------------------------------------------------------
-// accept: how much better than even a trade must be (a share of what it gives up); gift: what handing someone a whole
-// group costs (a multiple of the land's price); premium: what it first offers for the last city of a group; want/bid:
-// how far it goes in an auction (a multiple of the price) for land that completes a group / anything else.
+// v2.4.3.4. Every level keeps a cash reserve that grows with the rent it may hit, builds up to hotels and blocks groups;
+// a trade is worth what it moves in cash and land plus what the land will earn (or cost it) over the rounds to come.
+//   reserve/late: the cash it keeps (late: once 70 % of the land is sold); look: the rolls it looks ahead (1 or 2, with
+//   the rent multipliers in force); risk: the share of that expected rent it keeps on top; tail: the share of the
+//   dearest square within reach it keeps as well; greed: the share of the reserve it accepts keeping for land that
+//   completes or blocks a group.
+//   margin: what a trade must earn, as a share of what it gives up, rising from the first number to the second until
+//   60 % of the game and then staying (also for the cities it asks for itself); closer: the same when a trade offered
+//   to it completes a group of its own or brings it a city closer to one; threat: how much the rent it would pay the
+//   other side weighs (× lead when that player is the richest); counter: what it asks on top of the shortfall.
+//   sale: the share of the price it asks when it sells land because it is short of cash; loss: how far below even it
+//   goes in a trade it started (easy only, for such a sale); propose: whether it asks for cities it lacks while it has
+//   cash; premium: [a, b], its first cash offer per price, a + b × the share of the game played; plan: whether, in the
+//   second half, it buys up a group spread over two players.
+//   want/bid: auction limits (× price) for land that completes a group / anything else, keeping the whole reserve;
+//   cheap: the limit for any land keeping half the reserve (land bought under its price adds to the net worth).
 const LEVELS = {
-  easy: {name: 'easy', reserve: 600, late: 600, risk: 0, greed: 0.5, skip: 0.2, block: false, cushion: 0, top: 3, accept: -0.1, gift: 2, propose: false, counter: null, want: 1.3, bid: 0.85},
-  normal: {name: 'normal', reserve: 1000, late: 2000, risk: 1.5, greed: 0.5, skip: 0, block: true, cushion: 500, top: 3, accept: 0, gift: 2, propose: true, premium: 1.5, counter: 0.05, want: 2, bid: 1},
-  smart: {name: 'smart', reserve: 1000, late: 2500, risk: 1.5, greed: 0.5, skip: 0, block: true, cushion: 500, top: 4, stage: true, accept: 0.1, gift: 2.5, noGift: true, propose: true, premium: 1.3, swap: true, counter: 0.15, want: 2.4, bid: 1.1}
+  easy: {name: 'easy', reserve: 600, late: 600, look: 1, risk: 1, tail: 0, greed: 0.5, block: true, margin: [0, 0], closer: 0, threat: 1, lead: 1, counter: 0.05,
+    sale: 0.8, loss: 0.2, propose: false, want: 1.3, bid: 0.85, cheap: 0.7},
+  normal: {name: 'normal', reserve: 1000, late: 2000, look: 2, risk: 1, tail: 0, greed: 0.5, block: true, margin: [0.05, 0.2], closer: 0, threat: 1, lead: 1.5, counter: 0.05,
+    sale: 1, loss: 0, propose: true, premium: [1.2, 0.5], want: 2, bid: 1, cheap: 0.85},
+  smart: {name: 'smart', reserve: 1000, late: 2500, look: 2, risk: 1.2, tail: 0.25, greed: 0.5, block: true, stage: true, margin: [0.1, 0.25], closer: 0.05, threat: 1.5, lead: 1.5,
+    counter: 0.15, sale: 1, loss: 0, propose: true, premium: [1.1, 0.5], plan: true, want: 2.4, bid: 1.1, cheap: 0.95}
 };
-const P2 = k => (6 - Math.abs(k - 7)) / 36;
-// Expected rent on the next roll: each square two to twelve ahead, weighted by how likely the dice land there.
-function exposure(state, seat) {
+// The reserve never takes more than RESERVE_SHARE of the net worth (beyond the fixed amount). A player lands on a given
+// square about once in BOARD turns, a sixth more with doubles (LAND a round). A trade counts on KEEP of the rent its own
+// land may earn but fears FEAR of what the other side's land may take from it (computer-only tables, 2026-11-22: when it
+// counted on more, the computer that asked for cities overpaid for them and lost more often). NEAR: how much of a whole
+// group's rent two cities of three count for; SETTLE: the share of the game after which the margin stops rising; the
+// rounds still to come are guessed when the game does not tell.
+const RESERVE_SHARE = 0.35, LAND = 7 / 6 / BOARD, KEEP = 0.3, FEAR = 0.6, NEAR = 0.35, SETTLE = 0.6, TIME_GUESS = 15, CLASSIC_GUESS = 20, PLAN_FROM = 0.5;
+const P2 = k => k >= 2 && k <= 12 ? (6 - Math.abs(k - 7)) / 36 : 0;
+const TWO = Array.from({length: 25}, (_, k) => { let p = 0; for (let a = 2; a <= 12; a++) p += P2(a) * P2(k - a); return p; });
+const toll = (state, seat, i) => { const o = state.owner[i]; return o != null && o !== seat && !state.mortgaged[i] ? rent(state, i) : 0; };
+// Expected rent on the next roll (and, looking two rolls ahead, on the one after), and the dearest square within reach.
+function exposure(state, seat, look = 1) {
   const pos = state.players[seat].pos;
-  let sum = 0;
-  for (let k = 2; k <= 12; k++) { const i = (pos + k) % BOARD, o = state.owner[i]; if (o != null && o !== seat && !state.mortgaged[i]) sum += P2(k) * rent(state, i); }
-  return sum;
+  let sum = 0, top = 0;
+  for (let k = 2; k <= 12; k++) { const r = toll(state, seat, (pos + k) % BOARD); sum += P2(k) * r; top = Math.max(top, r); }
+  if (look > 1) for (let k = 4; k <= 24; k++) { const r = toll(state, seat, (pos + k) % BOARD); sum += TWO[k] * r; top = Math.max(top, r); }
+  return {sum, top};
 }
 const late = state => BUYABLE.filter(i => state.owner[i] != null).length > BUYABLE.length * 0.7;
-function reserveOf(state, seat, cfg) { return (late(state) ? cfg.late : cfg.reserve) + cfg.risk * exposure(state, seat); }
+function reserveOf(state, seat, cfg) {
+  const floor = late(state) ? cfg.late : cfg.reserve, e = exposure(state, seat, cfg.look);
+  return Math.min(floor + cfg.risk * e.sum + cfg.tail * e.top, Math.max(floor, RESERVE_SHARE * worth(state, seat)));
+}
+// The rounds still to come: counted in a game of rounds, worked out from the pace so far in a timed one, guessed in a
+// classic one. The share of the game played follows from it.
+function horizon(state) {
+  const mode = state.mode || 'rounds', done = state.round - 1;
+  if (mode === 'rounds') return Math.max(1, (state.maxRounds || 20) - done);
+  if (mode === 'time') {
+    if (!state.endsAt || state.began == null || state.clockAt == null || done < 1 || state.clockAt <= state.began) return TIME_GUESS;
+    return Math.max(1, Math.min(40, Math.round((state.endsAt - state.clockAt) * done / (state.clockAt - state.began))));
+  }
+  return CLASSIC_GUESS;
+}
+const progress = state => { const done = state.round - 1; return done / (done + horizon(state)); };
+const margin = (state, cfg) => cfg.margin[0] + (cfg.margin[1] - cfg.margin[0]) * Math.min(1, progress(state) / SETTLE);
 const groupOf = i => TILES[i].group ? GROUPS[TILES[i].group] : TRANSITS;
 const gid = i => TILES[i].group || 0;
 const base = (state, i) => TILES[i].price * (state.mortgaged[i] ? 0.5 : 1);
-function buyChoice(state, seat, cfg, rng) {
+const land = (state, list) => list.reduce((sum, i) => sum + base(state, i), 0);
+const recent = (state, memo, other, aim) => memo[other + ':' + aim] != null && state.round - memo[other + ':' + aim] < MEMORY;
+const richest = state => active(state).reduce((best, p) => best == null || worth(state, p.seat) > worth(state, best) ? p.seat : best, null);
+// The level a whole group gets built to: what 60 % of the owner's cash, and of half what Start pays over the rounds to
+// come, pays for; at least a house while more than three rounds remain; never below what stands there now.
+function buildTo(state, i, cash, H) {
+  const g = TILES[i].group, n = Math.floor((Math.max(0, cash) + PASS_GO * H / 2) * 0.6 / (HOUSE[g] * GROUPS[g].length));
+  return Math.max(level(state, i), Math.min(4, H > 3 ? Math.max(1, n) : n));
+}
+// What a player's land earns over the rounds to come if `map` says who owns what: a whole group at the level it will be
+// built to, two cities of three part of the way there while the bank still has the third, any other city or a hub at its
+// rent; `landers` players may land there.
+function earning(state, map, seat, cash, landers, H, keep = KEEP) {
+  if (landers <= 0) return 0;
+  const hubs = TRANSITS.filter(j => map[j] === seat).length;
+  let per = 0;
+  for (const i of BUYABLE) {
+    if (map[i] !== seat) continue;
+    const t = TILES[i];
+    if (t.kind === 'transit') { per += [250, 600][hubs - 1]; continue; }
+    const list = GROUPS[t.group], have = list.filter(j => map[j] === seat).length;
+    const whole = () => { const L = buildTo(state, i, cash, H); return t.rent * (L ? LEVEL[L] : 2); };
+    if (have === list.length) per += whole();
+    else if (have >= 2 && have === list.length - 1 && list.some(j => map[j] == null)) per += t.rent + NEAR * (whole() - t.rent);
+    else per += t.rent;
+  }
+  return per * growth(state) * LAND * landers * H * keep;
+}
+// Cash counts for more when it is short: up to twice its face value as it falls to nothing below the reserve, and twice
+// while it owes a debt it cannot pay.
+function cashWeight(state, seat, cfg) {
+  if (state.phase === 'debt' && state.turn === seat) return 2;
+  const r = reserveOf(state, seat, cfg), c = state.players[seat].cash;
+  return r > 0 ? 1 + Math.min(1, Math.max(0, (r - c) / r)) : 1;
+}
+// What a trade is worth to `seat`: cash (weighted) and land at its price both ways, plus what its own land will earn
+// from the others after the trade, less what the other side's land will take from it (× threat, × lead when the other
+// side is the richest player). Also: the groups it completes (gains) or hands over (gifts), and a group it gets closer to.
+function tradeValue(state, seat, tr, cfg) {
+  const other = tr.from === seat ? tr.to : tr.from, gives = tr.from === seat ? tr.give : tr.get, gets = tr.from === seat ? tr.get : tr.give;
+  const after = {...state.owner};
+  for (const i of gives.tiles) after[i] = other;
+  for (const i of gets.tiles) after[i] = seat;
+  const me = state.players[seat], them = state.players[other], H = horizon(state), others = active(state).length - 1, w = cashWeight(state, seat, cfg);
+  const mine = earning(state, after, seat, me.cash + gets.cash - gives.cash, others, H) - earning(state, state.owner, seat, me.cash, others, H);
+  const theirs = earning(state, after, other, them.cash + gives.cash - gets.cash, 1, H, FEAR) - earning(state, state.owner, other, them.cash, 1, H, FEAR);
+  const threat = cfg.threat * (richest(state) === other ? cfg.lead : 1);
+  const value = (gets.cash - gives.cash) * w + land(state, gets.tiles) - land(state, gives.tiles) + mine - threat * theirs;
+  const whole = (s, i) => groupOf(i).every(j => after[j] === s);
+  const gains = new Set(gets.tiles.filter(i => whole(seat, i)).map(gid)), gifts = new Set(gives.tiles.filter(i => whole(other, i)).map(gid));
+  const lost = new Set(gives.tiles.map(gid));
+  const near = gets.tiles.find(i => TILES[i].group && !gains.has(gid(i)) && !lost.has(gid(i)) && GROUPS[TILES[i].group].some(j => state.owner[j] === seat));
+  return {value, stake: gives.cash + land(state, gives.tiles), gains: [...gains], gifts: [...gifts], closer: near == null ? null : gid(near), w};
+}
+function buyChoice(state, seat, cfg) {
   const {tile, price} = state.pending, me = state.players[seat], after = me.cash - price, g = gid(tile);
-  if (rng() < cfg.skip) return {buy: false, why: {c: 'random', t: tile}};
   if (after < 300) return {buy: false, why: {c: 'reserve', t: tile}};
   const group = groupOf(tile);
   const completes = group.every(j => j === tile || state.owner[j] === seat);
@@ -668,13 +785,13 @@ function manageStep(state, seat, cfg) {
   const me = state.players[seat], reserve = reserveOf(state, seat, cfg);
   const back = owned(state, seat).filter(i => state.mortgaged[i]).sort((a, b) => (fullGroupIf(state, b, seat) - fullGroupIf(state, a, seat)) || TILES[b].price - TILES[a].price);
   if (back.length && me.cash - ten(TILES[back[0]].price * 0.55) > reserve * 2) return {action: 'unmortgage', data: {tile: back[0], why: {c: 'redeem', t: back[0]}}};
-  // Houses where the whole group is ours, evenly, up to three houses (smart: a hotel): first the group opponents are
-  // most likely to land on next (six to eight squares ahead of them), then the cheaper step.
-  const options = owned(state, seat).filter(i => TILES[i].kind === 'property' && fullGroup(state, i) && level(state, i) < cfg.top && level(state, i) === Math.min(...groupLevels(state, i)))
+  // Houses where the whole group is ours, evenly, up to a hotel, keeping the reserve: first the group opponents are most
+  // likely to land on next, then the cheaper step.
+  const options = owned(state, seat).filter(i => TILES[i].kind === 'property' && fullGroup(state, i) && level(state, i) < 4 && level(state, i) === Math.min(...groupLevels(state, i)))
     .map(i => ({i, ...heat(state, seat, TILES[i].group)}))
     .sort((a, b) => b.h - a.h || level(state, a.i) - level(state, b.i) || TILES[b.i].rent - TILES[a.i].rent);
   const pick = options[0];
-  if (pick && me.cash - HOUSE[TILES[pick.i].group] >= reserve + cfg.cushion) {
+  if (pick && me.cash - HOUSE[TILES[pick.i].group] >= reserve) {
     const g = TILES[pick.i].group;
     return {action: 'build', data: {tile: pick.i, why: pick.top ? {c: 'ahead', s: pick.top.s, n: pick.top.n, g, t: pick.i} : {c: 'build', g, t: pick.i}}};
   }
@@ -682,79 +799,134 @@ function manageStep(state, seat, cfg) {
 }
 const fullGroupIf = (state, i, seat) => TILES[i].group && GROUPS[TILES[i].group].every(j => state.owner[j] === seat) ? 1 : 0;
 
-// What a trade is worth to `seat`: land it gets at its price (×2.5 when that completes a group of its own, ×1.3 when
-// it then holds all but one of a group of three), minus land it gives (×2.5 when that breaks its own whole group, ×gift
-// when it hands the other side a whole group), plus the cash.
-function tradeValue(state, seat, tr, cfg) {
-  const other = tr.from === seat ? tr.to : tr.from, gives = tr.from === seat ? tr.give : tr.get, gets = tr.from === seat ? tr.get : tr.give;
-  const after = {...state.owner};
-  for (const i of gives.tiles) after[i] = other;
-  for (const i of gets.tiles) after[i] = seat;
-  const whole = (map, s, i) => groupOf(i).every(j => map[j] === s);
-  const most = (map, s, i) => { const g = groupOf(i); return g.length > 2 && g.filter(j => map[j] === s).length === g.length - 1; };
-  let value = gets.cash - gives.cash;
-  const gains = new Set(), gifts = new Set();
-  for (const i of gets.tiles) { const k = whole(after, seat, i) ? 2.5 : most(after, seat, i) ? 1.3 : 1; if (k === 2.5) gains.add(gid(i)); value += base(state, i) * k; }
-  for (const i of gives.tiles) {
-    const theirs = whole(after, other, i);
-    if (theirs) gifts.add(gid(i));
-    value -= base(state, i) * (theirs ? cfg.gift : whole(state.owner, seat, i) ? 2.5 : 1);
-  }
-  const stake = gives.cash + gives.tiles.reduce((sum, i) => sum + base(state, i), 0);
-  return {value, stake, gains: [...gains], gifts: [...gifts]};
+// What a trade must earn, as a share of what this side gives up: in a trade it started, below even by `loss` (easy, a
+// sale) or else the margin; `closer` when it completes a group or comes a city closer; otherwise the margin for this
+// point of the game.
+function share(state, seat, cfg, tr, info) {
+  if (tr.opener === seat) return cfg.loss ? -cfg.loss : margin(state, cfg);
+  if (info.gains.length || info.closer != null) return cfg.closer;
+  return margin(state, cfg);
 }
-// Answering a trade: accept when it is good enough; otherwise ask for (or offer) the difference in cash, once or twice.
+// Answering a trade: accept when it earns enough; otherwise ask for (or offer) the difference in cash, once or twice.
 function judge(state, seat, cfg, rng, opts) {
   const tr = state.trade, me = state.players[seat], other = state.players[tr.from];
   if (opts.auto) return {action: 'rejectTrade', data: {why: {c: 'autoplay'}}};
-  const {value, stake, gains, gifts} = tradeValue(state, seat, tr, cfg);
-  if (cfg.noGift && gifts.length && !gains.length) return {action: 'rejectTrade', data: {why: {c: 'gift', g: gifts[0], s: tr.from}}};
-  const floor = Math.min(reserveOf(state, seat, cfg) * cfg.greed, me.cash), need = cfg.accept * Math.max(stake, 1);
-  const pays = tr.get.cash;
-  if (value >= need && me.cash - pays >= floor && (cfg.name !== 'easy' || rng() < 0.75)) return {action: 'acceptTrade', data: {why: gains.length ? {c: 'complete', g: gains[0]} : {c: 'fair'}}};
-  if (cfg.counter != null && tr.counters < COUNTERS - 1 && value < need) {
-    // Net cash the other side should hand over for the trade to be worth it (negative: what this side can pay).
-    const net = tr.give.cash - tr.get.cash + up10((need - value) * (1 + cfg.counter));
+  const info = tradeValue(state, seat, tr, cfg), {value, stake, gains, gifts, closer, w} = info, k = share(state, seat, cfg, tr, info);
+  const need = k * Math.max(stake, 1);
+  const floor = Math.min(reserveOf(state, seat, cfg) * cfg.greed, me.cash), pays = tr.get.cash;
+  if (value >= need && me.cash - pays >= floor) return {action: 'acceptTrade', data: {why: gains.length ? {c: 'complete', g: gains[0]} : closer != null ? {c: 'closer', g: closer} : {c: 'fair'}}};
+  if (tr.counters < COUNTERS - 1 && value < need) {
+    // The net cash the other side should hand over for the trade to earn the share k of what this side gives up (its
+    // land, and its cash when it pays), asking `counter` more than the shortfall; negative, it is the most this side
+    // can pay.
+    const lands = stake - tr.get.cash, now = tr.give.cash - tr.get.cash, flat = value - now * w, gap = k * lands - flat;
+    const net = gap >= 0 ? up10(now + (gap / w - now) * (1 + cfg.counter)) : -Math.floor(-gap / (w + Math.max(k, 0)) / 10) * 10;
     const fine = net >= 0 ? net <= other.cash : me.cash + net >= floor;
     if (fine) return {action: 'counterTrade', data: {give: {tiles: tr.get.tiles, cash: net < 0 ? -net : 0}, get: {tiles: tr.give.tiles, cash: net > 0 ? net : 0}, why: {c: 'ask', n: Math.abs(net)}}};
   }
   if (me.cash - pays < floor) return {action: 'rejectTrade', data: {why: {c: 'reserve'}}};
   return {action: 'rejectTrade', data: {why: gifts.length ? {c: 'gift', g: gifts[0], s: tr.from} : {c: 'unfair'}}};
 }
-// Asking for the city (or two) that would complete a group of its own: a swap that completes one of theirs in return if
-// there is one (smart), else cash at a premium — never again to the same player for that group within a few rounds.
+// Short of cash: offer a city (not from a whole group of its own, none with houses in its group) to a player who has
+// land in that group, for `sale` × its price at least and enough to be no worse than `loss` below even; land that
+// completes the buyer's group first. Not to the same player for the same group again within a few rounds.
+function sale(state, seat, cfg) {
+  const memo = state.memo?.[seat] || {}, picks = [];
+  for (const i of owned(state, seat)) {
+    const group = groupOf(i);
+    if (group.every(j => state.owner[j] === seat) || (TILES[i].group && groupLevels(state, i).some(Boolean))) continue;
+    for (const p of active(state)) {
+      const theirs = group.filter(j => state.owner[j] === p.seat).length;
+      if (p.seat === seat || !theirs || recent(state, memo, p.seat, 100 + gid(i))) continue;
+      const info = tradeValue(state, seat, {from: seat, to: p.seat, give: {tiles: [i], cash: 0}, get: {tiles: [], cash: 0}}, cfg);
+      const cash = Math.max(up10(base(state, i) * cfg.sale), up10((-cfg.loss * info.stake - info.value) / info.w));
+      if (cash <= p.cash) picks.push({i, to: p.seat, cash, completes: theirs === group.length - 1 ? 1 : 0, value: info.value});
+    }
+  }
+  picks.sort((a, b) => b.completes - a.completes || b.value - a.value);
+  const pick = picks[0];
+  return pick ? {action: 'proposeTrade', data: {to: pick.to, give: {tiles: [pick.i], cash: 0}, get: {tiles: [], cash: pick.cash}, aim: 100 + gid(pick.i), why: {c: 'sale', s: pick.to, t: pick.i, n: pick.cash}}} : null;
+}
+// Asking one player for the one or two cities a group of its own lacks: first a swap for a city of its own that
+// completes a group of theirs, then one in a group they have land in (with the difference in price in cash), else cash
+// at a premium that grows with the game (less from a player short of cash, more from a rich one), raised towards what a
+// regular computer in the other player's place would want, but never so much that it earns less than its margin (and
+// never less than the price). A swap is offered only when such a computer would not lose on it.
+const their = (state, seat, owner, give, get) => tradeValue(state, owner, {from: seat, to: owner, give, get}, LEVELS.normal);
+function ask(state, seat, cfg, g, owner, missing, reserve) {
+  const me = state.players[seat], them = state.players[owner], price = land(state, missing);
+  const value = (give, get) => tradeValue(state, seat, {from: seat, to: owner, give, get}, cfg);
+  const zero = value({tiles: [], cash: 0}, {tiles: missing, cash: 0}), m = margin(state, cfg);
+  if (zero.value <= 0) return null;
+  const swaps = [];
+  for (const i of owned(state, seat)) {
+    const gi = TILES[i].group;
+    if (!gi || gi === g || GROUPS[gi].some(j => level(state, j)) || GROUPS[gi].every(j => state.owner[j] === seat)) continue;
+    const theirs = GROUPS[gi].filter(j => state.owner[j] === owner).length;
+    if (theirs) swaps.push({i, completes: theirs === GROUPS[gi].length - 1 ? 1 : 0});
+  }
+  const deals = [];
+  for (const s of swaps) {
+    const diff = ten(price - base(state, s.i)), give = {tiles: [s.i], cash: Math.max(0, diff)}, get = {tiles: missing, cash: Math.max(0, -diff)};
+    if (get.cash > them.cash || me.cash - give.cash < reserve * cfg.greed || value(give, get).value < m * (give.cash + base(state, s.i))) continue;
+    const gain = their(state, seat, owner, give, get).value;
+    if (gain >= 0) deals.push({s, give, get, gain});
+  }
+  deals.sort((a, b) => b.s.completes - a.s.completes || b.gain - a.gain);
+  if (deals.length) {
+    const {s, give, get} = deals[0];
+    return {worth: zero.value, plan: {action: 'proposeTrade', data: {to: owner, give, get, aim: g, why: {c: s.completes ? 'swap' : 'swap2', g, s: owner, t: s.i}}}};
+  }
+  const theirReserve = reserveOf(state, owner, cfg), p = progress(state);
+  const factor = (cfg.premium[0] + cfg.premium[1] * p) * (them.cash < theirReserve ? 0.9 : them.cash > 2 * theirReserve ? 1.1 : 1);
+  const most = Math.floor(zero.value / (zero.w + m) / 10) * 10, other = their(state, seat, owner, {tiles: [], cash: 0}, {tiles: missing, cash: 0});
+  const cash = Math.min(most, Math.max(up10(price * factor), up10(-other.value / other.w)));
+  if (cash < price || me.cash - cash < reserve * cfg.greed) return null;
+  return {worth: zero.value, plan: {action: 'proposeTrade', data: {to: owner, give: {tiles: [], cash}, get: {tiles: missing, cash: 0}, aim: g, why: {c: 'want', g, s: owner}}}};
+}
+// Sharp, in the second half: a group of its own whose two missing cities belong to two players. If buying both (the
+// second at a premium) stays within its cash and earns its margin, it asks first the owner who cares least (not the richest
+// player, then the one with less cash) for theirs, at its price or what a regular computer would want for it; the last
+// city is then asked for like any other.
+function gather(state, seat, cfg, g, missing, reserve) {
+  const me = state.players[seat], memo = state.memo?.[seat] || {}, H = horizon(state), others = active(state).length - 1;
+  const after = {...state.owner};
+  for (const j of missing) after[j] = seat;
+  const gain = land(state, missing) + earning(state, after, seat, me.cash, others, H) - earning(state, state.owner, seat, me.cash, others, H);
+  const lead = richest(state), order = missing.slice().sort((a, b) => (state.owner[a] === lead) - (state.owner[b] === lead) || state.players[state.owner[a]].cash - state.players[state.owner[b]].cash);
+  const first = order.find(j => !recent(state, memo, state.owner[j], g));
+  if (first == null) return null;
+  const owner = state.owner[first], other = their(state, seat, owner, {tiles: [], cash: 0}, {tiles: [first], cash: 0});
+  const second = base(state, missing.find(j => j !== first)) * (cfg.premium[0] + cfg.premium[1] * progress(state)), w = cashWeight(state, seat, cfg) + margin(state, cfg);
+  const cash = Math.max(up10(base(state, first)), Math.min(up10(-other.value / other.w), Math.floor((gain / w - second) / 10) * 10));
+  const total = cash + second;
+  if (gain < total * w || me.cash - total < reserve * 0.5) return null;
+  return {worth: gain, plan: {action: 'proposeTrade', data: {to: owner, give: {tiles: [], cash}, get: {tiles: [first], cash: 0}, aim: g, why: {c: 'plan', g, s: owner, t: first}}}};
+}
+// What it proposes on its turn: a sale when short of cash (any level, two a turn at most); otherwise (regular and sharp)
+// the best of its requests for groups it lacks one or two cities of — one a turn, two for a sharp one in the second half.
 function proposal(state, seat, cfg, opts) {
-  if (!state.rules?.trade || !cfg.propose || opts.auto || state.trade || state.proposed >= 1) return null;
-  const me = state.players[seat], reserve = reserveOf(state, seat, cfg), memo = state.memo?.[seat] || {};
-  const wants = [];
+  if (!state.rules?.trade || opts.auto || state.trade) return null;
+  const me = state.players[seat];
+  const short = state.phase === 'debt' ? me.cash < state.pending.amount : me.cash < reserveOf(state, seat, cfg) * 0.5;
+  if (short) return state.proposed < 2 ? sale(state, seat, cfg) : null;
+  if (!cfg.propose || state.proposed >= (cfg.plan && progress(state) >= PLAN_FROM ? 2 : 1)) return null;
+  const reserve = reserveOf(state, seat, cfg), memo = state.memo?.[seat] || {}, offers = [];
   for (const [key, list] of Object.entries(GROUPS)) {
     const g = Number(key), missing = list.filter(j => state.owner[j] !== seat);
-    if (!missing.length || missing.length === list.length || missing.length > (cfg.swap ? 2 : 1)) continue;
-    const owner = state.owner[missing[0]];
-    if (owner == null || owner === seat || state.players[owner].out || !missing.every(j => state.owner[j] === owner)) continue;
-    if (list.some(j => level(state, j))) continue;
-    if (memo[owner + ':' + g] != null && state.round - memo[owner + ':' + g] < MEMORY) continue;
-    let swap = null;
-    if (cfg.swap) for (const [k2, other] of Object.entries(GROUPS)) {
-      if (Number(k2) === g) continue;
-      const need = other.filter(j => state.owner[j] !== owner);
-      if (need.length === 1 && state.owner[need[0]] === seat && !other.some(j => level(state, j))) { swap = need[0]; break; }
-    }
-    wants.push({g, owner, missing, price: missing.reduce((sum, j) => sum + base(state, j), 0), swap, worth: list.reduce((sum, j) => sum + TILES[j].rent, 0)});
+    if (!missing.length || missing.length === list.length || missing.length > 2) continue;
+    if (list.some(j => level(state, j)) || missing.some(j => state.owner[j] == null || state.players[state.owner[j]].out)) continue;
+    const owners = new Set(missing.map(j => state.owner[j]));
+    let offer = null;
+    if (owners.size === 1) { const owner = state.owner[missing[0]]; if (!recent(state, memo, owner, g)) offer = ask(state, seat, cfg, g, owner, missing, reserve); }
+    else if (cfg.plan && progress(state) >= PLAN_FROM) offer = gather(state, seat, cfg, g, missing, reserve);
+    if (offer) offers.push(offer);
   }
-  wants.sort((a, b) => b.worth - a.worth);
-  for (const w of wants) {
-    if (w.swap != null) {
-      const diff = ten(w.price - base(state, w.swap));
-      const give = {tiles: [w.swap], cash: Math.max(0, diff)}, get = {tiles: w.missing, cash: Math.max(0, -diff)};
-      if (me.cash - give.cash >= reserve * cfg.greed && get.cash <= state.players[w.owner].cash) return {action: 'proposeTrade', data: {to: w.owner, give, get, aim: w.g, why: {c: 'swap', g: w.g, s: w.owner, t: w.swap}}};
-    }
-    const cash = up10(w.price * cfg.premium);
-    if (me.cash - cash >= reserve * cfg.greed) return {action: 'proposeTrade', data: {to: w.owner, give: {tiles: [], cash}, get: {tiles: w.missing, cash: 0}, aim: w.g, why: {c: 'want', g: w.g, s: w.owner}}};
-  }
-  return null;
+  offers.sort((a, b) => b.worth - a.worth);
+  return offers[0]?.plan || null;
 }
-// Bidding: up to a limit (higher for land that completes or blocks a group), raising by about a tenth of the price.
+// Bidding: up to a limit (higher for land that completes or blocks a group), raising by about a tenth of the price; any
+// land is worth bidding for up to `cheap` × its price while half the reserve stays.
 function bidding(state, seat, cfg, rng, opts) {
   const a = state.auction, me = state.players[seat], i = a.tile, price = TILES[i].price, g = gid(i), group = groupOf(i);
   if (opts.auto) return {action: 'fold', data: {why: {c: 'autoplay', t: i}}};
@@ -762,11 +934,11 @@ function bidding(state, seat, cfg, rng, opts) {
   const rival = cfg.block ? active(state).find(p => p.seat !== seat && group.filter(j => j !== i).every(j => state.owner[j] === p.seat)) : null;
   const factor = completes ? cfg.want : rival ? Math.max(cfg.bid, 1.5) : cfg.stage && late(state) ? 0.6 : cfg.bid;
   const reserve = reserveOf(state, seat, cfg);
-  const limit = ten(Math.min(price * factor, me.cash - (completes || rival ? reserve * cfg.greed : reserve)));
-  const next = a.bid + STEP;
+  const full = Math.min(price * factor, me.cash - (completes || rival ? reserve * cfg.greed : reserve)), cheap = Math.min(price * cfg.cheap, me.cash - reserve * 0.5);
+  const limit = Math.floor(Math.max(full, cheap) / 10) * 10, next = a.bid + STEP;
   if (limit < next) return {action: 'fold', data: {why: {c: 'limit', n: Math.max(0, limit), t: i}}};
   const amount = Math.min(limit, Math.max(next, ten(a.bid + Math.max(STEP, price * 0.1))));
-  return {action: 'bid', data: {amount, why: completes ? {c: 'complete', g, t: i} : rival ? {c: 'block', s: rival.seat, g, t: i} : {c: 'value', t: i}}};
+  return {action: 'bid', data: {amount, why: completes ? {c: 'complete', g, t: i} : rival ? {c: 'block', s: rival.seat, g, t: i} : cheap > full ? {c: 'cheap', t: i} : {c: 'value', t: i}}};
 }
 // opts.auto: playing for an absent player (托管) or for one whose time ran out — no trades, no auctions.
 function bot(state, seat, levelName, rng, opts = {}) {
@@ -777,16 +949,18 @@ function bot(state, seat, levelName, rng, opts = {}) {
   if (state.phase === 'auction') return {...bidding(state, seat, cfg, rng, opts), delay: quick + 300};
   if (state.phase === 'debt') {
     if (me.cash >= state.pending.amount) return {action: 'pay', data: {}, delay: slow};
+    const offer = proposal(state, seat, cfg, opts);
+    if (offer) return {...offer, delay: slow};
     const step = raiseStep(state, seat);
     return step ? {...step, delay: quick} : {action: 'bankrupt', data: {}, delay: slow};
   }
-  if (state.phase === 'buy') { const c = buyChoice(state, seat, cfg, rng); return {action: c.buy ? 'buy' : 'pass', data: {why: c.why}, delay: slow}; }
+  if (state.phase === 'buy') { const c = buyChoice(state, seat, cfg); return {action: c.buy ? 'buy' : 'pass', data: {why: c.why}, delay: slow}; }
   if (state.phase === 'roll' || state.phase === 'manage') {
     const step = manageStep(state, seat, cfg);
     if (step) return {...step, delay: quick};
     if (state.phase === 'manage') {
-      const ask = proposal(state, seat, cfg, opts);
-      return ask ? {...ask, delay: slow} : {action: 'end', data: {}, delay: quick};
+      const offer = proposal(state, seat, cfg, opts);
+      return offer ? {...offer, delay: slow} : {action: 'end', data: {}, delay: quick};
     }
     if (me.jail) {
       if (me.free) return {action: 'useFree', data: {why: {c: 'early'}}, delay: slow};
@@ -808,4 +982,4 @@ function tally(previous, result) {
 }
 
 module.exports = {id: 'monopoly', seats: 4, seatCount, bots: ['easy', 'normal', 'smart'], away: 'autoplay', pausedActions: [], settings, setup, act, timeout, leave, resume, view, bot, botKey, tally,
-  rent, worth, raisable, actor, tradeValue, LEVELS, TILES, GROUPS, HOUSE, CHANCE, NEWS, START, JAIL, LIMITS, ROUNDS, MODES, MINUTES, CAP, STEP};
+  rent, worth, raisable, actor, tradeValue, reserveOf, horizon, progress, margin, LEVELS, TILES, GROUPS, HOUSE, CHANCE, NEWS, START, JAIL, LIMITS, ROUNDS, MODES, MINUTES, CAP, STEP};

@@ -135,19 +135,19 @@ test('tycoon trades: proposing, checks, counter-offers, accepting, refusing, wit
 });
 
 test('tycoon computer: trading for a group, swaps, counter-offers, reasons, bidding, building where opponents land, 托管', () => {
-  // A regular computer asks for the last city of a group, for cash at a premium.
+  // A regular computer asks for the last city of a group, for cash (v2.4.3.4: as much as completing 西北 is worth to it,
+  // since a regular computer in her place would want that much).
   let {config, c, s} = game(3);
   s.owner[5] = 1; s.owner[6] = 1; s.owner[7] = 0; s.turn = 1; s.phase = 'manage';
   let plan = M.bot(s, 1, 'normal', queue([]));
   assert.equal(plan.action, 'proposeTrade');
-  assert.deepEqual(plan.data, {to: 0, give: {tiles: [], cash: 1800}, get: {tiles: [7], cash: 0}, aim: 2, why: {c: 'want', g: 2, s: 0}});
+  assert.deepEqual(plan.data, {to: 0, give: {tiles: [], cash: 4150}, get: {tiles: [7], cash: 0}, aim: 2, why: {c: 'want', g: 2, s: 0}});
   M.act(s, 1, plan.action, plan.data, config, asBot(c));
   assert.deepEqual(s.log.at(-1).why, {c: 'want', g: 2, s: 0, by: 1});
-  // She asks for more than it is worth to it: it offers the difference (up to what completing a group is worth).
-  M.act(s, 0, 'counterTrade', {give: {tiles: [7]}, get: {cash: 3500}}, config, c);
+  // She asks for more than it is worth to it: it offers the most it can pay (never less than it offered).
+  M.act(s, 0, 'counterTrade', {give: {tiles: [7]}, get: {cash: 6000}}, config, c);
   plan = M.bot(s, 1, 'normal', queue([]));
-  // 3,500 for a city worth 1,200 × 2.5 = 3,000 to it: 500 short; it offers 3,500 − 500 × 1.05 (rounded up to tens).
-  assert.equal(plan.action, 'counterTrade'); assert.equal(plan.data.give.cash, 2970); assert.deepEqual(plan.data.get, {tiles: [7], cash: 0});
+  assert.equal(plan.action, 'counterTrade'); assert.equal(plan.data.give.cash, 4150); assert.deepEqual(plan.data.get, {tiles: [7], cash: 0});
   M.act(s, 1, plan.action, plan.data, config, asBot(c));
   M.act(s, 0, 'rejectTrade', {}, config, c);
   // Turned down: it does not ask her for that group again for three rounds.
@@ -155,26 +155,31 @@ test('tycoon computer: trading for a group, swaps, counter-offers, reasons, bidd
   assert.equal(M.bot(s, 1, 'normal', queue([])).action, 'end');
   s.round += 3;
   assert.equal(M.bot(s, 1, 'normal', queue([])).action, 'proposeTrade');
-  // Selling her the city that completes her group: a regular computer wants twice its price, a sharp one refuses.
+  // Selling her the city that completes her group: every level names a price for it (the sharp one the highest), and
+  // asks the shortfall plus 5 % (sharp: 15 %).
   ({config, c, s} = game(3));
   s.owner[5] = 0; s.owner[6] = 0; s.owner[7] = 1;
   M.act(s, 0, 'proposeTrade', {to: 1, give: {cash: 1800}, get: {tiles: [7]}}, config, c);
+  const asks = ['easy', 'normal', 'smart'].map(level => M.bot(s, 1, level, queue([])).data.get.cash);
+  assert.deepEqual(asks, [4490, 6190, 9360]);
   plan = M.bot(s, 1, 'normal', queue([]));
-  assert.equal(plan.action, 'counterTrade'); assert.equal(plan.data.get.cash, 2430); assert.deepEqual(plan.data.why, {c: 'ask', n: 2430});
-  assert.deepEqual(M.bot(s, 1, 'smart', queue([])).data.why, {c: 'gift', g: 2, s: 0});
+  assert.equal(plan.action, 'counterTrade'); assert.deepEqual(plan.data.why, {c: 'ask', n: 6190});
   assert.equal(M.bot(s, 1, 'normal', queue([]), {auto: true}).action, 'rejectTrade', '托管 never trades');
   M.act(s, 1, plan.action, plan.data, config, asBot(c));
   M.act(s, 0, 'acceptTrade', {}, config, c);
   assert.equal(s.owner[7], 0);
-  // A sharp computer offers a swap that completes a group for each side.
+  // A swap is only offered when the other side would not lose on it; else cash. Here 西宁 for 呼和浩特 completes a
+  // group for each side, but 青藏 is worth far less than 西北: it offers cash.
   ({config, c, s} = game(3));
   s.owner[5] = 1; s.owner[6] = 1; s.owner[3] = 1; s.owner[7] = 0; s.owner[1] = 0; s.turn = 1; s.phase = 'manage';
   plan = M.bot(s, 1, 'smart', queue([]));
-  assert.deepEqual(plan.data, {to: 0, give: {tiles: [3], cash: 500}, get: {tiles: [7], cash: 0}, aim: 2, why: {c: 'swap', g: 2, s: 0, t: 3}});
-  M.act(s, 1, plan.action, plan.data, config, asBot(c));
-  // For her it completes 西北's neighbour group 1 and hands the computer group 2.
+  assert.deepEqual(plan.data, {to: 0, give: {tiles: [], cash: 3980}, get: {tiles: [7], cash: 0}, aim: 2, why: {c: 'want', g: 2, s: 0}});
+  // The same swap offered by her: for her it completes group 1 and hands the computer group 2.
+  M.act(s, 1, 'end', {}, config, c); s.turn = 0; s.phase = 'manage';
+  M.act(s, 0, 'proposeTrade', {to: 1, give: {tiles: [7]}, get: {tiles: [3], cash: 500}}, config, c);
   const value = M.tradeValue(s, 0, s.trade, M.LEVELS.normal);
   assert.deepEqual(value.gains, [1]); assert.deepEqual(value.gifts, [2]);
+  M.act(s, 1, 'rejectTrade', {}, config, c);
   // Building: on the group opponents are most likely to land on next, with the reason.
   ({config, c, s} = game(3));
   for (const i of [5, 6, 7, 9, 11, 12]) s.owner[i] = 1;
@@ -237,7 +242,7 @@ test('tycoon view and animations: the order of events, the clock waits for them,
   assert.deepEqual(v.fx.map(f => f.t), ['dice', 'walk']);
   assert.deepEqual(v.fx[1].path, [0, 1, 2, 3, 4, 5]);
   assert.equal(c.timer, 45000 + 1000 + 150 + 250 * 5, 'the next step’s clock starts after the animation');
-  assert.equal(v.actor, 0); assert.equal(v.mode, 'rounds'); assert.deepEqual(v.rules, {trade: true, auction: true});
+  assert.equal(v.actor, 0); assert.equal(v.mode, 'rounds'); assert.deepEqual(v.rules, {trade: true, auction: true}); assert.equal(v.liquidate, true);
   assert.deepEqual(v.limits, {step: 100, counters: 3, proposals: 3, tiles: 6});
   assert.equal('memo' in v, false); assert.equal('anim' in v, false);
   M.act(s, 0, 'pass', {}, config, c);
