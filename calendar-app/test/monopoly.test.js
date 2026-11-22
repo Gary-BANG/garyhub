@@ -109,13 +109,16 @@ test('tycoon cards, debts, bankruptcy, the end, timeouts and the computer', () =
   assert.equal(s.players[0].cash, 500 + 420 + 360);
   rejects(() => M.act(s, 0, 'pay', {}, config, c), 409);
   M.act(s, 0, 'bankrupt', {}, config, c);
-  assert.equal(s.players[0].out, true); assert.equal(s.players[1].cash, M.START + 1280); assert.equal(s.turn, 1);
-  // A debt nobody could ever pay is bankruptcy at once; the land goes to the creditor (houses sold at half to them).
+  // v2.4.3.4: 1,280 in cash and 昆明 sold to the bank (840) cover the 1,400 owed; the land goes back to the bank.
+  assert.equal(s.players[0].out, true); assert.equal(s.players[1].cash, M.START + 1400); assert.equal(s.owner[9], undefined); assert.equal(s.turn, 1);
+  // A debt nobody could ever pay is bankruptcy at once: the creditor gets what selling everything brings (100 in cash
+  // and 拉萨 at 360), the land goes back to the bank.
   ({config, c, s} = game(2));
   s.owner[29] = 1; s.owner[30] = 1; s.owner[31] = 1; for (const i of [29, 30, 31]) s.houses[i] = 4;
   s.owner[1] = 0; s.houses[1] = 0; s.players[0].cash = 100; s.players[0].pos = 27;
   roll(s, config, c, 1, 3);
-  assert.equal(s.players[0].out, true); assert.equal(s.owner[1], 1); assert.deepEqual([c.result.winner, c.result.reason], [1, 'bankrupt']);
+  assert.equal(s.players[0].out, true); assert.equal(s.owner[1], undefined); assert.equal(s.players[1].cash, M.START + 460);
+  assert.deepEqual([c.result.winner, c.result.reason], [1, 'bankrupt']);
   // The last round: the highest net worth wins.
   ({config, c, s} = game(3, {rounds: 15}));
   s.round = 15; s.turn = 2; s.phase = 'manage'; s.players[1].cash = 40000;

@@ -3,7 +3,9 @@
    v2.4.3.3: numbered squares; trading with counter-offers; auctions; the ways to win (rounds, classic, a time limit); a
    chart of everyone's net worth; coins flying between players, cards that flip; the computer's reasons in the log; on a
    phone the actions sit in a drawer at the bottom. Every animation the server lists plays in order, at the speed this
-   viewer picked (board.js); a long backlog is played faster so the board catches up. */
+   viewer picked (board.js); a long backlog is played faster so the board catches up.
+   v2.4.3.4: a bankruptcy settled with the bank (the log shows what the creditor got); the computer's new reasons (a
+   sale when short of cash, a group bought up from two players, a city closer to a group, a bid under the price). */
 (() => {
   'use strict';
   const G = window.Games, {t, el} = G, B = window.Board;
@@ -202,7 +204,7 @@
       const reason = {rent: t('过路费', 'rent'), tax: t('税', 'tax'), fine: t('罚款', 'a fine'), repairs: t('维修费', 'repairs')}[s.pending.reason] || '';
       box.append(el('p', {class: 'mono-ask', text: t('要付 ' + money(s.pending.amount) + '（' + reason + '），现金 ' + money(p.cash) + '。点你的地块卖房、抵押或卖地筹钱' + (s.rules.trade ? '，也可以发起交易' : '') + '。', 'You owe ' + money(s.pending.amount) + ' (' + reason + ') and have ' + money(p.cash) + '. Tap your squares to sell houses, mortgage or sell' + (s.rules.trade ? ', or propose a trade' : '') + '.')}));
       row.append(el('button', {class: 'btn btn-gold', type: 'button', disabled: p.cash < s.pending.amount, text: t('付款', 'Pay'), onclick: () => api.act('pay').catch(() => {})}),
-        el('button', {class: 'btn btn-danger btn-sm', type: 'button', text: t('宣布破产', 'Declare bankruptcy'), onclick: () => { if (confirm(t('确定宣布破产吗？你的地产会交给债主，你将退出这一局。', 'Declare bankruptcy? Your land goes to the creditor and you are out.'))) api.act('bankrupt').catch(() => {}); }}));
+        el('button', {class: 'btn btn-danger btn-sm', type: 'button', text: t('宣布破产', 'Declare bankruptcy'), onclick: () => { if (confirm(s.liquidate ? t('确定宣布破产吗？你的房子和地会卖给银行，连同现金付给债主（最多到欠款），地产退回银行，你将退出这一局。', 'Declare bankruptcy? Your houses and land are sold to the bank, the creditor gets that and your cash (up to the debt), the land goes back to the bank and you are out.') : t('确定宣布破产吗？你的地产会交给债主，你将退出这一局。', 'Declare bankruptcy? Your land goes to the creditor and you are out.'))) api.act('bankrupt').catch(() => {}); }}));
     }
     if (decide && s.phase === 'manage') {
       box.append(el('p', {class: 'hint', text: t('可以点自己的地块盖房、抵押或卖地，然后结束回合。', 'Tap your squares to build, mortgage or sell, then end your turn.')}));
@@ -365,8 +367,13 @@
       case 'early': return t('前期出去抢地', 'early on: out to buy land');
       case 'hide': return t('后期留在休息站躲过路费', 'late on: stays put to avoid rent');
       case 'poor': return t('现金不多，碰运气掷对子', 'short of cash: tries for a double');
-      case 'want': return t('想向 ' + s + ' 要' + g + '组的最后一块', 'wants the last of ' + g + ' from ' + s);
+      case 'want': return t('想向 ' + s + ' 要' + g + '组缺的城市', 'wants the ' + g + ' cities it lacks from ' + s);
       case 'swap': return t('互换：双方各凑齐一组', 'a swap: a whole group each');
+      case 'swap2': return t('互换：' + s + ' 也离凑齐一组更近', 'a swap that brings ' + s + ' closer to a group too');
+      case 'plan': return t('分批收购' + g + '组，先找 ' + s, 'buying up the ' + g + ' group, starting with ' + s);
+      case 'sale': return t('缺钱，把地卖给用得上的 ' + s + (n ? '（' + n + '）' : ''), 'short of cash: offers land to ' + s + ', who can use it' + (n ? ' (' + n + ')' : ''));
+      case 'closer': return t('离凑齐' + g + '组更近一步', 'one city closer to the ' + g + ' group');
+      case 'cheap': return t('低于地价买到就赚', 'below its price it is a gain');
       case 'fair': return t('这笔交易划算', 'a good deal');
       case 'unfair': return t('不划算', 'not worth it');
       case 'gift': return t('会让 ' + s + ' 凑齐' + g + '组', 'would give ' + s + ' the ' + g + ' group');
@@ -404,7 +411,9 @@
       case 'trade': return t(who + ' 和 ' + to + ' 成交：' + who + ' 给出 ' + deal(e.give) + '，' + to + ' 给出 ' + deal(e.get), who + ' and ' + to + ' traded: ' + deal(e.give) + ' for ' + deal(e.get));
       case 'reject': return t(who + (e.late ? ' 没有及时回复，' : ' ') + '拒绝了 ' + to + ' 的交易', who + (e.late ? ' did not answer in time and' : '') + ' refused ' + to + '’s trade');
       case 'cancel': return t(who + ' 撤回了给 ' + to + ' 的交易', who + ' withdrew the trade offered to ' + to);
-      case 'bankrupt': return t(who + ' 破产了' + (to ? '，地产归 ' + to : ''), who + ' went bankrupt' + (to ? '; their land goes to ' + to : ''));
+      case 'bankrupt':
+        if (e.liquidate) return t(who + ' 破产了' + (to ? '，清算后付给 ' + to + ' ' + money(e.amount) : '') + '，地产退回银行', who + ' went bankrupt' + (to ? '; ' + to + ' gets ' + money(e.amount) + ' from the sale' : '') + '; the land goes back to the bank');
+        return t(who + ' 破产了' + (to ? '，地产归 ' + to : ''), who + ' went bankrupt' + (to ? '; their land goes to ' + to : ''));
       case 'left': return t(who + ' 离开了', who + ' left');
       default: return '';
     }
@@ -573,8 +582,8 @@
     rules: () => [
       ['每人 15,000 起步。轮到你时掷两个骰子前进；经过起点 +2,000，正好停在起点 +3,000。掷出对子再掷一次，连续三次对子进休息站。格子上的数字是序号，记录里写作“#序号 名称”。', 'Everyone starts with 15,000. Roll two dice and move; passing Start pays 2,000, landing on it 3,000. Doubles roll again; three in a row send you to the rest stop. Squares are numbered; the log writes “#number name”.'],
       ['停在没人买的城市或交通枢纽可以买下；不买就拍卖（如果开启）：大家轮流加价，每次至少 100，放弃就退出，最高出价者买下。停在别人的地要付过路费。整组都是你的（且没抵押）时过路费翻倍，还可以平均盖 1–3 栋房和酒店。', 'Unowned cities and hubs can be bought; pass and (if on) the land is auctioned: everyone raises in turn by at least 100 or folds, and the highest bid buys it. Land on someone else’s and pay rent. A whole group (none mortgaged) doubles the rent and lets you build 1–3 houses and a hotel, evenly.'],
-      ['交易（如果开启）：轮到你时可以向任何人提议，用地和现金交换（只能一方出钱，有房子的色组要先卖房）；对方可以接受、拒绝或还价，最多还价 3 次。电脑会为了凑齐一组来找你交易。', 'Trading (if on): on your turn offer anyone land and cash (one side pays; sell the houses in a group first); they accept, refuse or counter, up to three times. Computers come to you for the last city of a group.'],
-      ['机会卡只影响你，新闻影响所有人（有的持续一轮）。税务局交现金的 10%。休息站最多停 3 轮，可以交 500 或用免费卡离开，掷出对子也能离开。钱不够时卖房（半价）、抵押（得一半，赎回付 55%）或卖地给银行（六成）；实在付不起就破产，地产归债主。', 'Chance cards affect only you; news affects everyone (some for a round). The tax office takes 10% of your cash. The rest stop holds you up to three turns: pay 500, use a free card, or roll a double. Short of money? Sell houses (half price), mortgage (half; redeem for 55%) or sell to the bank (60%); if you still cannot pay you are bankrupt and your land goes to the creditor.'],
+      ['交易（如果开启）：轮到你时可以向任何人提议，用地和现金交换（只能一方出钱，有房子的色组要先卖房）；对方可以接受、拒绝或还价，最多还价 3 次。电脑会为了凑齐一组来找你交易，缺钱时也会把地卖给用得上的人；它按剩下的回合估算一块地还能收多少过路费，越到后期越肯卖。', 'Trading (if on): on your turn offer anyone land and cash (one side pays; sell the houses in a group first); they accept, refuse or counter, up to three times. Computers come to you for the cities a group lacks, and offer land to whoever can use it when short of cash; they value land by the rent it can still earn in the rounds left, so they sell more readily late on.'],
+      ['机会卡只影响你，新闻影响所有人（有的持续一轮）。税务局交现金的 10%。休息站最多停 3 轮，可以交 500 或用免费卡离开，掷出对子也能离开。钱不够时卖房（半价）、抵押（得一半，赎回付 55%）或卖地给银行（六成）；实在付不起就破产：房子和地按这些价钱卖给银行，连同现金付给债主（最多到欠款），地产退回银行，之后谁停在上面都可以买。', 'Chance cards affect only you; news affects everyone (some for a round). The tax office takes 10% of your cash. The rest stop holds you up to three turns: pay 500, use a free card, or roll a double. Short of money? Sell houses (half price), mortgage (half; redeem for 55%) or sell to the bank (60%); if you still cannot pay you are bankrupt: your houses and land are sold to the bank at those prices, the creditor gets that and your cash (up to what you owe), and the land goes back to the bank for anyone to buy.'],
       ['胜负：限定回合——最后一回合结束时总资产（现金 + 地价 + 房屋，抵押的地算一半）最多者赢；经典——玩到只剩一人，从第 25 回合起每 10 回合过路费上涨一半，第 100 回合仍未分出胜负按总资产；限时——时间到后打完当前回合按总资产。超时由电脑代你决定，连续两次超时转为托管，点“接管”收回。', 'Winning: set rounds — the highest net worth (cash + land + buildings, mortgaged land at half) after the last round; classic — the last player standing, with rents up by half every ten rounds from round 25 and the richest winning if it reaches round 100; time limit — the richest when the turn in which time runs out ends. A timed-out step is decided by the computer; two in a row hand your seat to it until you take over.']
     ]
   });
