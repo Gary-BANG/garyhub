@@ -18,6 +18,8 @@
 
 完整解压 `GaryHub_v2.4.3.4_upgrade.zip`，在 Windows 双击 `RUN-UPDATE.cmd`。两服务必须实际运行 **v2.4.3.3**（本版交付时未取证生产是否已升级到 v2.4.3.3）。
 
+安装器为 **r2**（包内目录 `GaryHub-v2.4.3.4-r2`）。r1 的结束语里有一个未转义的单引号，PowerShell 在执行前就报 `Unexpected token 's'`，没有执行任何步骤、没有改动服务器；请删除 r1 的解压目录，改用本包。
+
 - **核对链**：`deploy.py` 以 `prior_0433.py` 载入 v2.4.3.3 适配器（再到 v2.4.3.2、v2.4.3.1…），沿用其全部核对。
 - **Caddy**：第 1 阶段只读核对 `games.garyhub.uk` 站点块仍在；不写入、不恢复。
 - **第 6 阶段新增核对**：两个运行容器中的本版文件（`play-monopoly.js` 的分批收购、本版通知；Lab `monopoly.js` 的新理由）；游戏资源哈希组的文件列表不变，只有 `/play/monopoly.js` 的哈希更新。

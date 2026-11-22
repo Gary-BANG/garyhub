@@ -1,6 +1,10 @@
 # GaryHub v2.4.3.4 验证记录
 
-日期：2026-11-22（America/Chicago）。环境：Windows 构建机（Node 24、Python、Git），WSL Ubuntu（Node 20.20.2、Python 3.10、bwrap）。没有 Docker 与 pwsh，安装器的容器阶段只能在服务器上执行。状态：源码已准备、本地验证；未推送、未合并、未部署。
+日期：2026-11-22（America/Chicago）。环境：Windows 构建机（Node 24、Python、Git），WSL Ubuntu（Node 20.20.2、Python 3.10、bwrap）。没有 Docker 与 pwsh，安装器的容器阶段只能在服务器上执行。状态：源码已准备、本地验证；未推送、未合并、未部署。安装器 v2.4.3.4-r2。
+
+## r1 现场结果与 r2 修正
+
+2026-11-22 维护者在 Windows 上运行 r1 的 `RUN-UPDATE.cmd`，Windows PowerShell 报 `Unexpected token 's'`：安装器结束语写成 `'… Tycoon's computer players …'`，单引号字符串里的撇号提前结束了字符串，整份脚本无法解析。解析错误发生在执行之前，没有连接服务器、没有构建或备份，生产未改动，也没有发布通知（拖到 `RUN-UPDATE.cmd` 上的文件不影响结果：它不读取参数）。r2 只把结束语改为 “The Tycoon computer players …”；适配器测试新增“结束语里只允许成对的 `''`”，ZIP 校验对包内每个 `.ps1` 运行 Windows PowerShell 解析器。应用文件、资源哈希与其余检查不变。
 
 ## 生产现状取证
 
@@ -14,7 +18,8 @@
 | Lab 单元测试 | WSL Node 20 | 115 通过 |
 | 隔离套件 20 组（有 TOTP） | WSL Node 20，bwrap 沙箱代替 Docker | 全部通过；新增 `tycoon-bots-http` 18 项（经 Lab 的真实 WebSocket：本版 `monopoly.js` 的哈希、CSP 与新文字；新经典房间 `liquidate` 为真而 `rules` 仍为 {交易, 拍卖}；与精明、新手电脑打满 3 回合——两台电脑都在行动、理由都是已知种类且只来自电脑座位、电脑的交易提议被回答、现金不为负、地产只属于在局玩家、资产记录每行 3 人）。上一版 `tycoon-http` 43 项、`boards-http` 40 项原样通过；`play-http` 104、`games-http` 148、`car-http` 33。合成通知 5 账号、去重通过；外键无误 |
 | 隔离套件 20 组（无 TOTP） | 同上 | 全部通过；`tycoon-bots-http` 18 项、`tycoon-http` 43 项、`boards-http` 40 项；通知 5 账号、去重通过；外键无误 |
-| 适配器测试（清单与基线、哈希与只有 `/play/monopoly.js` 变化、未改动的文件不在差异里、能力覆盖只差版本行、页面版本号、大富翁入口与清算标记、旧房间不加 `liquidate`、不下发的字段、隔离输入与登录地址不重复、套件认识全部理由、只读 Caddy 钩子、核对链与各版运行标记、容器缺新文件时停止、安装器结束语、站内通知） | WSL Python 3.10 | 11 通过 |
+| 适配器测试（清单与基线、哈希与只有 `/play/monopoly.js` 变化、未改动的文件不在差异里、能力覆盖只差版本行、页面版本号、大富翁入口与清算标记、旧房间不加 `liquidate`、不下发的字段、隔离输入与登录地址不重复、套件认识全部理由、只读 Caddy 钩子、核对链与各版运行标记、容器缺新文件时停止、安装器结束语及其中没有落单的单引号、站内通知） | WSL Python 3.10 | 11 通过 |
+| PowerShell 解析（r2 新增；ZIP 内 `Install-GaryHub.ps1` 与 `git-source/Push-GitHub.ps1`）；另对全部历史版本的安装器模板运行同一解析器 | Windows PowerShell 5.1 解析器 | 0 错误 |
 | 共享更新器 | WSL Python 3.10 | 37 通过／2 个 pwsh 跳过 |
 | `manage.py check` | Windows Python | 通过 |
 

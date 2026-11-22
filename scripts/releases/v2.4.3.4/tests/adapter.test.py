@@ -31,7 +31,7 @@ class ReleaseTests(unittest.TestCase):
   self.assertIn("BASE='"+BASE+"'",(HERE/'build-package.py').read_text())
   # The reviewed base is the merged v2.4.3.3 (PR #54); its tree is the v2.4.3.3 release commit.
   self.assertEqual(git('rev-parse',BASE+'^{tree}'),git('rev-parse','76fd59f^{tree}'))
-  self.assertEqual(CONFIG['installer_build'],'v2.4.3.4-r1');self.assertEqual(m['installer_revision'],'r1')
+  self.assertEqual(CONFIG['installer_build'],'v2.4.3.4-r2');self.assertEqual(m['installer_revision'],'r2')
   previous=json.loads((ROOT/'releases/2.4.3.3.json').read_text(encoding='utf-8'))['protections']
   self.assertEqual(m['protections'][:len(previous)],previous)
   for protection in ['tycoon_bankruptcy_creditor_paid_at_most_the_debt','tycoon_bankrupt_land_returns_to_the_bank','tycoon_rooms_before_settlement_keep_old_bankruptcy',
@@ -161,7 +161,9 @@ class ReleaseTests(unittest.TestCase):
  def test_installer_version_placeholders_and_completion(self):
   s=(HERE/'Install-GaryHub.template.ps1').read_text(encoding='utf-8-sig')
   for key in ['RELEASE_VERSION','REQUIRES_VERSION','PACKAGE_SHA256','INSTALLER_BUILD_ID']:self.assertIn(key,s)
-  self.assertIn("Tycoon's computer players now judge land by the rounds left and sell land when short of cash, and a bankruptcy is settled with the bank",s)
+  self.assertIn("The Tycoon computer players now judge land by the rounds left and sell land when short of cash, and a bankruptcy is settled with the bank",s)
+  # r1 wrote "Tycoon's" inside this single-quoted PowerShell string and the installer did not parse; only a doubled '' may appear in it.
+  done=re.search(r"Write-Host \('COMPLETE v'\+\$version\+'(.*)'\)\}",s);self.assertIsNotNone(done);self.assertNotIn("'",done.group(1).replace("''",''))
   for stale in ['Tycoon now has trading','Treasure Dash and Tycoon are open','Co-op Car is open','Live rooms are open at','GLM']:self.assertNotIn(stale,s)
   prior=(PRIOR/'Install-GaryHub.template.ps1').read_text(encoding='utf-8-sig').replace('\r\n','\n')
   self.assertEqual(len(delta(prior,s.replace('\r\n','\n'))),2)

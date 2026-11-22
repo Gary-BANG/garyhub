@@ -1,7 +1,7 @@
 {
   "version": "2.4.3.4",
   "requires_release": "2.4.3.3",
-  "installer_build": "v2.4.3.4-r1",
+  "installer_build": "v2.4.3.4-r2",
   "reviewed_base_commit": "2c51ae729aa8047c30e1f5624cbeb3f6ff1b6e71",
   "baseline_adapter": "scripts/releases/v2.4.3.3",
   "source_subject": "Tycoon: computer judgement and bankruptcy settled with the bank (v2.4.3.4)",

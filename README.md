@@ -4,7 +4,7 @@ GaryHub 是使用统一账号的个人工作空间，包含日历与私人记录
 
 **当前源码版本 v2.4.3.4。** 游戏厅[实时房间](https://games.garyhub.uk/play/)里的**大富翁**：破产改为清算——房子和地按银行价卖掉，连同现金付给债主，最多付到欠款，地产退回银行，谁停在上面都可以再买（之前开的房间仍把地产交给债主）。电脑对手的判断重做：三档都按前方可能要交的过路费留现金、都能盖到酒店、都会抢地拦人凑组；交易时按剩下的回合估算一块地还能收多少过路费，越到后期越肯卖，自己缺钱时更看重现金，也会把地卖给用得上的人；普通和精明会向你要一组里缺的一到两块地，精明在后半局还会分别向两人收购同一组；拍卖时低于地价也会跟价，不会再被 100 捡走。记录里写明这些理由。v2.4.3.3 的胜负方式、交易、拍卖、走势图与动画照旧；词语默契、对战猜数字、合作小车、骰子抢宝箱与白日梦想家的规则不变。
 
-本版源码基于 PR #54（v2.4.3.3，main `2c51ae7`），源码已准备、本地验证，尚未推送／合并／部署。安装器 v2.4.3.4-r1 严格要求两服务运行 v2.4.3.3（生产是否已运行 v2.4.3.3 未取证；2026-11-21 tools 与 calendar 的 `/health` 返回 2.4.3.2）；已收到完整安装输出的最新版本仍为 v2.4.0.0（八阶段完成、8 个通知接收账号）。本版不需要 DNS 或 Caddy 改动，没有新依赖、没有新表。完整解压后双击 `RUN-UPDATE.cmd`，回滚用 `ROLLBACK.cmd`，源码审查分支同步用 `PUSH-TO-GITHUB.cmd`。构建：`python scripts/updater/manage.py build --release 2.4.3.4 --output <ZIP绝对路径>`（Windows 上在 `core.autocrlf=false` 的 LF worktree 中构建）。见[版本说明](docs/GARYHUB_V2_4_3_4.md)、[验证记录](docs/GARYHUB_V2_4_3_4_TESTS.md)与[五款游戏设计稿](docs/GAMES_V2_4_3_0_DESIGN.md)；上一版见 [v2.4.3.3 说明](docs/GARYHUB_V2_4_3_3.md)。
+本版源码基于 PR #54（v2.4.3.3，main `2c51ae7`），源码已准备、本地验证，尚未推送／合并／部署。安装器 v2.4.3.4-r2（r1 的结束语含未转义的单引号，PowerShell 解析失败，未执行任何步骤）严格要求两服务运行 v2.4.3.3（生产是否已运行 v2.4.3.3 未取证；2026-11-21 tools 与 calendar 的 `/health` 返回 2.4.3.2）；已收到完整安装输出的最新版本仍为 v2.4.0.0（八阶段完成、8 个通知接收账号）。本版不需要 DNS 或 Caddy 改动，没有新依赖、没有新表。完整解压后双击 `RUN-UPDATE.cmd`，回滚用 `ROLLBACK.cmd`，源码审查分支同步用 `PUSH-TO-GITHUB.cmd`。构建：`python scripts/updater/manage.py build --release 2.4.3.4 --output <ZIP绝对路径>`（Windows 上在 `core.autocrlf=false` 的 LF worktree 中构建）。见[版本说明](docs/GARYHUB_V2_4_3_4.md)、[验证记录](docs/GARYHUB_V2_4_3_4_TESTS.md)与[五款游戏设计稿](docs/GAMES_V2_4_3_0_DESIGN.md)；上一版见 [v2.4.3.3 说明](docs/GARYHUB_V2_4_3_3.md)。
 
 维护日期：2026-11-22（America/Chicago）。
 

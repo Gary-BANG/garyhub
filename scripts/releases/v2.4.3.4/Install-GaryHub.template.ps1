@@ -65,7 +65,7 @@ sys.exit(subprocess.call(args))
   }catch{Write-Warning ('Server update completed. Local source preparation needs review: '+$_.Exception.Message)}
  }
  if($Rollback){Write-Host 'ROLLBACK COMPLETE. Current user records were retained.'}
- else{Write-Host ('COMPLETE v'+$version+'. Tycoon's computer players now judge land by the rounds left and sell land when short of cash, and a bankruptcy is settled with the bank, at https://games.garyhub.uk/play/. Existing records and settings retained.')}
+ else{Write-Host ('COMPLETE v'+$version+'. The Tycoon computer players now judge land by the rounds left and sell land when short of cash, and a bankruptcy is settled with the bank, at https://games.garyhub.uk/play/. Existing records and settings retained.')}
  Write-Host ('Source, tests and documentation: '+$folder)
  Write-Host 'Please send the final output back to verify the actual server result.'
 }catch{Write-Host ('STOPPED: '+$_.Exception.Message) -ForegroundColor Red;exit 1}
