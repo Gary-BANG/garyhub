@@ -1,14 +1,14 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><script src="/hub-prefs.js?v=2.4.3.4"></script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><script src="/hub-prefs.js?v=2.4.4.0"></script>
   <meta name="description" content="GaryHub tools for studying, creating and everyday life.">
   <title>Tools · GaryHub</title>
   <link rel="stylesheet" href="/hub.css"><link rel="stylesheet" href="/hub-account.css">
-  <link rel="stylesheet" href="/i18n/i18n.css"><link rel="stylesheet" href="/tools-dock.css?v=2.4.3.4">
+  <link rel="stylesheet" href="/i18n/i18n.css"><link rel="stylesheet" href="/tools-dock.css?v=2.4.4.0">
   <script src="/i18n/dictionary.js"></script><script src="/useful/tool-i18n.js"></script><script src="/i18n/i18n.js"></script>
-  <script defer src="/tools-catalog.js?v=2.4.3.4"></script><script defer src="/tools-dock.js?v=2.4.3.4"></script>
-<link rel="stylesheet" href="/ambient-music.css?v=1.4.2.0"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/brand.css?v=2.4.3.4"><link rel="stylesheet" href="/hub-search.css?v=2.4.3.4"></head>
+  <script defer src="/tools-catalog.js?v=2.4.4.0"></script><script defer src="/tools-dock.js?v=2.4.4.0"></script>
+<link rel="stylesheet" href="/ambient-music.css?v=1.4.2.0"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/brand.css?v=2.4.4.0"><link rel="stylesheet" href="/hub-search.css?v=2.4.4.0"></head>
 <body class="tools-page" data-tools-release="1.4.2.0">
   <canvas id="sky" aria-hidden="true"></canvas>
   <svg class="tool-symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
@@ -24,6 +24,7 @@
 <symbol id="tool-totp" viewBox="0 0 32 32"><path d="M16 3 27 7v9c0 7-7 11-11 13C12 27 5 23 5 16V7z"/><circle cx="16" cy="15" r="3"/><path d="M16 18v5"/></symbol>
 <symbol id="tool-eraser" viewBox="0 0 32 32"><path d="m5 19 13-14q2-2 4 0l6 6q2 2 0 4L15 28H9l-4-5q-2-2 0-4zM10 14l12 12M15 28h14"/></symbol>
 <symbol id="tool-markdown" viewBox="0 0 32 32"><path d="M4 8v17m0-17 7 9 7-9v17M24 7v16m-4-4 4 4 4-4"/></symbol>
+<symbol id="tool-navigator" viewBox="0 0 32 32"><circle cx="16" cy="16" r="12"/><path d="m21 10-3 8-8 4 4-9z"/></symbol>
 <symbol id="tool-pdf" viewBox="0 0 32 32"><path d="M8 3h11l7 7v19H8zM19 3v8h7M12 16h9m-9 4h9m-9 4h6"/></symbol>
 <symbol id="tool-server-monitor" viewBox="0 0 32 32"><rect x="5" y="3" width="22" height="11" rx="2"/><rect x="5" y="18" width="22" height="11" rx="2"/><path d="M10 8h.1M10 23h.1M16 8h7M16 23h7M16 14v4"/></symbol>
 <symbol id="tool-ai-logs" viewBox="0 0 32 32"><path d="M7 3h13l5 5v21H7zM20 3v6h5M12 13h8M12 18h8M12 23h4"/><circle cx="23" cy="23" r="5"/><path d="m27 27 3 3"/></symbol>
@@ -71,6 +72,7 @@
           <li data-tool="totp"><a class="tool-link" href="/totp/"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-totp"></use></svg></span><span class="tool-name">2FA 验证码</span><span class="tool-short">双重验证</span></a></li>
           <li data-tool="eraser" data-guest><a class="tool-link" href="/useful/image-eraser/"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-eraser"></use></svg></span><span class="tool-name">图片局部消除</span><span class="tool-short">涂抹与修补</span></a></li>
           <li data-tool="markdown" data-guest><a class="tool-link" href="/useful/markdown-viewer/"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-markdown"></use></svg></span><span class="tool-name">Markdown 预览</span><span class="tool-short">文档、公式与 ZIP</span></a></li>
+          <li data-tool="navigator" data-guest><a class="tool-link" href="/useful/site-navigator/"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-navigator"></use></svg></span><span class="tool-name">个人网站导航</span><span class="tool-short">网页、文件夹与 ZIP</span></a></li>
           <li data-tool="pdf" data-guest><a class="tool-link" href="/useful/pdf-gray/"><span class="tool-glyph"><svg aria-hidden="true"><use href="#tool-pdf"></use></svg></span><span class="tool-name">PDF 浅灰转换</span><span class="tool-short">调整深浅以便打印</span></a></li>
         </ul><p class="no-tools" id="no-tools" hidden></p></div>
         <button class="dock-step next" type="button" id="dock-next" aria-label="向后浏览工具" hidden>›</button>
@@ -86,7 +88,7 @@
     </section>
   </main>
   <footer data-i18n-ignore><span>GARYHUB / MADE FOR EVERYDAY</span><span data-copy="footer">学习 · 实践 · 记录</span></footer>
-  <script src="/hub.js"></script><script src="/hub-account.js"></script><script src="/hub-nav.js?v=2.4.3.4"></script><script src="/hub-search.js?v=2.4.3.4"></script>
+  <script src="/hub.js"></script><script src="/hub-account.js"></script><script src="/hub-nav.js?v=2.4.4.0"></script><script src="/hub-search.js?v=2.4.4.0"></script>
 <script src="/ambient-music.js?v=1.4.2.0"></script>
-<script src="/companion/boot.js?v=2.4.3.4" defer data-companion="open"></script></body>
+<script src="/companion/boot.js?v=2.4.4.0" defer data-companion="open"></script><script type="module" src="/useful/site-navigator/permissions.mjs?v=2.4.4.0"></script></body>
 </html>

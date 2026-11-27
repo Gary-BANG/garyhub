@@ -252,7 +252,7 @@
     for (const [id, need] of CHARS) {
       const allowed = rank[tier] >= rank[need], input = el('input'), card = el('label', 'companion-card'), image = el('img');
       input.type = 'radio'; input.name = 'char'; input.value = id; input.id = 'char-' + id; input.checked = id === chosen; input.disabled = !allowed;
-      image.src = '/companion/characters/' + id + '/thumbnail.webp?v=2.4.3.4'; image.alt = ''; image.loading = 'lazy'; image.width = 72; image.height = 72;
+      image.src = '/companion/characters/' + id + '/thumbnail.webp?v=2.4.4.0'; image.alt = ''; image.loading = 'lazy'; image.width = 72; image.height = 72;
       card.htmlFor = input.id; card.append(image, el('strong', '', x.chars[id]));
       if (!allowed) card.append(el('small', '', x.locked[need]));
       input.addEventListener('change', () => { if (input.checked) save('companion', {'companion.char': id}); });

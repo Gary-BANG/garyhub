@@ -83,7 +83,7 @@ async function expand(bytes, method, expected) {
       const {value,done}=await reader.read();
       if(done) break;
       length+=value.length;
-      if(length>expected || length>LIMITS.entry) {
+      if(length>expected) {
         await reader.cancel();
         fail('ZIP 文件校验失败，请重新打包');
       }
@@ -102,9 +102,9 @@ export function decodeMarkdown(bytes) {
   try { return utf8.decode(bytes).replace(/^\uFEFF/,''); }
   catch { fail('文档不是有效的 UTF-8 文本，请另存为 UTF-8'); }
 }
-export async function readZip(input) {
+export function indexZip(input, limits=LIMITS) {
   const bytes=input instanceof Uint8Array?input:new Uint8Array(input);
-  if(bytes.length>LIMITS.archive) fail('ZIP 文件最多支持 20 MB');
+  if(bytes.length>limits.archive) fail('ZIP 文件最多支持 '+limits.archive/1048576+' MB');
   const v=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
   let end=-1;
   for(let p=bytes.length-22;p>=Math.max(0,bytes.length-65557);p--) {
@@ -113,7 +113,7 @@ export async function readZip(input) {
   if(end<0) damaged();
   const count=v.getUint16(end+10,true),size=v.getUint32(end+12,true),offset=v.getUint32(end+16,true);
   if(v.getUint16(end+4,true) || v.getUint16(end+6,true) || count!==v.getUint16(end+8,true) || count===65535 || size===0xffffffff || offset===0xffffffff) unsupported();
-  if(count>LIMITS.files) fail('ZIP 内文件数量超过 500 个');
+  if(count>limits.files) fail('ZIP 内文件数量超过 '+limits.files+' 个');
   if(offset+size!==end) damaged();
   let pos=offset,total=0;const entries=[],names=new Set(),ranges=[];
   for(let i=0;i<count;i++) {
@@ -132,8 +132,8 @@ export async function readZip(input) {
     names.add(path);
     if(((v.getUint32(pos+38,true)>>>16)&0xf000)===0xa000) unsafe();
     total+=original;
-    if(original>LIMITS.entry || isMarkdown(path) && original>LIMITS.markdown) fail('ZIP 内单个文件不能超过 10 MB，Markdown 不能超过 4 MB');
-    if(total>LIMITS.total) fail('ZIP 解压后总大小不能超过 50 MB');
+    if(original>limits.entry || isMarkdown(path) && original>limits.markdown) fail('ZIP 内单个文件超过大小限制（'+limits.entry/1048576+' MB）');
+    if(total>limits.total) fail('ZIP 解压后总大小不能超过 '+limits.total/1048576+' MB');
     if(local+30>offset || v.getUint32(local,true)!==0x04034b50) damaged();
     const localNameSize=v.getUint16(local+26,true),start=local+30+localNameSize+v.getUint16(local+28,true);
     if(start+compressed>offset || v.getUint16(local+6,true)!==flags || v.getUint16(local+8,true)!==method || localNameSize!==nameSize) damaged();
@@ -145,14 +145,24 @@ export async function readZip(input) {
   if(pos!==end) damaged();
   ranges.sort((a,b)=>a[0]-b[0]);
   if(ranges.some((range,i)=>i && range[0]<ranges[i-1][1])) damaged();
-  const documents=new Map(),images=new Map();
+  const files=new Map();
   for(const e of entries) {
     if(e.directory || e.path.startsWith('__MACOSX/') || e.path.split('/').some(p=>p.startsWith('._'))) continue;
-    if(!isMarkdown(e.path) && !/\.(png|jpe?g|gif|webp)$/i.test(e.path)) continue;
-    const data=await expand(bytes.subarray(e.start,e.start+e.compressed),e.method,e.original);
-    if(data.length!==e.original || crc32(data)!==e.crc) fail('ZIP 文件校验失败，请重新打包');
-    if(isMarkdown(e.path)) documents.set(e.path,decodeMarkdown(data));
-    else { const type=imageType(data); if(type) images.set(e.path,{bytes:data,type}); }
+    files.set(e.path,async()=>{
+      const data=await expand(bytes.subarray(e.start,e.start+e.compressed),e.method,e.original);
+      if(data.length!==e.original || crc32(data)!==e.crc) fail('ZIP 文件校验失败，请重新打包');
+      return data;
+    });
+  }
+  return files;
+}
+export async function readZip(input) {
+  const documents=new Map(),images=new Map();
+  for(const [path,read] of indexZip(input)) {
+    if(!isMarkdown(path) && !/\.(png|jpe?g|gif|webp)$/i.test(path)) continue;
+    const data=await read();
+    if(isMarkdown(path)) documents.set(path,decodeMarkdown(data));
+    else { const type=imageType(data); if(type) images.set(path,{bytes:data,type}); }
   }
   if(!documents.size) fail('ZIP 内没有 Markdown 文档');
   return {documents,images};

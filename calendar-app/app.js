@@ -162,7 +162,7 @@ async function resolveTargetUserId(req) {
 }
 
 app.get("/health", (req, res) => {
-  res.json({ ok: true, hubVersion: "2.4.3.4" });
+  res.json({ ok: true, hubVersion: "2.4.4.0" });
 });
 
 // 登录
@@ -685,6 +685,7 @@ registerResearch(app,{requireLogin});
 registerToolAccess(app);
 registerDailyQuote(app,{db:require("./db"),requireLogin});
 registerMusic(app,{requireLogin});
+require("./site-navigator").register(app,{requireLogin});
 registerHubApi(app,{db:require("./db"),requireLogin,requireAdmin});
 registerTasksApi(app, { requireLogin, resolveTargetUserId });
 registerEmailApi(app, { requireLogin });
@@ -697,6 +698,7 @@ app.use((err,req,res,next)=>{if(res.headersSent)return next(err);res.status(err.
 initDb()
   .then(() => migratePersonalRecords(require("./db")))
   .then(() => migrateHub(require("./db")))
+  .then(() => require("./site-navigator").migrate(require("./db")))
   .then(() => migrateAccounts(require("./db")))
   .then(() => migrateMembership(require("./db")))
   .then(() => migrateProfile(require("./db")))

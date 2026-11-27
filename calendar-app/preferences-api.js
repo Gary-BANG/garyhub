@@ -10,7 +10,7 @@ const {rateLimit} = require('./rate-limit');
 const list = (values, max) => ({list: values, max});
 const HALF_HOURS = Array.from({length: 48}, (_, i) => String(Math.floor(i / 2)).padStart(2, '0') + (i % 2 ? ':30' : ':00'));
 const TOOLS = ['grades', 'study', 'lab', 'research', 'calendar', 'files', 'stocks', 'reading', 'status', 'server-monitor', 'ai-logs',
-  'access', 'totp', 'eraser', 'markdown', 'pdf'];
+  'access', 'totp', 'eraser', 'markdown', 'pdf', 'navigator'];
 const BOOL = [true, false];
 const SCHEMA = {
   'appearance.theme': ['system', 'light', 'dark'],

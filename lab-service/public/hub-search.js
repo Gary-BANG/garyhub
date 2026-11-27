@@ -21,7 +21,7 @@
     stocks: 'https://calendar.garyhub.uk/stocks/', reading: 'https://rss.garyhub.uk/', status: 'https://kuma.garyhub.uk/',
     'server-monitor': 'https://tools.garyhub.uk/server-monitor/', 'ai-logs': 'https://tools.garyhub.uk/ai-logs/', access: 'https://lab.garyhub.uk/access/',
     totp: 'https://tools.garyhub.uk/totp/', eraser: 'https://tools.garyhub.uk/useful/image-eraser/', markdown: 'https://tools.garyhub.uk/useful/markdown-viewer/',
-    pdf: 'https://tools.garyhub.uk/useful/pdf-gray/'};
+    navigator: 'https://tools.garyhub.uk/useful/site-navigator/', pdf: 'https://tools.garyhub.uk/useful/pdf-gray/'};
   const PAGES = [
     {zh: '主页', en: 'Home', url: 'https://garyhub.uk/', keys: 'home homepage 首页 主页'},
     {zh: '工具台', en: 'Tools', url: 'https://tools.garyhub.uk/', keys: 'tools 工具台 工具箱'},

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>个人网站导航 · GaryHub</title>
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="navigator.css?v=2.4.4.0" />
+    <script src="/hub-prefs.js?v=2.4.4.0"></script>
+    <script src="/auth-redirect.js?v=2.4.4.0"></script>
+  </head>
+  <body>
+    <header class="mast">
+      <div class="bar">
+        <a class="wordmark" href="https://garyhub.uk"><img src="/favicon.svg" alt="" />GaryHub</a
+        ><span class="sep">/</span><a href="/" data-en="Tools">工具</a>
+        <div class="right">
+          <button id="theme" title="切换主题" aria-label="切换主题">◐</button
+          ><a id="login" href="https://calendar.garyhub.uk/login/" data-en="Sign in">登录</a
+          ><span id="who"></span>
+        </div>
+      </div>
+    </header>
+    <main class="wrap">
+      <div class="title-row">
+        <h1 data-en="Personal sites">个人网站导航</h1>
+        <button class="primary" id="add" data-en="＋ Add site">＋ 添加网站</button>
+      </div>
+      <label class="search"
+        ><span aria-hidden="true">⌕</span
+        ><input id="search" type="search" placeholder="搜索网站" aria-label="搜索网站" autocomplete="off"
+      /></label>
+      <div class="section-head">
+        <h2 data-en="My sites">我的网站</h2>
+        <span id="count"></span>
+      </div>
+      <ul id="sites" class="cards"></ul>
+      <button id="drop" class="drop" type="button">
+        <span class="drop-illustration" aria-hidden="true"></span
+        ><span
+          ><b data-en="Drag in a webpage, folder or ZIP">拖入网页、文件夹或压缩包</b
+          ><small data-en="Or choose a local website">也可以点此选择本机网站</small></span
+        ><span class="drop-arrow">↗</span>
+      </button>
+      <p id="status" class="status" role="status"></p>
+    </main>
+    <dialog id="drawer">
+      <form id="editor">
+        <div class="drawer-head">
+          <h2 id="drawer-title">添加网站</h2>
+          <button type="button" class="icon" id="cancel" aria-label="关闭">×</button>
+        </div>
+        <div class="tabs">
+          <button type="button" id="tab-local" aria-pressed="true" data-en="Local files">本地文件</button
+          ><button type="button" id="tab-url" aria-pressed="false" data-en="Web address">网址</button>
+        </div>
+        <section id="local-pane">
+          <div class="pick">
+            <button type="button" id="pick-file" data-en="Choose HTML / ZIP">选择 HTML / ZIP</button
+            ><button type="button" id="pick-folder" data-en="Choose folder">选择文件夹</button>
+          </div>
+          <p class="chosen" id="chosen" hidden></p>
+          <label id="entry-label" hidden
+            ><span data-en="Entry file">入口文件</span
+            ><select id="entry"></select
+          ></label>
+        </section>
+        <label id="url-label" hidden
+          ><span data-en="Web address">网站地址</span
+          ><input id="url" type="text" inputmode="url" placeholder="https://… / http://localhost:…"
+        /></label>
+        <label
+          ><span data-en="Website name">网站名称</span><input id="name" maxlength="120" required
+        /></label>
+        <label class="save"
+          ><input type="checkbox" id="remember" /><span data-en="Save to my navigation"
+            >保存到我的导航</span
+          ></label
+        >
+        <p id="storage-note" class="hint" data-en="Files stay on this device.">文件保留在本机。</p>
+        <p id="form-status" class="status" role="status"></p>
+        <div class="drawer-foot"><button type="submit" id="submit" class="primary">只打开一次 →</button></div>
+      </form>
+    </dialog>
+    <input type="file" id="file" accept=".html,.htm,.zip" hidden /><input
+      type="file"
+      id="folder"
+      webkitdirectory
+      multiple
+      hidden
+    />
+    <dialog id="reader">
+      <div class="reader-bar">
+        <button class="plain" id="leave">← 返回导航</button><strong id="reader-title"></strong
+        ><span class="right"><button id="full" aria-label="全屏">⛶</button></span>
+      </div>
+      <p id="reader-status" role="status" hidden></p>
+      <div id="frame"></div>
+      <section id="asset" hidden>
+        <div class="asset-tools">
+          <button id="back-asset">← 返回网页</button><span id="asset-name"></span
+          ><span id="pages" hidden
+            ><button id="prev" aria-label="上一页">‹</button> <output id="page-num"></output>
+            <button id="next" aria-label="下一页">›</button></span
+          >
+        </div>
+        <div id="asset-body"></div>
+      </section>
+    </dialog>
+    <script type="module" src="navigator.mjs?v=2.4.4.0"></script>
+  </body>
+</html>
