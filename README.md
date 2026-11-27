@@ -2,11 +2,11 @@
 
 GaryHub 是使用统一账号的个人工作空间，包含日历与私人记录、账本、待办、学习工具和服务器工具。仓库保存应用源码、脱敏文档与可复现更新器；正式服务通过经过验证的升级包部署，GitHub 合并不会自动更新服务器。
 
-**当前源码版本 v2.4.3.4。** 游戏厅[实时房间](https://games.garyhub.uk/play/)里的**大富翁**：破产改为清算——房子和地按银行价卖掉，连同现金付给债主，最多付到欠款，地产退回银行，谁停在上面都可以再买（之前开的房间仍把地产交给债主）。电脑对手的判断重做：三档都按前方可能要交的过路费留现金、都能盖到酒店、都会抢地拦人凑组；交易时按剩下的回合估算一块地还能收多少过路费，越到后期越肯卖，自己缺钱时更看重现金，也会把地卖给用得上的人；普通和精明会向你要一组里缺的一到两块地，精明在后半局还会分别向两人收购同一组；拍卖时低于地价也会跟价，不会再被 100 捡走。记录里写明这些理由。v2.4.3.3 的胜负方式、交易、拍卖、走势图与动画照旧；词语默契、对战猜数字、合作小车、骰子抢宝箱与白日梦想家的规则不变。
+**当前源码版本 v2.4.4.0。** Tools 新增「个人网站导航」。支持临时打开本机 HTML、网站文件夹、ZIP 和 HTTP(S) 网址。登录后可以选择保存名称及入口，下次点击网站名称即可打开。文件保留在用户设备上。已关联的本机文件需要重新授权时，通知中心会提醒所属账号并提供返回该卡片的入口。
 
-本版源码基于 PR #54（v2.4.3.3，main `2c51ae7`），源码已准备、本地验证，尚未推送／合并／部署。安装器 v2.4.3.4-r2（r1 的结束语含未转义的单引号，PowerShell 解析失败，未执行任何步骤）严格要求两服务运行 v2.4.3.3（生产是否已运行 v2.4.3.3 未取证；2026-11-21 tools 与 calendar 的 `/health` 返回 2.4.3.2）；已收到完整安装输出的最新版本仍为 v2.4.0.0（八阶段完成、8 个通知接收账号）。本版不需要 DNS 或 Caddy 改动，没有新依赖、没有新表。完整解压后双击 `RUN-UPDATE.cmd`，回滚用 `ROLLBACK.cmd`，源码审查分支同步用 `PUSH-TO-GITHUB.cmd`。构建：`python scripts/updater/manage.py build --release 2.4.3.4 --output <ZIP绝对路径>`（Windows 上在 `core.autocrlf=false` 的 LF worktree 中构建）。见[版本说明](docs/GARYHUB_V2_4_3_4.md)、[验证记录](docs/GARYHUB_V2_4_3_4_TESTS.md)与[五款游戏设计稿](docs/GAMES_V2_4_3_0_DESIGN.md)；上一版见 [v2.4.3.3 说明](docs/GARYHUB_V2_4_3_3.md)。
+本版基于已合并的 v2.4.3.4（PR #55，main `4603993`），源码及安装包已在本地验证。本版 GitHub 合并与生产部署待现场记录。安装器 v2.4.4.0-r1 要求 Calendar 与 Tools/Lab 实际运行 v2.4.3.4，沿用现有域名、Caddy 和两个能力组合。完整解压后双击 `RUN-UPDATE.cmd` 安装，`ROLLBACK.cmd` 回滚，`PUSH-TO-GITHUB.cmd` 用于另行同步审查分支。构建命令为 `python scripts/updater/manage.py build --release 2.4.4.0 --output <新的ZIP绝对路径>`。详见[本版说明](docs/GARYHUB_V2_4_4_0.md)、[测试记录](docs/GARYHUB_V2_4_4_0_TESTS.md)和[上一版说明](docs/GARYHUB_V2_4_3_4.md)。
 
-维护日期：2026-11-22（America/Chicago）。
+维护日期为 2026-11-26（America/Chicago）。
 
 ## 应用入口
 
@@ -15,7 +15,7 @@ GaryHub 是使用统一账号的个人工作空间，包含日历与私人记录
 | [GaryHub](https://garyhub.uk) | 星空主页与入口、登录后的“今日”面板、全站搜索、统一账号与站内通知 | `lab-service/public/homepage.html`、`lab-service/public/home/`、`calendar-app/` |
 | [开发者档案](https://garyhub.uk/developer/) | 按访问规则显示的开发者简介、教育背景、学业成绩、研究与项目、专业技能 | `lab-service/public/developer/`、`lab-service/homepage-privacy.cjs`、`calendar-app/profile-access.js` |
 | [Calendar](https://calendar.garyhub.uk) | 日历事项与只读订阅（ICS）、浏览器推送、日记、健康记录、私人账本与月度预算、固定开支、Todo、Research Dictionary、个人音乐库 | `calendar-app/` |
-| [Tools](https://tools.garyhub.uk) | 可搜索工具图标与 Dock；设置中心（`/personalize/`）；学习中心、成绩规划、Markdown Viewer、PDF 浅灰转换、图片局部消除、Reading、服务器监控、AI 日志及权限控制工具 | `lab-service/` |
+| [Tools](https://tools.garyhub.uk) | 可搜索工具图标与 Dock；设置中心（`/personalize/`）；个人网站导航、学习中心、成绩规划、Markdown Viewer、PDF 浅灰转换、图片局部消除、Reading、服务器监控、AI 日志及权限控制工具 | `lab-service/` |
 | [ECE 470 Lab](https://lab.garyhub.uk/lab/) | 机器人学练习、题库导入、代码运行、个人进度与作业分发 | `lab-service/public/lab/` |
 | [游戏厅](https://games.garyhub.uk) | 需登录。实时房间（房间码与邀请、准备、服务器计时、掉线暂停与重连、延迟显示）：词语默契、对战猜数字、合作小车，以及可加电脑对手、支持托管的骰子抢宝箱与大富翁（交易、拍卖、三种胜负方式、破产清算）；双人轮流游戏“白日梦想家” | `lab-service/games-host.cjs`、`lab-service/public/games/`、`calendar-app/play-rooms.js`、`play-word.js`、`play-digits.js`、`play-car.js`、`play-treasure.js`、`play-monopoly.js`、`games-api.js` |
 | [外站链接](https://sites.garyhub.uk) | GaryHub 之外的公开网站（ECE 470 Motion Notes、光影手记摄影课程），粒子背景与悬停预览；链接在新标签页打开 | `lab-service/public/sites/` |
@@ -24,6 +24,7 @@ Calendar 使用 Node.js 20、Express 与 SQLite；Tools/Lab 使用 Node 原生 H
 
 ## 当前功能与使用边界
 
+- 个人网站导航可作为访客临时使用，保存私人书签须登录。账号同步名称、来源和相对入口或网址，浏览器在本机保存可用的文件关联。原设备在 Tools 首页或导航页检测到已失效的授权后，会向通知中心发送去重提醒。新设备第一次打开本地书签时需要选择文件。见[个人网站导航](docs/GARYHUB_V2_4_4_0.md)。
 - 大富翁电脑与破产（v2.4.3.4）：三档电脑的参数都在 `calendar-app/play-monopoly.js` 的 `LEVELS`（留钱底线与看几掷、交易门槛随进度、还价比例、缺钱卖地、溢价、拍卖上限）；估值用剩余回合（`horizon`）、前方期望过路费（`exposure`）与以后的过路费（`earning`）。新房间的 `state.liquidate` 让破产按银行价清算、地产退回银行；没有这个字段的旧房间仍交给债主。
 - 大富翁规则（v2.4.3.3）：设置 `mode`（rounds／classic／time）、`minutes`、`auction`、`trade`，缺省即旧规则；交易、还价、拍卖与电脑的决定都在 `calendar-app/play-monopoly.js`，状态里有按回合的资产记录和给页面按顺序播放的事件列表；电脑的理由只在电脑行动时保存（`play-rooms.js` 传 `ctx.bot`）。动画速度在 `lab-service/public/games/play/board.js`，存于本机浏览器。
 - 骰子抢宝箱与大富翁（v2.4.3.2）：规则在 `calendar-app/play-treasure.js` 与 `play-monopoly.js`，各自声明 `seatCount`（座位数随房间设置）与 `away: 'autoplay'`；`play-rooms.js` 在掉线宽限后或连续两次超时后让“普通”电脑托管该座位，本人用 `takeover` 接管，只有所有真人离开才暂停。宝箱内容、别人的暗夹与道具、牌序不发给页面，电脑也只看公开信息。两款共用页面上的 `lab-service/public/games/play/board.js`（格子棋盘、棋子逐格走、骰子动画）。

@@ -35,7 +35,7 @@ function registerHubApi(app,{db,requireLogin,requireAdmin}){
     const before=req.query.before?Number(req.query.before):null;
     if(before!==null&&(!Number.isSafeInteger(before)||before<1))return res.status(400).json({message:'分页参数无效'});
     await pruneNotifications(db);
-    const items=await all(`SELECT id,type,scope,title,body,read_at,created_at,${PROTECTED_SQL} AS required FROM notifications WHERE user_id=? AND ${VISIBLE_SQL}${filter}${before?' AND id<?':''} ORDER BY id DESC LIMIT 51`,[...params,...(before?[before]:[])]);
+    const items=await all(`SELECT id,type,scope,title,body,CASE WHEN type='site_permission' THEN action_url END AS action_url,read_at,created_at,${PROTECTED_SQL} AS required FROM notifications WHERE user_id=? AND ${VISIBLE_SQL}${filter}${before?' AND id<?':''} ORDER BY id DESC LIMIT 51`,[...params,...(before?[before]:[])]);
     const count=await get(`SELECT COUNT(*) AS n FROM notifications WHERE user_id=? AND ${VISIBLE_SQL}${filter} AND read_at IS NULL`,params);
     res.json({items:items.slice(0,50),unread:count.n,nextBefore:items.length>50?items[49].id:null});
   }));

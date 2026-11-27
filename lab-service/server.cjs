@@ -33,7 +33,7 @@ async function identity(req) {
   return user;
 }
 async function body(req) {
-  const maxSize=req.url.startsWith('/api/lab/distribution')||req.url.startsWith('/api/access/')||req.url.startsWith('/api/hub/totp')||req.url.startsWith('/api/password-reset/')?8192:req.url.startsWith('/api/assistant/')?16384:LIMIT;
+  const maxSize=req.url.startsWith('/api/hub/site-navigator')||req.url.startsWith('/api/lab/distribution')||req.url.startsWith('/api/access/')||req.url.startsWith('/api/hub/totp')||req.url.startsWith('/api/password-reset/')?8192:req.url.startsWith('/api/assistant/')?16384:LIMIT;
   let size=0; const chunks=[];
   for await (const chunk of req) { size+=chunk.length; if(size>maxSize) { const e=Error('Payload too large'); e.status=413; throw e; } chunks.push(chunk); }
   try {return JSON.parse(Buffer.concat(chunks).toString());} catch {const e=Error('Invalid JSON');e.status=400;throw e;}
@@ -85,7 +85,7 @@ const server = http.createServer(async (req,res)=>{
     if(await academic(req,res,url))return;
     if(['/grades','/grades/','/study','/study/'].includes(url.pathname))url.pathname='/academic/index.html';
     url.pathname=decodeURIComponent(url.pathname);
-    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"2.4.3.4"});
+    if(url.pathname==='/health') return json(res,200,{ok:true,service:'garyhub-lab',version:1,accessVersion:2,hubVersion:"2.4.4.0"});
     if(url.pathname.startsWith('/sub/')) {
       if(req.method!=='GET') return json(res,405,{message:'Method not allowed'});
       const sub=connections.subscription(url.pathname.slice(5));
@@ -107,7 +107,8 @@ const server = http.createServer(async (req,res)=>{
       const hubRoute=/^\/api\/hub\/(?:me|preferences|notifications(?:\/\d+\/read|\/(?:read-all|delete-all))?|notify(?:\/devices\/\d+\/remove|\/feed)?|games(?:\/[1-9]\d{0,8}(?:\/(?:decline|cancel|choose|open|offer|answer|reveal|honor))?)?|play|admin\/users(?:\/\d+\/(?:academics|status|reset-password|deletion-preview|tier|stock-vip))?)$/.test(url.pathname);
       const registrationRoute=/^\/api\/admin\/register-requests(?:\/\d+\/(?:approve|reject))?$/.test(url.pathname);
       const totpRoute=/^\/api\/hub\/totp(?:\/codes|\/[0-9a-f-]{36}(?:\/reveal|\/grants(?:\/[1-9][0-9]*)?)?)?$/.test(url.pathname);
-      if(hubRoute||registrationRoute||profileRoute||totpRoute){
+      const siteRoute=/^\/api\/hub\/site-navigator(?:\/(?:edit|remove|permission))?$/.test(url.pathname);
+      if(hubRoute||registrationRoute||profileRoute||totpRoute||siteRoute){
         if(!(totpRoute?['GET','POST','PUT','DELETE']:['GET','POST','PUT']).includes(req.method))return json(res,405,{message:'Method not allowed'});
         const payload=req.method==='GET'?undefined:JSON.stringify(await body(req));
         const upstream=await calendar(req,url.pathname+url.search,req.method,payload);
@@ -191,6 +192,10 @@ const server = http.createServer(async (req,res)=>{
       return json(res,200,{revision:next.revision,updatedAt:next.updatedAt});
     }
     if(!['GET','HEAD'].includes(req.method)) return json(res,405,{message:'Method not allowed'});
+    if(['/useful/site-navigator','/useful/site-navigator/','/useful/site-navigator/index.html'].includes(url.pathname)){
+      if(url.pathname.endsWith('site-navigator')){res.writeHead(302,{Location:url.pathname+'/'+url.search});return res.end();}
+      res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self' 'unsafe-inline' blob: data:; style-src 'self' 'unsafe-inline' blob: data:; img-src 'self' blob: data:; font-src 'self' blob: data:; frame-src blob: about:; worker-src 'self' blob:; connect-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'");
+    }
     if(/^\/useful\/(image-eraser|markdown-viewer|pdf-gray)(?:\/|\/index.html)?$/.test(url.pathname)){
       // These three tools work on files inside the browser and store nothing, so guests may use them (v2.4.1.3).
       if(!url.pathname.endsWith('/')&&!url.pathname.endsWith('.html')){res.writeHead(302,{Location:url.pathname+'/'});return res.end();}
