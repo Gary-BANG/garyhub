@@ -78,12 +78,19 @@ export function fromHandle(h) {
     : h.getFile().then((f) => fromFile(f, h));
 }
 export function fromFolderInput(list) {
-  const files = Array.from(list),
-    root = files[0]?.webkitRelativePath.split('/')[0] || '';
+  const files = Array.from(list);
+  if (!files.length) throw Error('目录为空，请选择包含 HTML 的网站文件夹。');
+  const paths = files.map((file) => {
+    if (!file.webkitRelativePath) throw Error('浏览器未提供文件夹内的相对路径。请改选网站 ZIP 或单个 HTML。');
+    return archivePath(file.webkitRelativePath);
+  });
+  // Some providers return paths relative to the selected root, others include its name.
+  const prefix = paths[0].split('/')[0] + '/';
+  const commonRoot = paths.every((path) => path.startsWith(prefix)) ? prefix : '';
   return folder(
-    files.map((f) => [f.webkitRelativePath.slice(root.length + 1), () => f]),
+    files.map((file, i) => [paths[i].slice(commonRoot.length), () => file]),
     null,
-    root
+    commonRoot.slice(0, -1) || '网站文件夹'
   );
 }
 export async function titleOf(source, entry) {
@@ -95,7 +102,7 @@ export async function titleOf(source, entry) {
   text.innerHTML = title.replace(/</g, '&lt;');
   return text.value.trim().slice(0, 120);
 }
-export async function packageFiles(source) {
+export async function packageFiles(source, keepCopy = false) {
   const out = new Map();
   let total = 0;
   for (const [path, read] of source.files) {
@@ -103,7 +110,12 @@ export async function packageFiles(source) {
     total += blob.size;
     if (blob.size > limits.entry || total > limits.total)
       throw Error('网站文件过大，请仅选择发布目录（最多 192 MiB）');
-    out.set(path, blob.slice(0, blob.size, mime(path)));
+    // A sliced File can still reference the OS file. Own the bytes before saving a copy.
+    const content =
+      keepCopy && source.kind !== 'zip'
+        ? new Blob([await blob.arrayBuffer()], { type: mime(path) })
+        : blob.slice(0, blob.size, mime(path));
+    out.set(path, content);
   }
   return out;
 }

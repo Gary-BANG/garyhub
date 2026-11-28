@@ -26,8 +26,16 @@ async function access(mode, fn) {
   });
 }
 export const binding = (account, site) => access('readonly', (s) => s.get([account, site]));
-const save = (record) => access('readwrite', (s) => s.put(record));
-export const forget = (account, site) => access('readwrite', (s) => s.delete([account, site]));
+// Keep the v1 key and index for old tabs. A separate, typed owner key lets permission
+// checks enumerate only small binding records. The copy and its binding share a transaction.
+const copyOwner = (account) => ['local-copy', account];
+export const bindingsFor = (account) => access('readonly', (s) => s.index('account').getAll(account));
+export const readCopy = (account, site) => access('readonly', (s) => s.get([copyOwner(account), site]));
+export const forget = (account, site) =>
+  access('readwrite', (s) => {
+    s.delete([copyOwner(account), site]);
+    return s.delete([account, site]);
+  });
 export async function json(path, options = {}) {
   const response = await fetch(path, { cache: 'no-store', ...options });
   const data = await response.json();
@@ -43,18 +51,42 @@ export async function mutate(suffix, account, data) {
     body: JSON.stringify({ ...data, accountId: account })
   });
 }
-export async function link(account, site, handle, entry) {
-  const old = await binding(account, site);
-  const record = {
-    account,
-    site,
-    handle,
-    entry,
-    device: old?.device || crypto.randomUUID(),
-    last: old?.last || 'ready'
+export async function link(account, site, handle, entry, files = null) {
+  const tx = (await db()).transaction('bindings', 'readwrite');
+  const store = tx.objectStore('bindings');
+  const previous = store.get([account, site]);
+  let record, failure;
+  previous.onsuccess = () => {
+    try {
+      const old = previous.result;
+      record = {
+        account,
+        site,
+        entry,
+        handle,
+        hasCopy: !!files,
+        device: old?.device || crypto.randomUUID(),
+        last: old?.last || 'ready'
+      };
+      try {
+        store.put(record);
+      } catch (e) {
+        if (e.name !== 'DataCloneError' || !files || !handle) throw e;
+        record.handle = null;
+        store.put(record);
+      }
+      if (files) store.put({ account: copyOwner(account), site, entry, files });
+      else store.delete([copyOwner(account), site]);
+    } catch (e) {
+      failure = e;
+      tx.abort();
+    }
   };
-  await save(record);
-  if (record.last === 'attention') await report(record, 'ready');
+  await new Promise((resolve, reject) => {
+    tx.oncomplete = resolve;
+    tx.onabort = () => reject(failure || tx.error || Error('无法保存本机文件'));
+  });
+  if (record.last === 'attention') await report(record, 'ready').catch(() => {});
   return record;
 }
 export async function report(record, state) {
@@ -90,7 +122,7 @@ export async function audit() {
   try {
     const me = await json('/api/hub/me');
     if (!me.user) return;
-    const records = await access('readonly', (s) => s.index('account').getAll(me.user.id));
+    const records = await bindingsFor(me.user.id);
     for (const rec of records) {
       if (!rec.handle?.queryPermission) continue; // Another device or plain file-input fallback has no grant to expire.
       try {
