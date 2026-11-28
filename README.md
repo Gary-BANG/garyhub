@@ -2,11 +2,11 @@
 
 GaryHub 是使用统一账号的个人工作空间，包含日历与私人记录、账本、待办、学习工具和服务器工具。仓库保存应用源码、脱敏文档与可复现更新器；正式服务通过经过验证的升级包部署，GitHub 合并不会自动更新服务器。
 
-**当前源码版本 v2.4.4.0。** Tools 新增「个人网站导航」。支持临时打开本机 HTML、网站文件夹、ZIP 和 HTTP(S) 网址。登录后可以选择保存名称及入口，下次点击网站名称即可打开。文件保留在用户设备上。已关联的本机文件需要重新授权时，通知中心会提醒所属账号并提供返回该卡片的入口。
+**当前源码版本 v2.4.4.2。** Tools 的个人网站导航可以在当前浏览器保留 HTML、文件夹或 ZIP 网站的副本。旧书签补选一次后即可点名称重开。原文件授权有效时会读取最新文件，失效后可继续读副本，通知中心提供重新授权入口。
 
-本版基于已合并的 v2.4.3.4（PR #55，main `4603993`），源码及安装包已在本地验证。本版 GitHub 合并与生产部署待现场记录。安装器 v2.4.4.0-r1 要求 Calendar 与 Tools/Lab 实际运行 v2.4.3.4，沿用现有域名、Caddy 和两个能力组合。完整解压后双击 `RUN-UPDATE.cmd` 安装，`ROLLBACK.cmd` 回滚，`PUSH-TO-GITHUB.cmd` 用于另行同步审查分支。构建命令为 `python scripts/updater/manage.py build --release 2.4.4.0 --output <新的ZIP绝对路径>`。详见[本版说明](docs/GARYHUB_V2_4_4_0.md)、[测试记录](docs/GARYHUB_V2_4_4_0_TESTS.md)和[上一版说明](docs/GARYHUB_V2_4_3_4.md)。
+安装器 v2.4.4.2-r1 要求 Calendar 和 Tools/Lab 实际运行 v2.4.4.1。公开审阅基线是 v2.4.4.0 的 main 提交 `1aa5eca`，运行时基线是上一份 v2.4.4.1 安装包。本版本已在本地验证，GitHub 合并与生产安装待记录。完整解压后双击 `RUN-UPDATE.cmd` 安装，`ROLLBACK.cmd` 回滚，`PUSH-TO-GITHUB.cmd` 同步源码审查分支。构建命令为 `python scripts/updater/manage.py build --release 2.4.4.2 --output <新的ZIP绝对路径>`。参见[版本说明](docs/GARYHUB_V2_4_4_2.md)、[验证记录](docs/GARYHUB_V2_4_4_2_TESTS.md)及[上一版](docs/GARYHUB_V2_4_4_1.md)。
 
-维护日期为 2026-11-26（America/Chicago）。
+维护日期为 2026-11-27（America/Chicago）。
 
 ## 应用入口
 
@@ -24,7 +24,7 @@ Calendar 使用 Node.js 20、Express 与 SQLite；Tools/Lab 使用 Node 原生 H
 
 ## 当前功能与使用边界
 
-- 个人网站导航可作为访客临时使用，保存私人书签须登录。账号同步名称、来源和相对入口或网址，浏览器在本机保存可用的文件关联。原设备在 Tools 首页或导航页检测到已失效的授权后，会向通知中心发送去重提醒。新设备第一次打开本地书签时需要选择文件。见[个人网站导航](docs/GARYHUB_V2_4_4_0.md)。
+- 个人网站导航可作为访客临时使用。登录并勾选保存后，可自行决定是否在当前浏览器保留网站副本。账号仅同步书签信息。浏览器可从原文件或本机副本打开，清除站点数据或更换设备后需在该设备关联一次。普通选择产生的副本可通过卡片上的「更新副本」替换。参见[个人网站导航](docs/GARYHUB_V2_4_4_2.md)。
 - 大富翁电脑与破产（v2.4.3.4）：三档电脑的参数都在 `calendar-app/play-monopoly.js` 的 `LEVELS`（留钱底线与看几掷、交易门槛随进度、还价比例、缺钱卖地、溢价、拍卖上限）；估值用剩余回合（`horizon`）、前方期望过路费（`exposure`）与以后的过路费（`earning`）。新房间的 `state.liquidate` 让破产按银行价清算、地产退回银行；没有这个字段的旧房间仍交给债主。
 - 大富翁规则（v2.4.3.3）：设置 `mode`（rounds／classic／time）、`minutes`、`auction`、`trade`，缺省即旧规则；交易、还价、拍卖与电脑的决定都在 `calendar-app/play-monopoly.js`，状态里有按回合的资产记录和给页面按顺序播放的事件列表；电脑的理由只在电脑行动时保存（`play-rooms.js` 传 `ctx.bot`）。动画速度在 `lab-service/public/games/play/board.js`，存于本机浏览器。
 - 骰子抢宝箱与大富翁（v2.4.3.2）：规则在 `calendar-app/play-treasure.js` 与 `play-monopoly.js`，各自声明 `seatCount`（座位数随房间设置）与 `away: 'autoplay'`；`play-rooms.js` 在掉线宽限后或连续两次超时后让“普通”电脑托管该座位，本人用 `takeover` 接管，只有所有真人离开才暂停。宝箱内容、别人的暗夹与道具、牌序不发给页面，电脑也只看公开信息。两款共用页面上的 `lab-service/public/games/play/board.js`（格子棋盘、棋子逐格走、骰子动画）。

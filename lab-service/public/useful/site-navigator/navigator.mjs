@@ -1,5 +1,15 @@
-import { fromFile, fromFolderInput, fromHandle, titleOf, packageFiles } from './sources.mjs';
-import { json, mutate, listSites, binding, link, forget, report, audit } from './permissions.mjs';
+import { fromFile, fromFolderInput, fromHandle, titleOf, packageFiles } from './sources.mjs?v=2.4.4.2';
+import {
+  json,
+  mutate,
+  listSites,
+  bindingsFor,
+  readCopy,
+  link,
+  forget,
+  report,
+  audit
+} from './permissions.mjs?v=2.4.4.2';
 import { renderSite } from './viewer.mjs';
 
 const $ = (id) => document.getElementById(id);
@@ -40,6 +50,10 @@ let currentFiles = null,
   pdf = null,
   page = 1,
   renderSeq = 0;
+let reading = false,
+  saving = false,
+  nameEdited = false;
+const useBasicNext = new Set();
 const deep = new URLSearchParams(location.search).get('site');
 let followed = false,
   draftId = null;
@@ -49,7 +63,11 @@ function say(id, message) {
   if (id === 'reader-status') e.hidden = !message;
 }
 function error(e) {
-  if (e?.name !== 'AbortError') say($('drawer').open ? 'form-status' : 'status', e.message || String(e));
+  if (e?.name !== 'AbortError')
+    say(
+      $('drawer').open ? 'form-status' : $('reader').open ? 'reader-status' : 'status',
+      e.message || String(e)
+    );
 }
 const run =
   (fn) =>
@@ -68,7 +86,10 @@ function finishReader() {
   dispose = null;
   currentFiles = null;
   endAsset();
+  if (document.fullscreenElement === $('reader-content')) document.exitFullscreen().catch(() => {});
+  $('reader').classList.remove('maximized');
   if ($('reader').open) $('reader').close();
+  syncFullscreen();
   say('reader-status', '');
 }
 function endAsset() {
@@ -104,14 +125,18 @@ async function refresh() {
     paint();
     return;
   }
-  const id = account,
-    data = await listSites();
+  const id = account;
+  // Only prune bindings observed before this authenticated list request. Another tab may be adding one.
+  const previous = await bindingsFor(id).catch(() => []);
+  const data = await listSites();
   if (token !== refreshSeq || id !== account || data.accountId !== id) return;
-  const bindings = await Promise.all(
-    data.sites.map(async (item) => [item.id, await binding(id, item.id).catch(() => null)])
+  const listed = new Set(data.sites.map((item) => item.id));
+  await Promise.all(
+    previous.filter((r) => !listed.has(r.site)).map((r) => forget(id, r.site).catch(() => {}))
   );
+  const bindings = await bindingsFor(id).catch(() => []);
   if (token !== refreshSeq || id !== account) return;
-  records = new Map(bindings);
+  records = new Map(bindings.map((record) => [record.site, record]));
   sites = data.sites;
   paint();
   if (deep && !followed) {
@@ -120,12 +145,12 @@ async function refresh() {
     if (target) {
       const el = document.getElementById('site-' + target.id);
       el?.scrollIntoView({ block: 'center' });
-      el?.querySelector('button')?.focus();
+      (el?.querySelector('.renew') || el?.querySelector('button'))?.focus();
       say(
         'status',
         t(
-          '点网站名称，可在本机重新授权或关联文件。',
-          'Select the site to renew access or link a file on this device.'
+          '点「重新授权」可恢复读取原文件。已保留副本的网站仍可点名称打开。',
+          'Choose Renew access to read the original again. Sites with a local copy still open by name.'
         )
       );
     }
@@ -180,13 +205,24 @@ function paint() {
     state.textContent =
       item.kind === 'url'
         ? ''
-        : !rec?.handle
-          ? t('关联本机文件', 'Link local file')
-          : rec.last === 'attention'
-            ? t('需要重新授权', 'Renew access')
-            : '';
+        : rec?.hasCopy
+          ? t('已存本机副本', 'Copy on this device')
+          : !rec?.handle
+            ? t('待关联本机文件', 'Link on this device')
+            : rec.last === 'attention'
+              ? t('需要重新授权', 'Access expired')
+              : '';
     const actions = document.createElement('div');
-    if (item.kind !== 'url') actions.append(button(t('关联', 'Relink'), () => editor(item)));
+    if (item.kind !== 'url') {
+      if (rec?.handle && (rec.last === 'attention' || deep === item.id)) {
+        const renew = button(t('重新授权', 'Renew access'), () => openItem(item, true));
+        renew.className = 'renew';
+        actions.append(renew);
+      }
+      actions.append(
+        button(rec?.hasCopy ? t('更新副本', 'Update copy') : t('关联', 'Relink'), () => editor(item))
+      );
+    }
     actions.append(
       button(t('改名', 'Rename'), async () => {
         const uid = account,
@@ -201,7 +237,10 @@ function paint() {
           !confirm(
             t('从导航移除「', 'Remove “') +
               item.name +
-              t('」？本机文件会保留。', '”? Your local files are kept.')
+              t(
+                '」？同时删除此浏览器保存的副本，原文件保留。',
+                '” and its browser copy? The original files are kept.'
+              )
           )
         )
           return;
@@ -216,6 +255,11 @@ function paint() {
   }
 }
 function setMode(value) {
+  if (mode !== value) {
+    pickSeq++;
+    reading = false;
+    $('basic-choice').hidden = true;
+  }
   mode = value;
   $('local-pane').hidden = value === 'url';
   $('url-label').hidden = value !== 'url';
@@ -226,15 +270,41 @@ function setMode(value) {
   setAction();
 }
 function setAction() {
+  $('submit').disabled = saving || (mode === 'local' && (reading || !source?.files.has($('entry').value)));
   $('submit').textContent = wanted
     ? t('关联并打开 →', 'Link and open →')
     : $('remember').checked
       ? t('保存并打开 →', 'Save and open →')
       : t('只打开一次 →', 'Open once →');
+  const localBookmark = mode === 'local' && !!account && $('remember').checked;
+  $('copy-option').hidden = !localBookmark;
+  $('storage-note').textContent = !account
+    ? t('文件保留在本机。登录后可保存导航。', 'Files stay here. Sign in to save a bookmark.')
+    : localBookmark && $('keep-copy').checked
+      ? t(
+          '下次点名称即可打开。副本占用本机空间，账号只同步书签。',
+          'Open by name next time. The copy uses space on this device. Only the bookmark syncs.'
+        )
+      : localBookmark && source && !source.handle
+        ? t(
+            '普通选择只保存书签，下次打开需要重新选择本机文件。',
+            'Only the bookmark will be saved. Select the files again next time.'
+          )
+        : localBookmark
+          ? t('原文件授权有效时可直接打开。', 'Open directly while access to the original is available.')
+          : mode === 'local'
+            ? t('本次打开后不会保存文件。', 'Files are used for this visit only.')
+            : '';
+  $('storage-note').hidden = !$('storage-note').textContent;
 }
 function editor(item = null) {
+  openSeq++;
   pickSeq++;
   source = null;
+  reading = saving = nameEdited = false;
+  useBasicNext.clear();
+  $('basic-choice').hidden = true;
+  $('entry').replaceChildren();
   wanted = item;
   draftId = item?.id || crypto.randomUUID();
   $('editor').reset();
@@ -246,139 +316,192 @@ function editor(item = null) {
   $('remember').checked = !!item;
   $('tab-url').disabled = !!item;
   $('drawer-title').textContent = item
-    ? t('关联本机文件', 'Link on this device')
+    ? records.get(item.id)?.hasCopy
+      ? t('更新本机副本', 'Update local copy')
+      : t('关联本机文件', 'Link on this device')
     : t('添加网站', 'Add a site');
-  $('storage-note').textContent = account
-    ? t(
-        '文件保留在本机，账号只保存导航信息。',
-        'Files stay on this device. Your account stores bookmark details.'
-      )
-    : t('文件保留在本机。登录后可保存导航。', 'Files stay on this device. Sign in to save a bookmark.');
   setMode('local');
+  if (item && !records.get(item.id)?.hasCopy && !records.get(item.id)?.handle) {
+    say(
+      'form-status',
+      t(
+        '此浏览器还没有这份网站。选择一次并保留副本，以后点名称即可打开。',
+        'Choose the original once and keep a copy to open it by name in this browser.'
+      )
+    );
+  }
   if (!$('drawer').open) $('drawer').showModal();
 }
-async function selectSource(promise) {
+function showBasicChoice(kind) {
+  $('basic-choice').hidden = false;
+  $('file').hidden = kind !== 'file';
+  $('folder').hidden = kind !== 'folder';
+}
+function basicPicker(kind) {
+  showBasicChoice(kind);
+  $(kind).click();
+}
+function selectionError(e) {
+  if (e.name === 'AbortError') return t('未收到新的文件选择。', 'No new selection was received.');
+  if (e.name === 'SecurityError' || e.name === 'NotAllowedError')
+    return t('浏览器未允许直接读取所选文件。', 'The browser did not allow direct access.');
+  if (e.name === 'NotReadableError' || e.name === 'NotFoundError')
+    return t('所选内容已移动或暂时无法读取。', 'The selected files moved or cannot be read.');
+  return e.message || t('读取所选内容失败。', 'The selection could not be read.');
+}
+async function selectSource(load, kind, native = false) {
   const seq = ++pickSeq;
-  source = null;
-  $('chosen').hidden = true;
-  $('entry-label').hidden = true;
-  $('submit').disabled = true;
-  say('form-status', t('正在读取本机文件…', 'Reading local files…'));
+  const active = () => seq === pickSeq && $('drawer').open && mode === 'local';
+  reading = true;
+  setAction();
+  if (native) showBasicChoice(kind);
+  say(
+    'form-status',
+    native
+      ? t(
+          '请选择本机文件。也可以使用上面的普通选择。',
+          'Choose local files or use the standard picker above.'
+        )
+      : t('正在读取本机文件…', 'Reading local files…')
+  );
   try {
-    const s = await promise;
-    if (seq !== pickSeq || !$('drawer').open) return;
-    if (wanted && s.kind !== wanted.kind)
+    const next = await load();
+    if (!active()) return;
+    if (wanted && next.kind !== wanted.kind)
       throw Error(t('请选择与原导航相同类型的文件或文件夹', 'Select the same source type as the bookmark'));
-    source = s;
-    $('chosen').textContent = s.label;
-    $('chosen').hidden = false;
-    $('entry').replaceChildren(...s.entries.map((p) => new Option(p, p)));
     const prior = wanted && (records.get(wanted.id)?.entry || wanted.entry);
-    if (prior && s.entries.includes(prior)) $('entry').value = prior;
-    $('entry-label').hidden = false;
-    if (!wanted) $('name').value = await titleOf(s, $('entry').value);
-    if (seq === pickSeq)
-      say(
-        'form-status',
-        s.kind === 'html'
-          ? t(
-              '如果网页还有图片或脚本，请选择它所在的文件夹。',
-              'For additional images or scripts choose the website folder.'
-            )
-          : ''
-      );
+    const entry = next.entries.includes(prior) ? prior : next.entries[0];
+    const title = await titleOf(next, entry);
+    if (!active()) return;
+    source = next;
+    $('entry').replaceChildren(...next.entries.map((path) => new Option(path, path)));
+    $('entry').value = entry;
+    $('chosen').textContent = t('已选择 · ', 'Selected · ') + next.label;
+    $('chosen').hidden = $('entry-label').hidden = false;
+    $('basic-choice').hidden = true;
+    if (!wanted && !nameEdited) $('name').value = title;
+    say(
+      'form-status',
+      next.kind === 'html'
+        ? t(
+            '如果网页还有图片或脚本，请选择它所在的文件夹。',
+            'For additional images or scripts choose the website folder.'
+          )
+        : ''
+    );
+  } catch (e) {
+    if (!active()) return;
+    const message = selectionError(e);
+    if (native) {
+      useBasicNext.add(kind);
+      showBasicChoice(kind);
+      say('form-status', message + ' ' + t('请用上面的普通选择重试。', 'Try the standard picker above.'));
+    } else {
+      say('form-status', message);
+    }
   } finally {
-    if (seq === pickSeq) $('submit').disabled = false;
+    if (active()) {
+      reading = false;
+      setAction();
+    }
   }
 }
-async function choose(folder) {
-  if (folder && window.showDirectoryPicker) {
-    const h = await window.showDirectoryPicker({ mode: 'read' });
-    return selectSource(fromHandle(h));
-  }
-  if (!folder && window.showOpenFilePicker) {
-    const [h] = await window.showOpenFilePicker({
-      types: [
-        { description: 'HTML / ZIP', accept: { 'text/html': ['.html', '.htm'], 'application/zip': ['.zip'] } }
-      ]
-    });
-    return selectSource(fromHandle(h));
-  }
-  const input = $(folder ? 'folder' : 'file');
-  input.value = '';
-  input.click();
+function choose(kind) {
+  const directory = kind === 'folder';
+  const picker = directory ? window.showDirectoryPicker : window.showOpenFilePicker;
+  if (typeof picker !== 'function' || useBasicNext.has(kind)) return basicPicker(kind);
+  return selectSource(
+    async () => {
+      const handle = directory
+        ? await window.showDirectoryPicker({ mode: 'read' })
+        : (
+            await window.showOpenFilePicker({
+              types: [
+                {
+                  description: 'HTML / ZIP',
+                  accept: { 'text/html': ['.html', '.htm'], 'application/zip': ['.zip'] }
+                }
+              ]
+            })
+          )[0];
+      if (!handle) throw new DOMException('No selection', 'AbortError');
+      return fromHandle(handle);
+    },
+    kind,
+    true
+  );
 }
-async function openItem(item) {
-  const uid = account;
+async function openItem(item, renew = false) {
+  const uid = account,
+    seq = ++openSeq;
+  const active = () => uid === account && seq === openSeq;
   if (item.kind === 'url') {
     await verify(uid);
-    location.assign(item.url);
+    if (active()) location.assign(item.url);
     return;
   }
   const rec = records.get(item.id);
-  if (!rec?.handle) {
-    editor(item);
-    return;
-  }
-  try {
-    const p = await rec.handle.queryPermission({ mode: 'read' });
-    if (p !== 'granted') {
-      // The permission prompt belongs to the user's click. Report the observation concurrently.
-      const [decision] = await Promise.all([
-        rec.handle.requestPermission({ mode: 'read' }),
-        report(rec, 'attention')
-      ]);
-      if (decision !== 'granted') {
-        editor(item);
-        say(
-          'form-status',
-          t(
-            '未获得读取授权。你可以重新选择本机文件。',
-            'Read access was declined. Choose a local file to relink.'
-          )
-        );
-        return;
+  if (!rec?.handle && !rec?.hasCopy) return editor(item);
+  say('status', t('正在打开网站…', 'Opening website…'));
+  let files,
+    entry = rec.entry || item.entry;
+  if (rec.handle) {
+    try {
+      let permission = await rec.handle.queryPermission({ mode: 'read' });
+      if (!active()) return;
+      if (permission !== 'granted') {
+        // Only explicit renewal (or a bookmark with no copy) should interrupt the user's click.
+        const decision =
+          renew || !rec.hasCopy
+            ? rec.handle.requestPermission({ mode: 'read' })
+            : Promise.resolve(permission);
+        [permission] = await Promise.all([decision, report(rec, 'attention').catch(() => {})]);
       }
+      if (!active()) return;
+      if (permission === 'granted') {
+        await report(rec, 'ready').catch(() => {});
+        const live = await fromHandle(rec.handle);
+        if (live.files.has(entry)) files = await packageFiles(live);
+      }
+    } catch (e) {
+      if (!active()) return;
+      if (['NotAllowedError', 'SecurityError'].includes(e.name))
+        await report(rec, 'attention').catch(() => {});
+      else if (!rec.hasCopy && !['NotFoundError', 'NotReadableError'].includes(e.name)) throw e;
     }
-    await verify(uid);
-    await report(rec, 'ready');
-    await showSite(await fromHandle(rec.handle), rec.entry || item.entry, item.name);
-    paint();
-  } catch (e) {
-    if (e.name === 'NotFoundError' || e.name === 'NotAllowedError' || e.name === 'SecurityError') {
-      if (e.name !== 'NotFoundError') await report(rec, 'attention').catch(() => {});
-      editor(item);
-      say(
-        'form-status',
-        t(
-          '文件已移动，或需要重新允许读取。请选择原网站。',
-          'The file moved or needs permission. Choose the site again.'
-        )
-      );
-      return;
-    }
-    throw e;
   }
+  if (!active()) return;
+  const useCopy = !files;
+  if (useCopy && rec.hasCopy) {
+    const copy = await readCopy(uid, item.id);
+    if (copy?.files?.has(copy.entry)) {
+      files = copy.files;
+      entry = copy.entry;
+    }
+  }
+  if (!active()) return;
+  await verify(uid);
+  if (!active()) return;
+  say('status', '');
+  paint();
+  if (files) return showSite(files, entry, item.name, useCopy);
+  editor(item);
+  say(
+    'form-status',
+    t(
+      '此浏览器暂时无法读取原文件。选择一次并保留副本，以后点名称即可打开。',
+      'Choose the original and keep a local copy to open it by name in this browser.'
+    )
+  );
 }
-async function showSite(s, entry, name) {
-  if (!s.files.has(entry)) throw Error('已保存的入口不存在，请点“关联”重新选择。');
+function showSite(files, entry, name, isCopy = false) {
   finishReader();
-  const seq = ++openSeq;
   $('reader-title').textContent = name;
+  $('copy-badge').hidden = !isCopy;
   $('reader').showModal();
-  say('reader-status', t('正在本机准备网站…', 'Preparing website on this device…'));
-  try {
-    const files = await packageFiles(s);
-    if (seq !== openSeq) return;
-    currentFiles = files;
-    root = entry.split('/').slice(0, -1).join('/');
-    showHTML(entry, '');
-  } catch (e) {
-    if (seq === openSeq) {
-      finishReader();
-      throw e;
-    }
-  }
+  currentFiles = files;
+  root = entry.split('/').slice(0, -1).join('/');
+  showHTML(entry, '');
 }
 function showHTML(path, hash) {
   dispose?.();
@@ -455,7 +578,9 @@ async function displayAsset(path, hash) {
 }
 $('editor').onsubmit = run(async (e) => {
   e.preventDefault();
-  $('submit').disabled = true;
+  if ($('submit').disabled) return;
+  saving = true;
+  setAction();
   try {
     const uid = account,
       name = $('name').value.trim();
@@ -474,25 +599,61 @@ $('editor').onsubmit = run(async (e) => {
         throw Error('请输入 http(s) 网址。本机磁盘路径请切换到「本地文件」。');
       url = u.href;
     } else if (!s || !s.files.has(entry)) throw Error('请先选择本机文件或文件夹');
+    const id = draftId,
+      seq = pickSeq;
+    const active = () => $('drawer').open && seq === pickSeq && uid === account;
+    const copy = !url && keep && $('keep-copy').checked;
+    if (!url)
+      say(
+        'form-status',
+        copy ? t('正在准备本机副本…', 'Preparing local copy…') : t('正在读取网站…', 'Reading website…')
+      );
+    const files = url ? null : await packageFiles(s, copy);
+    if (!active()) return;
     if (item || keep) {
       await verify(uid);
-      const id = draftId,
-        canonical = { id, name, kind: url ? 'url' : s.kind, entry: url ? '' : entry, url };
-      if (!item) await mutate('', uid, canonical);
-      if (!url) {
+      if (!active()) return;
+      if (!item) {
+        const created = await mutate('', uid, {
+          id,
+          name,
+          kind: url ? 'url' : s.kind,
+          entry: url ? '' : entry,
+          url
+        });
+        if (!active()) return;
+        // An IDB failure can be retried on this same bookmark.
+        if (!url) {
+          wanted = created.site;
+          $('remember').disabled = $('name').readOnly = $('tab-url').disabled = true;
+        }
+      }
+      if (!url && (records.get(id) || s.handle || copy)) {
         try {
-          await link(uid, id, s.handle, entry);
-        } catch {
-          say('status', '导航已保存，此浏览器暂时无法记住文件。下次可重新关联。');
+          await link(uid, id, s.handle, entry, copy ? files : null);
+        } catch (e) {
+          const reason =
+            e.name === 'QuotaExceededError'
+              ? t('本机存储空间不足。', 'This device is out of storage.')
+              : t('浏览器无法写入本机存储。', 'Browser storage is unavailable.');
+          throw Error(
+            reason +
+              t(
+                '书签已保留。可释放空间再试，或取消保留副本。',
+                'Your bookmark is saved. Free up space or turn off the local copy.'
+              )
+          );
         }
       }
       await refresh();
+      if (!active()) return;
     }
     $('drawer').close();
     if (url) location.assign(url);
-    else await showSite(s, entry, name);
+    else showSite(files, entry, name, copy && !s.handle);
   } finally {
-    $('submit').disabled = false;
+    saving = false;
+    setAction();
   }
 });
 $('search').oninput = paint;
@@ -502,23 +663,64 @@ $('drop').onclick = () => {
 };
 $('cancel').onclick = () => $('drawer').close();
 $('drawer').addEventListener('close', () => {
+  if ($('drawer').open) return;
+  if (!$('reader').open && account) refresh().catch(error);
   pickSeq++;
   source = wanted = null;
-  $('submit').disabled = false;
+  reading = false;
+  setAction();
 });
 $('tab-local').onclick = () => setMode('local');
 $('tab-url').onclick = () => setMode('url');
-$('remember').onchange = setAction;
-$('pick-file').onclick = run(() => choose(false));
-$('pick-folder').onclick = run(() => choose(true));
-$('file').onchange = run(() => {
-  if ($('file').files[0]) return selectSource(fromFile($('file').files[0]));
-});
-$('folder').onchange = run(() => {
-  if ($('folder').files.length) return selectSource(fromFolderInput($('folder').files));
-});
+$('remember').onchange = $('keep-copy').onchange = setAction;
+$('name').oninput = () => {
+  nameEdited = !!$('name').value.trim();
+};
+$('pick-file').onclick = run(() => choose('file'));
+$('pick-folder').onclick = run(() => choose('folder'));
+for (const kind of ['file', 'folder']) {
+  const input = $(kind);
+  input.onclick = () => {
+    // Selecting again (including the same file) supersedes any unresolved native picker.
+    pickSeq++;
+    reading = false;
+    input.value = '';
+    setAction();
+    say(
+      'form-status',
+      kind === 'folder'
+        ? t('请选择包含 HTML 的网站文件夹。', 'Choose a website folder containing an HTML file.')
+        : t('请选择 HTML 或 ZIP 文件。', 'Choose an HTML or ZIP file.')
+    );
+  };
+  const empty = () => {
+    if (!$('drawer').open || mode !== 'local') return;
+    say(
+      'form-status',
+      source
+        ? t('已保留上一次的选择。', 'Your previous selection is still ready.')
+        : kind === 'folder'
+          ? t(
+              '没有收到文件，请选择包含 HTML 的网站文件夹。',
+              'No files received. Choose a folder containing HTML.'
+            )
+          : t('没有收到文件，请重新选择 HTML 或 ZIP。', 'No file received. Choose an HTML or ZIP file again.')
+    );
+    setAction();
+  };
+  input.oncancel = empty;
+  input.onchange = run(() => {
+    const files = Array.from(input.files);
+    if (!files.length) return empty();
+    return selectSource(() => (kind === 'folder' ? fromFolderInput(files) : fromFile(files[0])), kind);
+  });
+}
 $('entry').onchange = run(async () => {
-  if (source && !wanted) $('name').value = await titleOf(source, $('entry').value);
+  const selected = source,
+    entry = $('entry').value;
+  if (!selected || wanted || nameEdited) return;
+  const title = await titleOf(selected, entry);
+  if (source === selected && $('entry').value === entry && !nameEdited) $('name').value = title;
 });
 $('url').onchange = () => {
   try {
@@ -534,26 +736,57 @@ for (const el of [$('drop'), $('local-pane')]) {
   el.ondrop = run(async (e) => {
     e.preventDefault();
     el.classList.remove('drag');
-    const dt = e.dataTransfer,
-      first = dt.items[0],
-      handle = first?.getAsFileSystemHandle?.(),
-      raw = dt.files[0];
+    const item = e.dataTransfer.items[0],
+      raw = e.dataTransfer.files[0];
+    const kind = item?.webkitGetAsEntry?.()?.isDirectory ? 'folder' : 'file';
     if (!$('drawer').open) editor();
     setMode('local');
-    const h = handle ? await handle : null;
-    if (h) return selectSource(fromHandle(h));
-    if (raw && /\.(html?|zip)$/i.test(raw.name)) return selectSource(fromFile(raw));
-    say('form-status', '请用“选择文件夹”打开网站目录。');
+    return selectSource(async () => {
+      let handle;
+      try {
+        handle = await item?.getAsFileSystemHandle?.();
+      } catch (e) {
+        if (!raw || kind === 'folder') throw e;
+      }
+      if (handle) return fromHandle(handle);
+      if (raw && kind === 'file') return fromFile(raw);
+      showBasicChoice('folder');
+      throw Error(
+        t('请用普通文件选择打开网站目录。', 'Use the standard folder picker to open the website directory.')
+      );
+    }, kind);
   });
 }
 $('leave').onclick = finishReader;
 $('reader').addEventListener('cancel', (e) => {
   e.preventDefault();
-  finishReader();
+  if ($('reader').classList.contains('maximized')) {
+    $('reader').classList.remove('maximized');
+    syncFullscreen();
+  } else finishReader();
 });
-$('full').onclick = run(() =>
-  document.fullscreenElement ? document.exitFullscreen() : $('reader').requestFullscreen()
-);
+function syncFullscreen() {
+  const on = !!document.fullscreenElement || $('reader').classList.contains('maximized');
+  const label = on ? t('退出全屏', 'Exit fullscreen') : t('全屏', 'Fullscreen');
+  $('full').setAttribute('aria-label', label);
+  $('full').setAttribute('aria-pressed', String(on));
+  $('full').title = label;
+}
+document.addEventListener('fullscreenchange', syncFullscreen);
+$('full').onclick = run(async () => {
+  const reader = $('reader'),
+    content = $('reader-content');
+  if (document.fullscreenElement === content) await document.exitFullscreen();
+  else if (reader.classList.contains('maximized')) reader.classList.remove('maximized');
+  else {
+    try {
+      await content.requestFullscreen();
+    } catch {
+      if (reader.open) reader.classList.add('maximized');
+    }
+  }
+  syncFullscreen();
+});
 $('back-asset').onclick = endAsset;
 $('prev').onclick = run(() => pdfPage(page - 1));
 $('next').onclick = run(() => pdfPage(page + 1));
